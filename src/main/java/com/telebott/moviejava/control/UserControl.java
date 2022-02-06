@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/user")
 public class UserControl {
-    @GetMapping("/login")
+    @PostMapping("/login")
     public ResultData test(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
         return data;
