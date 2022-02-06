@@ -9,5 +9,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UsersDao extends JpaRepository<Users, Integer>, CrudRepository<Users, Integer> {
-    Users findAllById(int id);
+    Users findAllById(long id);
 }

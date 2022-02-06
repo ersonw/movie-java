@@ -25,11 +25,10 @@ import java.util.Map;
 @WebFilter(filterName = "myFilter", urlPatterns = "/")
 @Order(10000)
 public class MyFilter implements Filter {
-    @Autowired
     private AuthDao authDao;
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-
+        authDao = new AuthDao();
     }
 
     @Override
