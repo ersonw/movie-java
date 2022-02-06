@@ -11,8 +11,8 @@ import lombok.*;
 @Getter
 @ToString
 public class RequestData {
-    @JsonProperty(value = "uid", required = false)
-    private String uid;
+    @JsonProperty(value = "identifier", required = false)
+    private String identifier;
     @JsonProperty(value = "user", required = false)
     private String user;
     public Users getUser() {
