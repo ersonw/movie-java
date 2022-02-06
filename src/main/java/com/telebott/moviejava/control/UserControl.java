@@ -11,6 +11,7 @@ public class UserControl {
     @PostMapping("/login")
     public ResultData test(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
+        System.out.println(requestData.getUid());
         return data;
     }
 }
