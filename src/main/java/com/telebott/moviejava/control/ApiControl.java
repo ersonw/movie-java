@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api")
 public class ApiControl {
-    @GetMapping("/test")
-    public ResultData test(@ModelAttribute RequestData requestData){
+    @GetMapping("/getConfig")
+    public ResultData getConfig(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
         return data;
     }

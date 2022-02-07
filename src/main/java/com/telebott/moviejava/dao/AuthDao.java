@@ -40,7 +40,7 @@ public class AuthDao {
     public void popCode(JSONObject code){
         redisTemplate.opsForSet().remove("Code" ,code.toJSONString());
     }
-    public void pushAdminUser(Users userToken){
+    public void pushUser(Users userToken){
         Set users = redisTemplate.opsForSet().members("Users");
         assert users != null;
 //        System.out.println(users.toString());
@@ -48,25 +48,25 @@ public class AuthDao {
             ObjectMapper objectMapper = new ObjectMapper();
             Users userEntity = objectMapper.convertValue(user, Users.class);
             if (userEntity.getId().equals(userToken.getId()) || userEntity.getToken().equals(userToken.getToken())){
-                popAdminUser(userEntity);
+                popUser(userEntity);
             }
         }
         redisTemplate.opsForSet().add("Users",userToken);
     }
-    public void updateAdminUser(String token){
-        Users user = findAdminUserByToken(token);
+    public void updateUser(String token){
+        Users user = findUserByToken(token);
         if (user != null){
             user = usersDao.findAllById(user.getId());
             if (user != null){
                 user.setToken(token);
-                pushAdminUser(user);
+                pushUser(user);
             }
         }
     }
-    public void popAdminUser(Users userToken){
+    public void popUser(Users userToken){
         redisTemplate.opsForSet().remove("Users" ,userToken);
     }
-    public Users findAdminUserByToken(String token) {
+    public Users findUserByToken(String token) {
         Set users = redisTemplate.opsForSet().members("Users");
         assert users != null;
         for (Object user: users) {
@@ -78,7 +78,7 @@ public class AuthDao {
         }
         return null;
     }
-    public Set getAllUserAdmin(){
+    public Set getAllUser(){
         return redisTemplate.opsForSet().members("Users");
     }
 }

@@ -28,6 +28,7 @@ public class Users {
     private String phone;
     private String invite;
     private String avatar;
+    private String uid;
     @Transient
     private String token;
 }
