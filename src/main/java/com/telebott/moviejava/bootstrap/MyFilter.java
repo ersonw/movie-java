@@ -47,7 +47,7 @@ public class MyFilter implements Filter {
                     JSONObject jsStr = JSONObject.parseObject(postContent);
                     String token = ((HttpServletRequest) req).getHeader("Token");
                     if (StringUtils.isNotEmpty(token)){
-                        Users user = authDao.findAdminUserByToken(token);
+                        Users user = authDao.findUserByToken(token);
                         if (user != null){
                             jsStr.put("user", JSONObject.toJSONString(user));
                         }
@@ -69,7 +69,7 @@ public class MyFilter implements Filter {
                 //对请求参数进行处理
                 String token = ((HttpServletRequest) req).getHeader("Token");
                 if (StringUtils.isNotEmpty(token)){
-                    Users user = authDao.findAdminUserByToken(token);
+                    Users user = authDao.findUserByToken(token);
                     if (user != null){
                         parameterMap.put("user", new String[]{JSONObject.toJSONString(user)});
                     }
@@ -80,7 +80,7 @@ public class MyFilter implements Filter {
 //                //对请求参数进行处理
                 String token = ((HttpServletRequest) req).getHeader("Token");
                 if (StringUtils.isNotEmpty(token)){
-                    Users user = authDao.findAdminUserByToken(token);
+                    Users user = authDao.findUserByToken(token);
                     if (user != null){
                         Map<String, String[]> parameterMap =new HashMap(request.getParameterMap());
 //                        parameterMap.put("user", new String[]{JSON.toJSONString(user)});
