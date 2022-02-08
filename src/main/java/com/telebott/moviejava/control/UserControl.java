@@ -6,6 +6,7 @@ import com.telebott.moviejava.entity.ResultData;
 import com.telebott.moviejava.entity.Users;
 import com.telebott.moviejava.service.UserService;
 import com.telebott.moviejava.util.MD5Util;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.util.Objects;
 import java.util.Random;
 
 @RestController
@@ -31,6 +33,10 @@ public class UserControl {
     @PostMapping("/bindPhone")
     public ResultData bindPhone(@RequestBody RequestData requestData){
         ResultData data = new ResultData();
+//        String salt = RandomStringUtils.randomAlphanumeric(32);
+//        MD5Util md5Util = new MD5Util(salt);
+//        users.setSalt(salt);
+//        users.setPassword(md5Util.getPassWord(md5Util.getMD5(users.getPassword())));
         return data;
     }
     @PostMapping("/info")
@@ -55,15 +61,15 @@ public class UserControl {
                 users.setUid(md5Util.getMD5(requestData.getIdentifier()));
                 users.setAvatar("http://htm-download.oss-cn-hongkong.aliyuncs.com/default_head.gif");
 //                userService._save(users);
-                users.setToken(getToken());
-                authDao.pushUser(users);
             }
+            users.setToken(getToken());
+            authDao.pushUser(users);
         }
         data.setData(userService.getResult(users));
         return data;
     }
     private String getToken(){
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpSession session = request.getSession();
         return session.getId().replaceAll("-","");
     }
