@@ -19,7 +19,7 @@ public class UserService {
     @Autowired
     private AuthDao authDao;
     public void _save(Users users){
-        usersDao.save(users);
+        usersDao.saveAndFlush(users);
     }
     public Users loginByIdentifier(String identifier){
         return usersDao.findAllByIdentifier(identifier);
@@ -31,6 +31,10 @@ public class UserService {
             object.put("uid", users.getUid());
             object.put("token", users.getToken());
             object.put("phone", users.getPhone());
+            object.put("avatar",users.getAvatar());
+            object.put("gold",users.getGold());
+            object.put("diamond", users.getDiamond());
+            object.put("invite",users.getInvite());
         }
         return object;
     }

@@ -20,15 +20,15 @@ public class AuthInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
         String token = request.getHeader("Token");
         System.out.println(token);
-//        if (StringUtils.isEmpty(token)){
-//            response.setStatus(501);
-//            return false;
-//        }
-//        Users user = authDao.findAdminUserByToken(token);
-//        if (user == null){
-//            response.setStatus(502);
-//            return false;
-//        }
+        if (StringUtils.isEmpty(token)){
+            response.setStatus(105);
+            return false;
+        }
+        Users user = authDao.findUserByToken(token);
+        if (user == null){
+            response.setStatus(106);
+            return false;
+        }
 //        if(!Global.authRoles(user.getRoles())){
 //            response.setStatus(500);
 //        }

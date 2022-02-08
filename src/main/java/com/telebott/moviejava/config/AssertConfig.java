@@ -38,8 +38,9 @@ public class AssertConfig implements WebMvcConfigurer {
         exclude.add("/css/**");
         exclude.add("/js/**");
         exclude.add("/img/**");
-        exclude.add("/api/login");
-        exclude.add("/api/register");
+        exclude.add("/api/user/info");
+        exclude.add("/api/user/login");
+        exclude.add("/api/user/bindPhone");
         exclude.add("/*");
         AuthInterceptor authInterceptor = new AuthInterceptor(authDao);
         registry.addInterceptor(authInterceptor).addPathPatterns("/**")

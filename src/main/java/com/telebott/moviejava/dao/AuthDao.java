@@ -68,12 +68,13 @@ public class AuthDao {
     }
     public Users findUserByToken(String token) {
         Set users = redisTemplate.opsForSet().members("Users");
-        assert users != null;
-        for (Object user: users) {
-            ObjectMapper objectMapper = new ObjectMapper();
-            Users userEntity = objectMapper.convertValue(user,Users.class);
-            if (userEntity.getToken().equals(token)){
-                return userEntity;
+        if (users != null){
+            for (Object user: users) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                Users userEntity = objectMapper.convertValue(user,Users.class);
+                if (userEntity.getToken().equals(token)){
+                    return userEntity;
+                }
             }
         }
         return null;
