@@ -7,5 +7,6 @@ public class WebSocketUtil {
     public static final int login = 100;
     public static final int login_success = 101;
     public static final int login_fail = 102;
-
+    public static final int message_kefu_send = 103;
+    public static final int message_kefu_recevie = 104;
 }

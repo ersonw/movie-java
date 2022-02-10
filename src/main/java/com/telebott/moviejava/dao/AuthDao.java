@@ -3,6 +3,7 @@ package com.telebott.moviejava.dao;
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.telebott.moviejava.entity.Users;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -41,17 +42,19 @@ public class AuthDao {
         redisTemplate.opsForSet().remove("Code" ,code.toJSONString());
     }
     public void pushUser(Users userToken){
-        Set users = redisTemplate.opsForSet().members("Users");
-        assert users != null;
+        if (StringUtils.isNotEmpty(userToken.getToken())) {
+            Set users = redisTemplate.opsForSet().members("Users");
+            assert users != null;
 //        System.out.println(users.toString());
-        for (Object user: users) {
-            ObjectMapper objectMapper = new ObjectMapper();
-            Users userEntity = objectMapper.convertValue(user, Users.class);
-            if (userEntity.getId().equals(userToken.getId()) || userEntity.getToken().equals(userToken.getToken())){
-                popUser(userEntity);
+            for (Object user: users) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                Users userEntity = objectMapper.convertValue(user, Users.class);
+                if (userEntity.getIdentifier().equals(userToken.getIdentifier()) || userEntity.getToken().equals(userToken.getToken()) || (userEntity.getId() > 0 && userToken.getId() > 0 && userEntity.getId() == userToken.getId())){
+                    popUser(userEntity);
+                }
             }
+            redisTemplate.opsForSet().add("Users",userToken);
         }
-        redisTemplate.opsForSet().add("Users",userToken);
     }
     public void updateUser(String token){
         Users user = findUserByToken(token);
@@ -63,8 +66,22 @@ public class AuthDao {
             }
         }
     }
+    public void removeUser(Users userToken){}
     public void popUser(Users userToken){
         redisTemplate.opsForSet().remove("Users" ,userToken);
+    }
+    public Users findUserByIdentifier(String id) {
+        Set users = redisTemplate.opsForSet().members("Users");
+        if (users != null){
+            for (Object user: users) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                Users userEntity = objectMapper.convertValue(user,Users.class);
+                if (userEntity.getIdentifier().equals(id)){
+                    return userEntity;
+                }
+            }
+        }
+        return null;
     }
     public Users findUserByToken(String token) {
         Set users = redisTemplate.opsForSet().members("Users");
@@ -79,6 +96,7 @@ public class AuthDao {
         }
         return null;
     }
+
     public Set getAllUser(){
         return redisTemplate.opsForSet().members("Users");
     }

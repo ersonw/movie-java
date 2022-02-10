@@ -26,7 +26,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Getter
 public class ServerWebSocket {
     @Autowired
-    private AuthDao authDao;
+    private  AuthDao authDao;
+    private static ServerWebSocket serverWebSocket;
     /**
      * 在线人数
      */
@@ -46,7 +47,8 @@ public class ServerWebSocket {
     private final Timer timer = new Timer();
     @PostConstruct
     public void init() {
-        System.out.println("websocket 加载");
+//        System.out.println("websocket 加载");
+        serverWebSocket = this;
     }
     /**
      * 出现错误
@@ -55,7 +57,7 @@ public class ServerWebSocket {
      */
     @OnError
     public void onError(Session session, Throwable error) {
-//        error.printStackTrace();
+        error.printStackTrace();
     }
     /**
      * 建立连接
@@ -73,7 +75,7 @@ public class ServerWebSocket {
                 sendMessage("H");
                 getKeFuMessages();
             }
-        },0, 1000 * 10);
+        },500, 1000 * 10);
         System.out.println("session:"+session.getId()+" 当前在线人数" + onlineNumber);
     }
     private void getKeFuMessages(){
@@ -98,7 +100,7 @@ public class ServerWebSocket {
      */
     @OnMessage
     public void onMessage(String message, Session session) {
-        System.out.println(message);
+//        System.out.println(message);
         JSONObject object = JSONObject.parseObject(message);
         if (object == null) return;
         WebSocketData data = JSONObject.toJavaObject(object, WebSocketData.class);
@@ -110,7 +112,7 @@ public class ServerWebSocket {
         JSONObject data = JSONObject.parseObject(webSocketData.getData());
         switch (webSocketData.getCode()) {
             case WebSocketUtil.login:
-                handleLogin(data.get("token").toString());
+                handleLogin(data);
                 break;
             default:
                 webSocketData.setMessage("未识别消息!");
@@ -119,11 +121,11 @@ public class ServerWebSocket {
         }
     }
 
-    private void handleLogin(String token) {
+    private void handleLogin(JSONObject object) {
         WebSocketData data = new WebSocketData();
-        data.setCode(WebSocketUtil.login);
-        if (StringUtils.isNotEmpty(token)) {
-            Users users = authDao.findUserByToken(token);
+        if (object != null && object.get("token") != null) {
+            String token = object.get("token").toString();
+            Users users = serverWebSocket.authDao.findUserByToken(token);
             if (users != null) {
                 this.token = token;
                 data.setCode(WebSocketUtil.login_success);
