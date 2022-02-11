@@ -47,7 +47,7 @@ public class MyFilter implements Filter {
                     //修改、新增、删除参数
                     JSONObject jsStr = JSONObject.parseObject(postContent);
                     String token = ((HttpServletRequest) req).getHeader("Token");
-                    System.out.println(token);
+//                    System.out.println(token);
                     if (StringUtils.isNotEmpty(token)){
                         Users user = authDao.findUserByToken(token);
                         if (user != null){

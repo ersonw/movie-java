@@ -34,8 +34,8 @@ public class AliOssUtil {
         rest();
     }
     public static void rest(){
-        accessKey = self.configService.getValueByKey("accessKey");
-        accessSecret = self.configService.getValueByKey("accessSecret");
+        accessKey = self.configService.getValueByKey("accessKey_ram");
+        accessSecret = self.configService.getValueByKey("accessSecret_ram");
         regionld = self.configService.getValueByKey("regionld");
         roleArn = self.configService.getValueByKey("roleArn");
         roleSessionName = self.configService.getValueByKey("roleSessionName");
@@ -64,7 +64,13 @@ public class AliOssUtil {
         try {
             AssumeRoleResponse response = client.getAcsResponse(request);
 //            System.out.println();
-            return JSONObject.parseObject(new Gson().toJson(response)).get("credentials").toString();
+            JSONObject object = JSONObject.parseObject(JSONObject.parseObject(new Gson().toJson(response)).get("credentials").toString());
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("SecurityToken", object.get("securityToken").toString());
+            jsonObject.put("AccessKeyId", object.get("accessKeyId").toString());
+            jsonObject.put("AccessKeySecret", object.get("accessKeySecret").toString());
+            jsonObject.put("Expiration", object.get("expiration").toString());
+            return jsonObject.toString();
         } catch (ServerException e) {
             e.printStackTrace();
         } catch (ClientException e) {
