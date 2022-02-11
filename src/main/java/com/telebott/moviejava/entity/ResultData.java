@@ -10,7 +10,7 @@ import lombok.ToString;
 @ToString
 public class ResultData {
     private int code = 200;
-    private JSONObject data = null;
+    private JSONObject data = new JSONObject();
     private String message = "";
     public String getData(){
         return data.toJSONString();

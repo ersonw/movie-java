@@ -1,10 +1,13 @@
 package com.telebott.moviejava.control;
 
+import com.alibaba.fastjson.JSONObject;
 import com.telebott.moviejava.dao.AuthDao;
 import com.telebott.moviejava.entity.RequestData;
 import com.telebott.moviejava.entity.ResultData;
+import com.telebott.moviejava.entity.UploadData;
 import com.telebott.moviejava.entity.Users;
 import com.telebott.moviejava.service.UserService;
+import com.telebott.moviejava.util.AliOssUtil;
 import com.telebott.moviejava.util.MD5Util;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -46,6 +49,7 @@ public class UserControl {
         Users users = null;
         if (requestData.getUser() != null){
             users = requestData.getUser();
+//            System.out.println(users.getIdentifier());
         }else if (StringUtils.isNotEmpty(requestData.getIdentifier())){
             users = userService.loginByIdentifier(requestData.getIdentifier());
             if (users == null){
@@ -78,9 +82,12 @@ public class UserControl {
         data.setData(userService.getResult(users));
         return data;
     }
-//    private String getToken(HttpSession session){
-//        return session.getId().replaceAll("-","");
-//    }
+    @GetMapping("getStsAccount")
+    public ResultData getStsAccount(@ModelAttribute UploadData uploadData){
+        ResultData data = new ResultData();
+        data.setData(JSONObject.parseObject(AliOssUtil.getToken()));
+        return data;
+    }
     private String getToken(){
 //        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
 //        HttpSession session = request.getSession();
