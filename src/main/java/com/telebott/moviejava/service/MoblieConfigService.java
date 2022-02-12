@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 public class MoblieConfigService {
     @Autowired
     private MoblieConfigDao moblieConfigDao;
+    @Autowired
+    private SystemConfigService systemConfigService;
     public void save(MoblieConfig config){
         moblieConfigDao.save(config);
     }
@@ -28,6 +30,11 @@ public class MoblieConfigService {
             object.put("hash",config.getHash());
             object.put("autoLogin", config.getAutoLogin() > 0);
             object.put("bootImage", config.getBootImage());
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("bucketName", systemConfigService.getValueByKey("bucketName"));
+            jsonObject.put("endpoint", systemConfigService.getValueByKey("endpoint"));
+            jsonObject.put("ossName", systemConfigService.getValueByKey("ossName"));
+            object.put("ossConfig", jsonObject);
         }
         return object;
     }

@@ -1,6 +1,8 @@
 package com.telebott.moviejava.bootstrap;
 
 import com.telebott.moviejava.dao.AuthDao;
+import com.telebott.moviejava.dao.RedisDao;
+import com.telebott.moviejava.entity.KeFuMessage;
 import com.telebott.moviejava.entity.Users;
 import com.telebott.moviejava.entity.WebSocketChannel;
 import com.telebott.moviejava.util.WebSocketUtil;
@@ -26,8 +28,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Getter
 public class ServerWebSocket {
     @Autowired
-    private  AuthDao authDao;
-    private static ServerWebSocket serverWebSocket;
+    private AuthDao authDao;
+    @Autowired
+    private RedisDao redisDao;
+    private static ServerWebSocket self;
     /**
      * 在线人数
      */
@@ -42,16 +46,19 @@ public class ServerWebSocket {
      * 会话
      */
     private Session session;
-    private String channelId;
     private String token;
+    private Users user;
     private final Timer timer = new Timer();
+
     @PostConstruct
     public void init() {
 //        System.out.println("websocket 加载");
-        serverWebSocket = this;
+        self = this;
     }
+
     /**
      * 出现错误
+     *
      * @param session
      * @param error
      */
@@ -59,6 +66,7 @@ public class ServerWebSocket {
     public void onError(Session session, Throwable error) {
         error.printStackTrace();
     }
+
     /**
      * 建立连接
      *
@@ -73,14 +81,22 @@ public class ServerWebSocket {
             @Override
             public void run() {
                 sendMessage("H");
-                getKeFuMessages();
             }
-        },500, 1000 * 10);
-        System.out.println("session:"+session.getId()+" 当前在线人数" + onlineNumber);
+        }, 500, 1000 * 10);
+        System.out.println("session:" + session.getId() + " 当前在线人数" + onlineNumber);
     }
-    private void getKeFuMessages(){
 
+    private void _checkReconnet() {
+        if (user == null || user.getId() == 0) return;
+        for (WebSocketChannel channel: webSocketChannels) {
+            for (int uid: channel.getUsers()) {
+                if (uid == user.getId()){
+
+                }
+            }
+        }
     }
+
     /**
      * 连接关闭
      */
@@ -114,6 +130,9 @@ public class ServerWebSocket {
             case WebSocketUtil.login:
                 handleLogin(data);
                 break;
+            case WebSocketUtil.message_kefu_sending:
+                handlerKeFuMessage(data);
+                break;
             default:
                 webSocketData.setMessage("未识别消息!");
                 sendMessage(webSocketData);
@@ -121,13 +140,36 @@ public class ServerWebSocket {
         }
     }
 
+    private void handlerKeFuMessage(JSONObject object) {
+        WebSocketData data = new WebSocketData();
+        KeFuMessage message = JSONObject.toJavaObject(object, KeFuMessage.class);
+        String id = message.getId();
+        if (user == null || user.getId() == 0) {
+            message = new KeFuMessage();
+            message.setId(id);
+            data.setCode(WebSocketUtil.message_kefu_send_fail);
+            data.setMessage("未绑定手机号或未注册用户部分功能受限！");
+            data.setData(JSONObject.toJSONString(message));
+            sendMessage(data);
+            return;
+        }
+        message.setUid(user.getId());
+        self.redisDao.putKeFuMessage(message);
+        message = new KeFuMessage();
+        message.setId(id);
+        data.setCode(WebSocketUtil.message_kefu_send_success);
+        data.setData(JSONObject.toJSONString(message));
+        sendMessage(data);
+    }
+
     private void handleLogin(JSONObject object) {
         WebSocketData data = new WebSocketData();
         if (object != null && object.get("token") != null) {
             String token = object.get("token").toString();
-            Users users = serverWebSocket.authDao.findUserByToken(token);
+            Users users = self.authDao.findUserByToken(token);
             if (users != null) {
                 this.token = token;
+                this.user = users;
                 data.setCode(WebSocketUtil.login_success);
                 sendTo(data);
                 return;
@@ -145,8 +187,9 @@ public class ServerWebSocket {
     public void sendMessage(WebSocketData message) {
         sendMessage(JSONObject.toJSONString(message));
     }
+
     public void sendMessage(String message) {
-        if (session.isOpen()){
+        if (session.isOpen()) {
             try {
                 session.getBasicRemote().sendText(message);
             } catch (IOException e) {
@@ -188,32 +231,4 @@ public class ServerWebSocket {
         }
     }
 
-    /**
-     * 发送消息至我的频道
-     *
-     * @param message
-     */
-    private void sendChannel(WebSocketData message) {
-        if (StringUtils.isNotEmpty(channelId)) {
-            sendChannel(message, channelId);
-        }
-    }
-
-    /**
-     * 发送消息至指定频道
-     *
-     * @param message
-     * @param id
-     */
-    public static void sendChannel(WebSocketData message, String id) {
-        try {
-            for (ServerWebSocket socket : webSockets) {
-                if (StringUtils.isNotEmpty(socket.channelId) && socket.channelId.equals(id)) {
-                    socket.sendMessage(message);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 }

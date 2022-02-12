@@ -1,6 +1,7 @@
 package com.telebott.moviejava.dao;
 
 import com.alibaba.fastjson.JSONObject;
+import com.telebott.moviejava.entity.KeFuMessage;
 import com.telebott.moviejava.entity.RedisUpload;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -11,6 +12,7 @@ import java.util.Set;
 @Repository
 public class RedisDao {
     private static final String uploadKey = "upload";
+    private static final String keFuMessageKey = "keFuMessage";
     @Autowired
     RedisTemplate redisTemplate;
     public void uploadFile(RedisUpload redisUpload){
@@ -63,4 +65,55 @@ public class RedisDao {
             }
         }
     }
+    public void putKeFuMessage(KeFuMessage message){
+        if (existKeFuMessage(message)){
+            deleteKeFuMessage(message.getId());
+        }
+        redisTemplate.opsForSet().add(keFuMessageKey,JSONObject.toJSONString(message));
+    }
+    public KeFuMessage getKeFuMessageById(String id){
+        Set members = redisTemplate.opsForSet().members(keFuMessageKey);
+        if (members != null){
+            for (Object member : members) {
+                JSONObject object = JSONObject.parseObject(member.toString());
+                if (object != null){
+                    if (id.equals(object.get("id").toString())){
+                        return JSONObject.toJavaObject(object,KeFuMessage.class);
+                    }
+                }
+            }
+        }
+        return null;
+    }
+    public boolean existKeFuMessage(KeFuMessage message){
+        if (Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(keFuMessageKey, JSONObject.toJSONString(message)))){
+            return true;
+        }
+        Set members = redisTemplate.opsForSet().members(keFuMessageKey);
+        if (members != null){
+            for (Object member : members) {
+                JSONObject object = JSONObject.parseObject(member.toString());
+                if (object != null){
+                    if (message.getId().equals(object.get("id").toString())){
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    public void deleteKeFuMessage(String id){
+        Set members = redisTemplate.opsForSet().members(keFuMessageKey);
+        if (members != null){
+            for (Object member : members) {
+                JSONObject object = JSONObject.parseObject(member.toString());
+                if (object != null){
+                    if (id.equals(object.get("id").toString())){
+                        redisTemplate.opsForSet().remove(keFuMessageKey, object);
+                    }
+                }
+            }
+        }
+    }
+
 }
