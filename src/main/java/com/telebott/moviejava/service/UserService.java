@@ -28,6 +28,8 @@ public class UserService {
         JSONObject object = new JSONObject();
         if (users != null){
             object.put("nickname",users.getNickname());
+            object.put("sex", users.getSex());
+            object.put("birthday", users.getBrithday());
             object.put("uid", users.getUid());
             object.put("token", users.getToken());
             object.put("phone", users.getPhone());

@@ -18,6 +18,8 @@ public class Users {
     @Column(name = "id")
     private long id;
     private String nickname;
+    private int sex;
+    private long brithday;
     private String password;
     private String salt;
     private long utime;
