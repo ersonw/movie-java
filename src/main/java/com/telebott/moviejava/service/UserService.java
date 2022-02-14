@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.telebott.moviejava.dao.AuthDao;
 import com.telebott.moviejava.dao.UsersDao;
 import com.telebott.moviejava.entity.Users;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,21 +24,27 @@ public class UserService {
     public void _save(Users users){
         usersDao.saveAndFlush(users);
     }
+    public void _saveAndPush(Users _user){
+        _user.setUtime(System.currentTimeMillis() / 1000);
+        if (isUser(_user.getId())){
+            _save(_user);
+        }
+        authDao.pushUser(_user);
+    }
+    public String _getSalt(){
+        return RandomStringUtils.randomAlphanumeric(32);
+    }
     public Users _change(JSONObject object){
         Users _user = JSONObject.toJavaObject(object,Users.class);
         if (_user != null && isUser(_user.getToken())){
             JSONObject _token = JSONObject.parseObject(JSONObject.toJSONString(authDao.findUserByToken(_user.getToken())));
             for (Map.Entry<String, Object> entry: object.entrySet()) {
-                if (entry.getValue() != null){
+//                if (StringUtils.isNotEmpty(entry.getValue().toString())){
                     _token.put(entry.getKey(), entry.getValue());
-                }
+//                }
             }
             _user = JSONObject.toJavaObject(_token,Users.class);
-            if (isUser(_user.getId())){
-                _save(_user);
-            }
-            _user.setUtime(System.currentTimeMillis() / 1000);
-            authDao.pushUser(_user);
+            _saveAndPush(_user);
             return _user;
         }
         return null;
@@ -63,7 +70,7 @@ public class UserService {
         if (users != null){
             object.put("nickname",users.getNickname());
             object.put("sex", users.getSex());
-            object.put("birthday", users.getBrithday());
+            object.put("birthday", users.getBirthday());
             object.put("uid", users.getUid());
             object.put("token", users.getToken());
             object.put("phone", users.getPhone());

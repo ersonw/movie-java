@@ -5,7 +5,9 @@ import com.telebott.moviejava.dao.RedisDao;
 import com.telebott.moviejava.entity.KeFuMessage;
 import com.telebott.moviejava.entity.Users;
 import com.telebott.moviejava.entity.WebSocketChannel;
+import com.telebott.moviejava.service.SystemConfigService;
 import com.telebott.moviejava.service.UserService;
+import com.telebott.moviejava.util.MD5Util;
 import com.telebott.moviejava.util.WebSocketUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.telebott.moviejava.entity.WebSocketData;
@@ -18,10 +20,7 @@ import javax.annotation.PostConstruct;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @ServerEndpoint(value = "/")
@@ -34,6 +33,8 @@ public class ServerWebSocket {
     private RedisDao redisDao;
     @Autowired
     private UserService userService;
+    @Autowired
+    private SystemConfigService systemConfigService;
     private static ServerWebSocket self;
     /**
      * 在线人数
@@ -140,6 +141,9 @@ public class ServerWebSocket {
             case WebSocketUtil.user_change:
                 _handlerUserChangeProfile(data);
                 break;
+            case WebSocketUtil.user_change_passwoed:
+                _handlerUserChangePassword(data);
+                break;
             default:
                 webSocketData.setMessage("未识别消息!");
                 sendMessage(webSocketData);
@@ -147,13 +151,51 @@ public class ServerWebSocket {
         }
     }
 
+    private void _handlerUserChangePassword(JSONObject data) {
+        user = self.authDao.findUserByToken(token);
+        WebSocketData msg = new  WebSocketData();
+        msg.setCode(WebSocketUtil.user_change_passwoed_fail);
+        msg.setMessage("未知错误!");
+        if (user == null){
+            msg.setMessage("用户未登陆！");
+        }else if(data.get("new") == null || Objects.equals(data.get("new").toString(), "")){
+            msg.setMessage("新密码不可为空!");
+        }else if (data.get("old") == null || Objects.equals(data.get("old").toString(), "")){
+            if (StringUtils.isNotEmpty(user.getPassword())) {
+                msg.setMessage("原密码已设置但未提交验证！");
+            }else {
+                user.setSalt(self.userService._getSalt());
+                MD5Util md5Util = new MD5Util(user.getSalt());
+                user.setPassword(md5Util.getPassWord(data.get("new").toString()));
+                self.userService._saveAndPush(user);
+                msg.setMessage("");
+                msg.setCode(WebSocketUtil.user_change_passwoed_success);
+            }
+        }else {
+            MD5Util md5Util = new MD5Util(user.getSalt());
+            String old = md5Util.getPassWord(data.get("old").toString());
+            String _new = md5Util.getPassWord(data.get("new").toString());
+            if (old.equals(_new)){
+                msg.setMessage("新旧密码相同！");
+            }else if (old.equals(user.getPassword())){
+                user.setPassword(_new);
+                self.userService._saveAndPush(user);
+                msg.setMessage("");
+                msg.setCode(WebSocketUtil.user_change_passwoed_success);
+            }else{
+                msg.setMessage("原密码不正确！");
+            }
+        }
+        sendMessage(msg);
+    }
+
     private void _handlerUserChangeProfile(JSONObject object) {
         WebSocketData data = new WebSocketData();
         data.setCode(WebSocketUtil.user_change_fail);
         data.setMessage("用户信息变更失败！");
         Users _user = self.userService._change(object);
-        if (_user != null){
-//            System.out.println(_user);
+        if (_user != null) {
+            System.out.println(_user);
             data.setCode(WebSocketUtil.user_change_success);
             data.setMessage("");
         }
