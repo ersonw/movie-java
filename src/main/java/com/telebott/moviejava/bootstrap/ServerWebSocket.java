@@ -5,6 +5,7 @@ import com.telebott.moviejava.dao.RedisDao;
 import com.telebott.moviejava.entity.KeFuMessage;
 import com.telebott.moviejava.entity.Users;
 import com.telebott.moviejava.entity.WebSocketChannel;
+import com.telebott.moviejava.service.UserService;
 import com.telebott.moviejava.util.WebSocketUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.telebott.moviejava.entity.WebSocketData;
@@ -31,6 +32,8 @@ public class ServerWebSocket {
     private AuthDao authDao;
     @Autowired
     private RedisDao redisDao;
+    @Autowired
+    private UserService userService;
     private static ServerWebSocket self;
     /**
      * 在线人数
@@ -88,9 +91,9 @@ public class ServerWebSocket {
 
     private void _checkReconnet() {
         if (user == null || user.getId() == 0) return;
-        for (WebSocketChannel channel: webSocketChannels) {
-            for (int uid: channel.getUsers()) {
-                if (uid == user.getId()){
+        for (WebSocketChannel channel : webSocketChannels) {
+            for (int uid : channel.getUsers()) {
+                if (uid == user.getId()) {
 
                 }
             }
@@ -126,12 +129,16 @@ public class ServerWebSocket {
 
     private void handleMessages(WebSocketData webSocketData) {
         JSONObject data = JSONObject.parseObject(webSocketData.getData());
+        if (data == null) return;
         switch (webSocketData.getCode()) {
             case WebSocketUtil.login:
-                handleLogin(data);
+                _handlerLogin(data);
                 break;
             case WebSocketUtil.message_kefu_sending:
-                handlerKeFuMessage(data);
+                _handlerKeFuMessage(data);
+                break;
+            case WebSocketUtil.user_change:
+                _handlerUserChangeProfile(data);
                 break;
             default:
                 webSocketData.setMessage("未识别消息!");
@@ -140,7 +147,20 @@ public class ServerWebSocket {
         }
     }
 
-    private void handlerKeFuMessage(JSONObject object) {
+    private void _handlerUserChangeProfile(JSONObject object) {
+        WebSocketData data = new WebSocketData();
+        data.setCode(WebSocketUtil.user_change_fail);
+        data.setMessage("用户信息变更失败！");
+        Users _user = self.userService._change(object);
+        if (_user != null){
+//            System.out.println(_user);
+            data.setCode(WebSocketUtil.user_change_success);
+            data.setMessage("");
+        }
+        sendMessage(data);
+    }
+
+    private void _handlerKeFuMessage(JSONObject object) {
         WebSocketData data = new WebSocketData();
         KeFuMessage message = JSONObject.toJavaObject(object, KeFuMessage.class);
         String id = message.getId();
@@ -162,7 +182,7 @@ public class ServerWebSocket {
         sendMessage(data);
     }
 
-    private void handleLogin(JSONObject object) {
+    private void _handlerLogin(JSONObject object) {
         WebSocketData data = new WebSocketData();
         if (object != null && object.get("token") != null) {
             String token = object.get("token").toString();
