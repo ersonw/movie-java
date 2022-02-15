@@ -81,5 +81,7 @@ public class UserService {
         }
         return object;
     }
-
+    public Users getUserByPhone(String phone){
+        return usersDao.findAllByPhone(phone);
+    }
 }

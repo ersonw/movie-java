@@ -2,11 +2,9 @@ package com.telebott.moviejava.control;
 
 import com.alibaba.fastjson.JSONObject;
 import com.telebott.moviejava.entity.*;
-import com.telebott.moviejava.service.MoblieConfigService;
-import com.telebott.moviejava.service.SmsBaoService;
-import com.telebott.moviejava.service.SmsRecordsService;
-import com.telebott.moviejava.service.SystemMessageService;
+import com.telebott.moviejava.service.*;
 import com.telebott.moviejava.util.AliOssUtil;
+import com.telebott.moviejava.util.MobileRegularExp;
 import com.telebott.moviejava.util.SmsBaoUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +18,8 @@ public class ApiControl {
     private SystemMessageService messageService;
     @Autowired
     private SmsRecordsService smsRecordsService;
+    @Autowired
+    private UserService userService;
     @GetMapping("/test")
     public ResultData test(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
@@ -27,6 +27,25 @@ public class ApiControl {
         smsCode.setPhone("+8618172195974");
         smsRecordsService._sendSmsCode(smsCode);
         data.setMessage(smsCode.getId());
+        return data;
+    }
+    @PostMapping("/checkPhone")
+    public ResultData checkPhone(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        if (MobileRegularExp.isMobileNumber(requestData.getData())){
+            System.out.println(requestData.getData());
+            Users user = userService.getUserByPhone(requestData.getData());
+            JSONObject object = new JSONObject();
+            if (user != null){
+                object.put("ready", true);
+            }else {
+                object.put("ready", false);
+            }
+            data.setData(object);
+        }else {
+            data.setCode(201);
+            data.setMessage("手机号码格式不正确!");
+        }
         return data;
     }
     @GetMapping("/getConfig")
@@ -43,8 +62,6 @@ public class ApiControl {
     }
     @GetMapping("/getSystemMessage")
     public ResultData getSystemMessage(@ModelAttribute RequestData requestData){
-//        Users users = requestData.getUser();
-//        System.out.println(users.getIdentifier());
         ResultData data = new ResultData();
         data.setData(messageService.getNewMessage());
         return data;

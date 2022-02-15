@@ -13,6 +13,7 @@ import lombok.*;
 public class RequestData {
     @JsonProperty(value = "identifier", required = false)
     private String identifier;
+    private String data;
     @JsonProperty(value = "user", required = false)
     private String user;
     public Users getUser() {
