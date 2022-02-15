@@ -2,6 +2,7 @@ package com.telebott.moviejava.dao;
 
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.telebott.moviejava.entity.SmsCode;
 import com.telebott.moviejava.entity.Users;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 @Repository
 public class AuthDao {
@@ -16,30 +18,28 @@ public class AuthDao {
     UsersDao usersDao;
     @Autowired
     RedisTemplate redisTemplate;
-    public void pushCode(String uid, String code){
-        JSONObject jsonObject = findCode(uid);
-        if (jsonObject != null){
-            popCode(jsonObject);
+    public void pushCode(SmsCode smsCode){
+        SmsCode object = findCode(smsCode.getId());
+        if (object != null){
+            popCode(object);
         }
-        jsonObject = new JSONObject();
-        jsonObject.put("uid", uid);
-        jsonObject.put("code", code);
-        redisTemplate.opsForSet().add("Code",jsonObject.toJSONString());
+//        redisTemplate.opsForSet().add("smsCode",JSONObject.toJSONString(smsCode),5, TimeUnit.MINUTES);
+        redisTemplate.opsForSet().add("smsCode",JSONObject.toJSONString(smsCode));
     }
-    public JSONObject findCode(String id){
-        Set users = redisTemplate.opsForSet().members("Code");
-        assert users != null;
+    public SmsCode findCode(String id){
+        Set smsCode = redisTemplate.opsForSet().members("smsCode");
+        assert smsCode != null;
         JSONObject jsonObject = new JSONObject();
-        for (Object user: users) {
-            jsonObject = JSONObject.parseObject(user.toString());
+        for (Object code: smsCode) {
+            jsonObject = JSONObject.parseObject(code.toString());
             if (id.equals(jsonObject.get("id"))){
-                return jsonObject;
+                return JSONObject.toJavaObject(jsonObject,SmsCode.class);
             }
         }
-        return jsonObject;
+        return null;
     }
-    public void popCode(JSONObject code){
-        redisTemplate.opsForSet().remove("Code" ,code.toJSONString());
+    public void popCode(SmsCode code){
+        redisTemplate.opsForSet().remove("smsCode" ,JSONObject.toJSONString(code));
     }
     public void pushUser(Users userToken){
         if (StringUtils.isNotEmpty(userToken.getToken())) {
@@ -59,9 +59,13 @@ public class AuthDao {
     public void updateUser(String token){
         Users user = findUserByToken(token);
         if (user != null){
-            user = usersDao.findAllById(user.getId());
-            if (user != null){
-                user.setToken(token);
+            if (user.getId() > 0){
+                user = usersDao.findAllById(user.getId());
+                if (user != null){
+                    user.setToken(token);
+                    pushUser(user);
+                }
+            }else {
                 pushUser(user);
             }
         }

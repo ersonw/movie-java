@@ -5,9 +5,11 @@ import com.telebott.moviejava.dao.RedisDao;
 import com.telebott.moviejava.entity.KeFuMessage;
 import com.telebott.moviejava.entity.Users;
 import com.telebott.moviejava.entity.WebSocketChannel;
+import com.telebott.moviejava.service.SmsBaoService;
 import com.telebott.moviejava.service.SystemConfigService;
 import com.telebott.moviejava.service.UserService;
 import com.telebott.moviejava.util.MD5Util;
+import com.telebott.moviejava.util.SmsBaoUtil;
 import com.telebott.moviejava.util.WebSocketUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.telebott.moviejava.entity.WebSocketData;
@@ -35,6 +37,8 @@ public class ServerWebSocket {
     private UserService userService;
     @Autowired
     private SystemConfigService systemConfigService;
+    @Autowired
+    private SmsBaoService smsBaoService;
     private static ServerWebSocket self;
     /**
      * 在线人数
@@ -58,6 +62,7 @@ public class ServerWebSocket {
     public void init() {
 //        System.out.println("websocket 加载");
         self = this;
+        SmsBaoUtil.init(self.smsBaoService);
     }
 
     /**
