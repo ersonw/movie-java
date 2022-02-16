@@ -56,7 +56,7 @@ public class SmsRecordsService {
     }
     public String _verifyCode(String id, String code){
         SmsCode smsCode = authDao.findCode(id);
-        if (smsCode != null){
+        if (smsCode != null && smsCode.getCode().equals(code)){
             authDao.popCode(smsCode);
 //            SmsRecords smsRecords = smsRecordsDao.findAllByData(smsCode.getId());
 //            smsRecords.setStatus(2);
