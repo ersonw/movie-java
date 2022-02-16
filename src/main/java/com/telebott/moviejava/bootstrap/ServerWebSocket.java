@@ -2,6 +2,7 @@ package com.telebott.moviejava.bootstrap;
 
 import com.telebott.moviejava.dao.AuthDao;
 import com.telebott.moviejava.dao.RedisDao;
+import com.telebott.moviejava.dao.SmsRecordsDao;
 import com.telebott.moviejava.entity.KeFuMessage;
 import com.telebott.moviejava.entity.Users;
 import com.telebott.moviejava.entity.WebSocketChannel;
@@ -38,6 +39,8 @@ public class ServerWebSocket {
     @Autowired
     private SystemConfigService systemConfigService;
     @Autowired
+    public SmsRecordsDao smsRecordsDao;
+    @Autowired
     private SmsBaoService smsBaoService;
     private static ServerWebSocket self;
     /**
@@ -62,7 +65,7 @@ public class ServerWebSocket {
     public void init() {
 //        System.out.println("websocket 加载");
         self = this;
-        SmsBaoUtil.init(self.smsBaoService);
+        SmsBaoUtil.init(self.smsBaoService,self.smsRecordsDao);
     }
 
     /**
@@ -91,7 +94,7 @@ public class ServerWebSocket {
             public void run() {
                 sendMessage("H");
             }
-        }, 500, 1000 * 10);
+        }, 1000, 1000 * 10);
         System.out.println("session:" + session.getId() + " 当前在线人数" + onlineNumber);
     }
 

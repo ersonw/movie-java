@@ -1,6 +1,8 @@
 package com.telebott.moviejava.util;
 import com.alibaba.fastjson.JSONObject;
+import com.telebott.moviejava.dao.SmsRecordsDao;
 import com.telebott.moviejava.entity.SmsCode;
+import com.telebott.moviejava.entity.SmsRecords;
 import com.telebott.moviejava.service.SmsBaoService;
 
 import java.io.BufferedReader;
@@ -14,6 +16,7 @@ import java.util.Random;
 
 public class SmsBaoUtil {
     public static SmsBaoService smsBaoService;
+    public static SmsRecordsDao smsRecordsDao;
     private static String user;
     private static String passwd;
     private static String name;
@@ -26,25 +29,42 @@ public class SmsBaoUtil {
         return sendSmsCode(smsCode.getPhone(),smsCode.getCode());
     }
     public static boolean sendSmsCode(String phone,String code){
+//        handlerChangeMessage(phone, "653304", "test");
+//        return true;
+        String result = null;
         String str = code_text.replaceAll("name",name).replaceAll("code",code);
         if (MobileRegularExp.isMobileNumber(phone) && phone.contains("+")){
             if (phone.startsWith("+86")){
-                phone = phone.substring(3);
-//                System.out.println(phone);
-                return  _sendSms(phone,str);
+                result =  _sendSms(phone.substring(3),str);
             }else {
-               return  _sendSms(phone,str,true);
+                result = _sendSms(phone,str,true);
             }
         }else if (phone.length() == 11){
-           return  _sendSms(phone,str);
+            result = _sendSms(phone,str);
         }else {
             return false;
         }
+        if (result == null){
+            return false;
+        }
+        String data = " 短信发送回执："+ echoCode(result);
+        System.out.println(phone + data);
+        handlerChangeMessage(phone,code,data);
+        return  result.equals("0");
     }
-    private static boolean _sendSms(String phone,String text){
+
+    private static void handlerChangeMessage(String phone, String code, String data) {
+        SmsRecords records = smsRecordsDao.findByNumberCode(phone,code);
+        if (records != null){
+            records.setData(data);
+            smsRecordsDao.saveAndFlush(records);
+        }
+    }
+
+    private static String _sendSms(String phone,String text){
         return _sendSms(phone, text, false);
     }
-    private static boolean _sendSms(String phone,String text, boolean wsms){
+    private static String _sendSms(String phone,String text, boolean wsms){
         String url;
         if (wsms){
             url = httpUrl.replaceAll(opt,opt_wsms);
@@ -52,9 +72,7 @@ public class SmsBaoUtil {
             url = httpUrl.replaceAll(opt,opt_sms);
         }
         String httpArg = "u=" + user + "&p=" + md5(passwd) + "&m=" + phone + "&c=" + encodeUrlString(text, "UTF-8");
-        String result = request(url, httpArg);
-        System.out.println("短信发送回执："+ echoCode(result));
-        return  result.equals("0");
+        return request(url, httpArg);
     }
     public static String echoCode(String result){
         int r = Integer.parseInt((result.split("\n")[0]));
@@ -98,8 +116,9 @@ public class SmsBaoUtil {
         }
         return object;
     }
-    public static void init(SmsBaoService smsService){
+    public static void init(SmsBaoService smsService, SmsRecordsDao smsRecords){
         smsBaoService = smsService;
+        smsRecordsDao =smsRecords;
         JSONObject object = smsBaoService.getSmsConfig();
         user = object.getString("user");
         passwd = object.getString("passwd");

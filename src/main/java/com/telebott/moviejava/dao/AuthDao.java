@@ -10,6 +10,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 @Repository
@@ -18,6 +20,7 @@ public class AuthDao {
     UsersDao usersDao;
     @Autowired
     RedisTemplate redisTemplate;
+    private static final Timer timer = new Timer();
     public void pushCode(SmsCode smsCode){
         SmsCode object = findCode(smsCode.getId());
         if (object != null){
@@ -25,15 +28,47 @@ public class AuthDao {
         }
 //        redisTemplate.opsForSet().add("smsCode",JSONObject.toJSONString(smsCode),5, TimeUnit.MINUTES);
         redisTemplate.opsForSet().add("smsCode",JSONObject.toJSONString(smsCode));
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                popCode(smsCode);
+            }
+        }, 1000 * 60 * 5);
     }
     public SmsCode findCode(String id){
         Set smsCode = redisTemplate.opsForSet().members("smsCode");
-        assert smsCode != null;
-        JSONObject jsonObject = new JSONObject();
-        for (Object code: smsCode) {
-            jsonObject = JSONObject.parseObject(code.toString());
-            if (id.equals(jsonObject.get("id"))){
-                return JSONObject.toJavaObject(jsonObject,SmsCode.class);
+        if (smsCode != null){
+            JSONObject jsonObject = new JSONObject();
+            for (Object code: smsCode) {
+                jsonObject = JSONObject.parseObject(code.toString());
+                if (id.equals(jsonObject.get("id"))){
+                    return JSONObject.toJavaObject(jsonObject,SmsCode.class);
+                }
+            }
+        }
+        return null;
+    }
+    public void removeByPhone(String phone){
+        Set smsCode = redisTemplate.opsForSet().members("smsCode");
+        if (smsCode != null){
+            JSONObject jsonObject = new JSONObject();
+            for (Object code: smsCode) {
+                jsonObject = JSONObject.parseObject(code.toString());
+                if (phone.equals(jsonObject.get("phone"))){
+                    popCode(JSONObject.toJavaObject(jsonObject,SmsCode.class));
+                }
+            }
+        }
+    }
+    public SmsCode findByPhone(String phone){
+        Set smsCode = redisTemplate.opsForSet().members("smsCode");
+        if (smsCode != null){
+            JSONObject jsonObject = new JSONObject();
+            for (Object code: smsCode) {
+                jsonObject = JSONObject.parseObject(code.toString());
+                if (phone.equals(jsonObject.get("phone"))){
+                    return (JSONObject.toJavaObject(jsonObject,SmsCode.class));
+                }
             }
         }
         return null;

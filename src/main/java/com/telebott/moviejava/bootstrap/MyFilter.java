@@ -70,6 +70,7 @@ public class MyFilter implements Filter {
                 Map<String, String[]> parameterMap = request.getParameterMap();
                 //对请求参数进行处理
                 String token = ((HttpServletRequest) req).getHeader("Token");
+//                System.out.println(token);
                 if (StringUtils.isNotEmpty(token)){
                     Users user = authDao.findUserByToken(token);
                     if (user != null){

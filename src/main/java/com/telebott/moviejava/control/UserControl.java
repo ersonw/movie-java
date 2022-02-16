@@ -66,12 +66,10 @@ public class UserControl {
                     users.setIdentifier(requestData.getIdentifier());
                     users.setNickname(nickname.toString());
                     users.setUid(md5Util.getMD5(requestData.getIdentifier()));
-                    users.setAvatar("http://htm-download.oss-cn-hongkong.aliyuncs.com/default_head.gif");
+//                    users.setAvatar("http://htm-download.oss-cn-hongkong.aliyuncs.com/default_head.gif");
 //                userService._save(users);
                     users.setToken(getToken());
                     authDao.pushUser(users);
-                }else{
-
                 }
             }else {
                 users.setToken(getToken());

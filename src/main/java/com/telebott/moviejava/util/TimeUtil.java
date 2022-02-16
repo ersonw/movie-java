@@ -62,16 +62,34 @@ public class TimeUtil {
     }
 
     public static long manyDaysLater(int days) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.DAY_OF_YEAR, calendar.get(Calendar.DAY_OF_YEAR) + days);
         return calendar.getTimeInMillis();
     }
 
     public static long manyDaysBefore(int days) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.DAY_OF_YEAR, calendar.get(Calendar.DAY_OF_YEAR) - days);
         return calendar.getTimeInMillis();
+    }
+    public static long getDateZero(String str){
+        SimpleDateFormat dayFormat = new SimpleDateFormat("yyyyMMdd");
+        try {
+            return dayFormat.parse(str).getTime();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return  0L;
+    }
+    public static long getTodayZero(){
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTimeInMillis();
+    }
+    public static long getAfterDaysZero(int days){
+        return getTodayZero() + (days * 86400000L);
     }
 }
