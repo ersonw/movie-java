@@ -171,7 +171,7 @@ public class ApiControl {
                     data.setData(object);
                 }else {
                     data.setCode(202);
-                    data.setMessage("短信发送失败，请联系管理员!");
+                    data.setMessage("短信发送失败，请检查手机号码是否正确!");
                 }
             }else {
                 data.setCode(203);

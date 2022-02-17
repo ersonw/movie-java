@@ -32,6 +32,7 @@ public class Users {
     private String avatar;
     private String uid;
     private String identifier;
+    private long superior;
     @Transient
     private String token;
 }

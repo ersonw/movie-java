@@ -71,7 +71,8 @@ public class SmsBaoUtil {
         }else {
             url = httpUrl.replaceAll(opt,opt_sms);
         }
-        String httpArg = "u=" + user + "&p=" + md5(passwd) + "&m=" + phone + "&c=" + encodeUrlString(text, "UTF-8");
+        String httpArg = "u=" + user + "&p=" + md5(passwd) + "&m=" + encodeUrlString(phone, "UTF-8") + "&c=" + encodeUrlString(text, "UTF-8");
+//        System.out.println(httpArg);
         return request(url, httpArg);
     }
     public static String echoCode(String result){

@@ -24,6 +24,9 @@ public class UserService {
     public void _save(Users users){
         usersDao.saveAndFlush(users);
     }
+    public Users _getInviteOwner(String invite){
+        return usersDao.findAllByInvite(invite);
+    }
     public void _saveAndPush(Users _user){
         _user.setUtime(System.currentTimeMillis() / 1000);
         if (isUser(_user.getId())){
@@ -78,6 +81,7 @@ public class UserService {
             object.put("gold",users.getGold());
             object.put("diamond", users.getDiamond());
             object.put("invite",users.getInvite());
+            object.put("superior", users.getSuperior());
         }
         return object;
     }

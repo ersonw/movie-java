@@ -13,4 +13,5 @@ public interface UsersDao extends JpaRepository<Users, Integer>, CrudRepository<
     Users findAllByIdentifier(String id);
     Users findAllByUid(String uid);
     Users findAllByPhone(String phone);
+    Users findAllByInvite(String invite);
 }

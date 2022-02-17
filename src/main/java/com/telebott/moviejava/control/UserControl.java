@@ -6,6 +6,7 @@ import com.telebott.moviejava.entity.RequestData;
 import com.telebott.moviejava.entity.ResultData;
 import com.telebott.moviejava.entity.UploadData;
 import com.telebott.moviejava.entity.Users;
+import com.telebott.moviejava.service.SmsRecordsService;
 import com.telebott.moviejava.service.UserService;
 import com.telebott.moviejava.util.AliOssUtil;
 import com.telebott.moviejava.util.MD5Util;
@@ -29,18 +30,98 @@ public class UserControl {
     private UserService userService;
     @Autowired
     private AuthDao authDao;
-    @PostMapping("/login")
-    public  ResultData login(@RequestBody RequestData requestData){
+    @Autowired
+    private SmsRecordsService smsRecordsService;
+    @GetMapping("/changePhone")
+    public  ResultData changePhone(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
+        Users user = requestData.getUser();
+        JSONObject object = JSONObject.parseObject(requestData.getData());
+        if (object.get("id") == null ||
+                object.get("code") == null||
+                object.get("phone") == null){
+            data.setCode(201);
+            data.setMessage("版本太低，请先升级版本!");
+        }else if (user.getPhone().equals(object.get("phone").toString())){
+            data.setCode(202);
+            data.setMessage("原手机号与新手机号相同!");
+        }else {
+            String phone = smsRecordsService._verifyCode(object.get("id").toString(),object.get("code").toString());
+            if (phone == null){
+                data.setCode(203);
+                data.setMessage("验证码不存在或者已过期!");
+            }else {
+                user.setPhone(object.get("phone").toString());
+                userService._saveAndPush(user);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("verify", true);
+                data.setData(jsonObject);
+            }
+        }
         return data;
     }
-    @PostMapping("/bindPhone")
-    public ResultData bindPhone(@RequestBody RequestData requestData){
+    @GetMapping("/changePhoneCheck")
+    public  ResultData changePhoneCheck(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
-//        String salt = RandomStringUtils.randomAlphanumeric(32);
-//        MD5Util md5Util = new MD5Util(salt);
-//        users.setSalt(salt);
-//        users.setPassword(md5Util.getPassWord(md5Util.getMD5(users.getPassword())));
+        JSONObject object = JSONObject.parseObject(requestData.getData());
+        Users user = requestData.getUser();
+        if (object.get("phoneOld") == null || object.get("phone") == null){
+            data.setCode(201);
+            data.setMessage("版本太低，请先升级版本!");
+        }else if (Objects.equals(object.get("phoneOld").toString(), object.get("phone").toString())){
+            data.setCode(202);
+            data.setMessage("原手机号与新手机号相同!");
+        }else if (!Objects.equals(object.get("phoneOld").toString(), user.getPhone())){
+            data.setCode(203);
+            data.setMessage("原手机号输入有误!");
+        }else {
+            System.out.println(object.get("phoneOld"));
+            System.out.println(object.get("phone"));
+            Users phone = userService.getUserByPhone(object.get("phone").toString());
+            if (phone != null){
+                data.setCode(204);
+                data.setMessage("新手机号已经绑定其他设备，请先从其他设备上解绑!");
+            }else {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("verify", true);
+                data.setData(jsonObject);
+            }
+        }
+        return data;
+    }
+    private boolean _checkPhone(){
+        return false;
+    }
+    @GetMapping("/checkInviteCode")
+    public  ResultData checkInviteCode(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        JSONObject object = JSONObject.parseObject(requestData.getData());
+        Users user = requestData.getUser();
+        if (user.getId() == 0 || StringUtils.isEmpty(user.getPhone())){
+            data.setCode(201);
+            data.setMessage("用户未绑定手机号!");
+        }else if (user.getSuperior() > 0){
+            data.setCode(202);
+            data.setMessage("此用户领取过!");
+        }else if (object.get("code") == null){
+            data.setCode(203);
+            data.setMessage("版本太低，请先升级版本!");
+        }else {
+            Users userOwner = userService._getInviteOwner(object.get("code").toString());
+            if (userOwner == null){
+                data.setCode(204);
+                data.setMessage("礼包码不正确!");
+            }else if (userOwner.getId() == user.getId()){
+                data.setCode(205);
+                data.setMessage("不能兑换自己的礼包码!");
+            }else {
+                user.setSuperior(userOwner.getId());
+                userService._saveAndPush(user);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("verify", true);
+                data.setData(jsonObject);
+            }
+        }
         return data;
     }
     @PostMapping("/info")
