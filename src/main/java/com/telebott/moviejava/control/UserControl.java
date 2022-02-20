@@ -6,6 +6,7 @@ import com.telebott.moviejava.entity.RequestData;
 import com.telebott.moviejava.entity.ResultData;
 import com.telebott.moviejava.entity.UploadData;
 import com.telebott.moviejava.entity.Users;
+import com.telebott.moviejava.service.CommodityVipOrderService;
 import com.telebott.moviejava.service.OnlineOrderService;
 import com.telebott.moviejava.service.SmsRecordsService;
 import com.telebott.moviejava.service.UserService;
@@ -35,20 +36,33 @@ public class UserControl {
     private SmsRecordsService smsRecordsService;
     @Autowired
     private OnlineOrderService onlineOrderService;
+    @Autowired
+    private CommodityVipOrderService commodityVipOrderService;
 
+    @GetMapping("/crateVipOrder")
+    public ResultData crateVipOrder(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        Users user = requestData.getUser();
+        JSONObject object = JSONObject.parseObject(requestData.getData());
+        if (object.get("id") == null  ){
+            data.setCode(201);
+            data.setMessage("版本太低，请先升级版本!");
+        }else {
+            data.setData(commodityVipOrderService._crateOrder(user,object.get("id").toString()));
+        }
+        return data;
+    }
     @GetMapping("/getOrder")
     public ResultData getOrder(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
         Users user = requestData.getUser();
         JSONObject object = JSONObject.parseObject(requestData.getData());
-        if (object.get("id") == null ||
-                object.get("type") == null ||
-                object.get("amount") == null ||
-                object.get("cid") == null){
+        if (object.get("order_id") == null ||
+                object.get("type") == null ){
             data.setCode(201);
             data.setMessage("版本太低，请先升级版本!");
         }else {
-            data.setData(onlineOrderService._getOrder(user,object.get("type").toString(),object.get("amount").toString(),object.get("cid").toString(),object.get("id").toString()));
+            data.setData(onlineOrderService._getOrder(object.get("type").toString(),object.get("order_id").toString()));
         }
         return data;
     }

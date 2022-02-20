@@ -20,4 +20,7 @@ public class CommodityVipOrder {
     private long ctime;
     private long expired;
     private int status;
+    private String orderId;
+    private long cid;
+    private long uid;
 }

@@ -23,4 +23,6 @@ public class OnlineOrder {
     private long ctime;
     private long utime;
     private int status;
+    private String orderId;
+    private long uid;
 }

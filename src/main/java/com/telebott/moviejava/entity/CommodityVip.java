@@ -28,4 +28,5 @@ public class CommodityVip {
     private long utime;
     private int status;
     private int isText;
+    private String addTime;
 }
