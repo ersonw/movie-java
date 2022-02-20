@@ -10,4 +10,5 @@ import java.util.List;
 @Repository
 public interface CommodityVipDao  extends JpaRepository<CommodityVip, Integer>, CrudRepository<CommodityVip, Integer> {
     List<CommodityVip> findAllByStatus(int status);
+    CommodityVip findAllById(long id);
 }
