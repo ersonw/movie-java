@@ -1,5 +1,6 @@
 package com.telebott.moviejava.service;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.telebott.moviejava.dao.CommodityVipDao;
 import com.telebott.moviejava.dao.CommodityVipOrderDao;
@@ -9,6 +10,10 @@ import com.telebott.moviejava.entity.Users;
 import com.telebott.moviejava.util.TimeUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,6 +24,8 @@ public class CommodityVipOrderService {
     private CommodityVipOrderDao commodityVipOrderDao;
     @Autowired
     private CommodityVipDao commodityVipDao;
+    @Autowired
+    private UserService userService;
     public void _save(CommodityVipOrder commodityVipOrder){
         commodityVipOrderDao.saveAndFlush(commodityVipOrder);
     }
@@ -34,8 +41,8 @@ public class CommodityVipOrderService {
             CommodityVipOrder order = new CommodityVipOrder();
             order.setUid(user.getId());
             order.setCid(commodityVip.getId());
+            order.setAmount(commodityVip.getAmount());
             order.setCtime(time);
-            order.setExpired(_getAddTime(commodityVip.getAddTime()));
             order.setStatus(0);
             order.setOrderId(time +String.valueOf(user.getId()));
             commodityVipOrderDao.saveAndFlush(order);
@@ -43,6 +50,10 @@ public class CommodityVipOrderService {
             object.put("id",order.getOrderId());
         }
         return object;
+    }
+    public void _handlerAddTime(Users user, CommodityVip commodityVip){
+        user.setExpired(_getAddTime(commodityVip.getAddTime()));
+        userService._saveAndPush(user);
     }
     private long _getAddTime(String time){
         if (StringUtils.isEmpty(time)){
@@ -68,5 +79,56 @@ public class CommodityVipOrderService {
             return TimeUtil.manyDaysLater(365);
         }
         return 0;
+    }
+    public JSONObject _getOrder(Users user, String data) {
+        JSONObject objectData = JSONObject.parseObject(data);
+        int page = 0;
+        if (objectData.get("page") == null){
+            page = (Integer.parseInt(objectData.get("page").toString()) - 1);
+        }
+        Sort sort = Sort.by(Sort.Direction.DESC, "id");
+        Pageable pageable = PageRequest.of(page, 50, sort);
+        Page<CommodityVipOrder> vipOrders = commodityVipOrderDao.findAllByUid(user.getId(),pageable);
+        JSONObject object = new JSONObject();
+        object.put("list",_getList(vipOrders.getContent()));
+        object.put("total",vipOrders.getTotalPages());
+        return object;
+    }
+    private JSONArray _getList(List<CommodityVipOrder> content) {
+        JSONArray array = new JSONArray();
+        for (CommodityVipOrder order: content) {
+            JSONObject object = new JSONObject();
+            object.put("id",order.getId());
+            object.put("ctime",order.getCtime());
+            object.put("orderId",order.getOrderId());
+            object.put("status", order.getStatus());
+            object.put("amount", order.getAmount());
+            CommodityVip vip = commodityVipDao.findAllById(order.getCid());
+            if (vip != null){
+                object.put("vipBuy",_getVipBuy(vip));
+            }
+            array.add(object);
+        }
+        return array;
+    }
+    private JSONObject _getVipBuy(CommodityVip vip){
+        JSONObject object = new JSONObject();
+        object.put("id",vip.getId());
+        object.put("amount",vip.getAmount());
+        object.put("title",vip.getTitle());
+        object.put("describes",vip.getDescribes());
+        object.put("currency",vip.getCurrency());
+        return object;
+    }
+
+    public JSONObject _cancelOrder(Users user, String id) {
+        JSONObject object = new JSONObject();
+        CommodityVipOrder order = commodityVipOrderDao.findAllByIdAndUid(Long.parseLong(id),user.getId());
+        if (order != null){
+            order.setStatus(-1);
+            commodityVipOrderDao.saveAndFlush(order);
+        }
+        object.put("state","ok");
+        return object;
     }
 }

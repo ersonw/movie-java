@@ -38,7 +38,19 @@ public class UserControl {
     private OnlineOrderService onlineOrderService;
     @Autowired
     private CommodityVipOrderService commodityVipOrderService;
-
+    @GetMapping("/cancelOrder")
+    public ResultData cancelOrder(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        Users user = requestData.getUser();
+        JSONObject object = JSONObject.parseObject(requestData.getData());
+        if (object.get("id") == null){
+            data.setCode(201);
+            data.setMessage("版本太低，请先升级版本!");
+        }else {
+            data.setData(commodityVipOrderService._cancelOrder(user, object.get("id").toString()));
+        }
+        return data;
+    }
     @GetMapping("/crateVipOrder")
     public ResultData crateVipOrder(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
@@ -49,6 +61,28 @@ public class UserControl {
             data.setMessage("版本太低，请先升级版本!");
         }else {
             data.setData(commodityVipOrderService._crateOrder(user,object.get("id").toString()));
+        }
+        return data;
+    }
+    @GetMapping("/getVipOrder")
+    public ResultData getVipOrder(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        Users user = requestData.getUser();
+        data.setData(commodityVipOrderService._getOrder(user,requestData.getData()));
+        return data;
+    }
+    @GetMapping("/postCrateOrder")
+    public ResultData postCrateOrder(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        Users user = requestData.getUser();
+        JSONObject object = JSONObject.parseObject(requestData.getData());
+        if (object.get("order_id") == null ||
+                object.get("pid") == null ||
+                object.get("type") == null){
+            data.setCode(201);
+            data.setMessage("版本太低，请先升级版本!");
+        }else {
+            data.setData(onlineOrderService._postCrateOrder(user,object.get("type").toString(),object.get("order_id").toString(),object.get("pid").toString()));
         }
         return data;
     }

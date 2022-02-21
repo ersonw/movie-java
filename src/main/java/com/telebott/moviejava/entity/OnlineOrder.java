@@ -18,11 +18,12 @@ public class OnlineOrder {
     @Column(name = "id")
     private long id;
     private int type;
-    private int cid;
+    private long pid;
     private long amount;
     private long ctime;
     private long utime;
     private int status;
     private String orderId;
+    private String orderNo;
     private long uid;
 }

@@ -33,6 +33,7 @@ public class Users {
     private String uid;
     private String identifier;
     private long superior;
+    private long expired;
     @Transient
     private String token;
 }

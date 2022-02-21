@@ -2,6 +2,10 @@ package com.telebott.moviejava.util;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.Temporal;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -91,5 +95,15 @@ public class TimeUtil {
     }
     public static long getAfterDaysZero(int days){
         return getTodayZero() + (days * 86400000L);
+    }
+    public static String format(Temporal co, String pattern) {
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern(pattern);
+        String str = fmt.format(co);
+//        System.out.println(pattern + ": " + str);
+        return str;
+    }
+    public static String _getOrderNo(){
+        LocalDateTime ld = LocalDateTime.now();
+        return format(ld,"yyyyMMddHHmmss");
     }
 }

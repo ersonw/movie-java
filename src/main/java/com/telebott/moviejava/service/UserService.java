@@ -34,6 +34,9 @@ public class UserService {
         }
         authDao.pushUser(_user);
     }
+    public Users _getById(long id){
+        return usersDao.findAllById(id);
+    }
     public String _getSalt(){
         return RandomStringUtils.randomAlphanumeric(32);
     }
@@ -82,6 +85,7 @@ public class UserService {
             object.put("diamond", users.getDiamond());
             object.put("invite",users.getInvite());
             object.put("superior", users.getSuperior());
+            object.put("expired",users.getExpired());
         }
         return object;
     }

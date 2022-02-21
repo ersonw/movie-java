@@ -18,9 +18,9 @@ public class CommodityVipOrder {
     @Column(name = "id")
     private long id;
     private long ctime;
-    private long expired;
     private int status;
     private String orderId;
     private long cid;
     private long uid;
+    private long amount;
 }
