@@ -1,5 +1,6 @@
 package com.telebott.moviejava.service;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.telebott.moviejava.dao.CommodityVipDao;
 import com.telebott.moviejava.dao.CommodityVipOrderDao;
@@ -7,11 +8,15 @@ import com.telebott.moviejava.dao.OnlineOrderDao;
 import com.telebott.moviejava.dao.OnlinePayDao;
 import com.telebott.moviejava.entity.*;
 import com.telebott.moviejava.util.TimeUtil;
-import javafx.util.converter.LocalDateStringConverter;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
+import java.util.List;
 
 @Service
 public class OnlineOrderService {
@@ -124,5 +129,39 @@ public class OnlineOrderService {
                 break;
         }
         return _getResult(order,user);
+    }
+    private JSONArray _getList(List<OnlineOrder> orders){
+        JSONArray array = new JSONArray();
+        for (OnlineOrder order: orders) {
+            JSONObject object = new JSONObject();
+            object.put("id",order.getId());
+            object.put("type" ,order.getType());
+            object.put("amount",order.getAmount());
+            object.put("ctime",order.getCtime());
+            object.put("utime",order.getUtime());
+            object.put("status",order.getStatus());
+            object.put("orderId",order.getOrderId());
+            object.put("orderNo",order.getOrderNo());
+            OnlinePay onlinePay = onlinePayDao.findAllById(order.getPid());
+            if (onlinePay != null){
+                object.put("onlinePay",onlinePay);
+            }
+            array.add(object);
+        }
+        return array;
+    }
+    public ResultData _getOrders(Users user, ResultData data, String pages) {
+        int page = 0;
+        if (StringUtils.isNotEmpty(pages)){
+            page = (Integer.parseInt(pages) - 1);
+        }
+        Sort sort = Sort.by(Sort.Direction.DESC, "id");
+        Pageable pageable = PageRequest.of(page, 50, sort);
+        Page<OnlineOrder> onlineOrders = onlineOrderDao.findAllByUid(user.getId(),pageable);
+        JSONObject object = new JSONObject();
+        object.put("list",_getList(onlineOrders.getContent()));
+        object.put("total",onlineOrders.getTotalPages());
+        data.setData(object);
+        return data;
     }
 }

@@ -100,6 +100,14 @@ public class UserControl {
         }
         return data;
     }
+    @GetMapping("/getOrders")
+    public ResultData getOrders(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        Users user = requestData.getUser();
+        JSONObject object = JSONObject.parseObject(requestData.getData());
+        data = onlineOrderService._getOrders(user, data, object.get("page").toString());
+        return data;
+    }
     @GetMapping("/changePhone")
     public  ResultData changePhone(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
