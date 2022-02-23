@@ -2,10 +2,7 @@ package com.telebott.moviejava.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.telebott.moviejava.dao.CommodityVipDao;
-import com.telebott.moviejava.dao.CommodityVipOrderDao;
-import com.telebott.moviejava.dao.OnlineOrderDao;
-import com.telebott.moviejava.dao.OnlinePayDao;
+import com.telebott.moviejava.dao.*;
 import com.telebott.moviejava.entity.*;
 import com.telebott.moviejava.util.TimeUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -35,6 +32,12 @@ public class OnlineOrderService {
     private CommodityVipOrderService commodityVipOrderService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private CommodityDiamondOrderDao commodityDiamondOrderDao;
+    @Autowired
+    private CommodityDiamondDao commodityDiamondDao;
+    @Autowired
+    private DiamondRecordsDao diamondRecordsDao;
     public void _save(OnlineOrder onlineOrder){
         onlineOrderDao.saveAndFlush(onlineOrder);
     }
@@ -44,6 +47,13 @@ public class OnlineOrderService {
         object.put("title",commodityVip.getTitle());
         object.put("currency",commodityVip.getCurrency());
         object.put("describes",commodityVip.getDescribes());
+        return object;
+    }
+    public JSONObject getResult(CommodityDiamond commodityDiamond){
+        JSONObject object = new JSONObject();
+        object.put("title",commodityDiamond.getDiamond()+"钻石");
+        object.put("currency","￥");
+        object.put("describes", "购买"+commodityDiamond.getDiamond()+"钻石");
         return object;
     }
     public JSONObject _getOrder(String type, String order_id) {
@@ -60,36 +70,72 @@ public class OnlineOrderService {
             case PAY_ONLINE_GOLD:
                 break;
             case PAY_ONLINE_DIAMOND:
+                CommodityDiamondOrder commodityDiamondOrder = commodityDiamondOrderDao.findAllByOrderId(order_id);
+                if (commodityDiamondOrder != null){
+                    CommodityDiamond commodityDiamond = commodityDiamondDao.findAllById(commodityDiamondOrder.getCid());
+                    object = getResult(commodityDiamond);
+                    object.put("amount", commodityDiamondOrder.getAmount());
+                }
                 break;
             default:
                 break;
         }
         return object;
     }
-    public OnlineOrder getOnlineOrder(String pid){
-        OnlineOrder order = new OnlineOrder();
-        switch (Integer.parseInt(pid)){
 
-        }
-        return order;
-    }
-    public JSONObject _getResult(OnlineOrder order, Users user){
+    public JSONObject _getResult(OnlineOrder order, Users user, int type){
         OnlinePay onlinePay = onlinePayDao.findAllById(order.getPid());
         JSONObject object = new JSONObject();
         object.put("state","error");
+        object.put("msg","未知错误!");
         if (onlinePay.getTitle().contains("钻石")){
             if (user.getDiamond() >= order.getAmount()){
-                _handlerVipStatus(order.getOrderNo());
-                order.setStatus(1);
-                user.setDiamond(order.getAmount());
-                userService._saveAndPush(user);
-                onlineOrderDao.saveAndFlush(order);
-                object.put("state","ok");
+                DiamondRecords diamondRecords = new DiamondRecords();
+                diamondRecords.setDiamond((-order.getAmount()));
+                diamondRecords.setUid(user.getId());
+                diamondRecords.setCtime(System.currentTimeMillis());
+                switch (type){
+                    case PAY_ONLINE_VIP:
+                        _handlerVipStatus(order.getOrderNo());
+                        order.setStatus(1);
+                        user.setDiamond(user.getDiamond() - order.getAmount());
+                        userService._saveAndPush(user);
+                        onlineOrderDao.saveAndFlush(order);
+                        object.put("state","ok");
+                        diamondRecords.setReason("兑换价值￥"+order.getAmount()+"的会员");
+                        diamondRecordsDao.saveAndFlush(diamondRecords);
+                        break;
+                    case PAY_ONLINE_GOLD:
+                        object.put("state","ok");
+                        diamondRecords.setReason("兑换价值￥"+order.getAmount()+"的金币");
+                        diamondRecordsDao.saveAndFlush(diamondRecords);
+                        break;
+                    case PAY_ONLINE_DIAMOND:
+                        object.put("msg","不支持钻石兑换钻石，请选择在线支付!");
+                        break;
+                    default:
+                        break;
+                }
             }else {
-                object.put("msg","余额不足，请选择其他方式!");
+                object.put("msg","余额不足，请选择在线支付!");
             }
         }else {
-
+//            order.setStatus(1);
+//            onlineOrderDao.saveAndFlush(order);
+//            CommodityDiamondOrder commodityDiamondOrder = commodityDiamondOrderDao.findAllByOrderId(order.getOrderNo());
+//            if (commodityDiamondOrder != null){
+//                commodityDiamondOrder.setStatus(1);
+//                commodityDiamondOrderDao.saveAndFlush(commodityDiamondOrder);
+//            }
+//            DiamondRecords diamondRecords = new DiamondRecords();
+//            diamondRecords.setDiamond((+order.getAmount()));
+//            diamondRecords.setUid(user.getId());
+//            diamondRecords.setCtime(System.currentTimeMillis());
+//            diamondRecords.setReason("充值价值￥"+order.getAmount()+"的钻石");
+//            diamondRecordsDao.saveAndFlush(diamondRecords);
+//            user.setDiamond(user.getDiamond()+order.getAmount());
+//            userService._saveAndPush(user);
+//            object.put("state","ok");
         }
 
         return object;
@@ -124,11 +170,15 @@ public class OnlineOrderService {
             case PAY_ONLINE_GOLD:
                 break;
             case PAY_ONLINE_DIAMOND:
+                CommodityDiamondOrder commodityDiamondOrder = commodityDiamondOrderDao.findAllByOrderId(order_id);
+                if (commodityDiamondOrder != null){
+                    order.setAmount(commodityDiamondOrder.getAmount());
+                }
                 break;
             default:
                 break;
         }
-        return _getResult(order,user);
+        return _getResult(order,user,Integer.parseInt(type));
     }
     private JSONArray _getList(List<OnlineOrder> orders){
         JSONArray array = new JSONArray();

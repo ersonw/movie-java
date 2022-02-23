@@ -83,7 +83,7 @@ public class CommodityVipOrderService {
     public JSONObject _getOrder(Users user, String data) {
         JSONObject objectData = JSONObject.parseObject(data);
         int page = 0;
-        if (objectData.get("page") == null){
+        if (objectData.get("page") != null){
             page = (Integer.parseInt(objectData.get("page").toString()) - 1);
         }
         Sort sort = Sort.by(Sort.Direction.DESC, "id");

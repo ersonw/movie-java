@@ -2,14 +2,8 @@ package com.telebott.moviejava.control;
 
 import com.alibaba.fastjson.JSONObject;
 import com.telebott.moviejava.dao.AuthDao;
-import com.telebott.moviejava.entity.RequestData;
-import com.telebott.moviejava.entity.ResultData;
-import com.telebott.moviejava.entity.UploadData;
-import com.telebott.moviejava.entity.Users;
-import com.telebott.moviejava.service.CommodityVipOrderService;
-import com.telebott.moviejava.service.OnlineOrderService;
-import com.telebott.moviejava.service.SmsRecordsService;
-import com.telebott.moviejava.service.UserService;
+import com.telebott.moviejava.entity.*;
+import com.telebott.moviejava.service.*;
 import com.telebott.moviejava.util.AliOssUtil;
 import com.telebott.moviejava.util.MD5Util;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -38,7 +32,9 @@ public class UserControl {
     private OnlineOrderService onlineOrderService;
     @Autowired
     private CommodityVipOrderService commodityVipOrderService;
-    @GetMapping("/cancelOrder")
+    @Autowired
+    private CommodityDiamondOrderService commodityDiamondOrderService;
+    @GetMapping("/cancelVipOrder")
     public ResultData cancelOrder(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
         Users user = requestData.getUser();
@@ -69,6 +65,47 @@ public class UserControl {
         ResultData data = new ResultData();
         Users user = requestData.getUser();
         data.setData(commodityVipOrderService._getOrder(user,requestData.getData()));
+        return data;
+    }
+    @GetMapping("/cancelDiamondOrder")
+    public ResultData cancelDiamondOrder(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        Users user = requestData.getUser();
+        JSONObject object = JSONObject.parseObject(requestData.getData());
+        if (object.get("id") == null){
+            data.setCode(201);
+            data.setMessage("版本太低，请先升级版本!");
+        }else {
+            data.setData(commodityDiamondOrderService._cancelOrder(user, object.get("id").toString()));
+        }
+        return data;
+    }
+    @GetMapping("/crateDiamondOrder")
+    public ResultData crateDiamondOrder(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        Users user = requestData.getUser();
+        JSONObject object = JSONObject.parseObject(requestData.getData());
+        if (object.get("id") == null  ){
+            data.setCode(201);
+            data.setMessage("版本太低，请先升级版本!");
+        }else {
+            data.setData(commodityDiamondOrderService._crateOrder(user,object.get("id").toString()));
+        }
+        return data;
+    }
+    @GetMapping("/getDiamondOrder")
+    public ResultData getDiamondOrder(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        Users user = requestData.getUser();
+        data.setData(commodityDiamondOrderService._getOrder(user,requestData.getData()));
+        return data;
+    }
+    @GetMapping("/getDiamondRecords")
+    public ResultData getDiamondRecords(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        Users user = requestData.getUser();
+        data.setData(commodityDiamondOrderService._getRecords(user,requestData.getData()));
+//        System.out.println(data);
         return data;
     }
     @GetMapping("/postCrateOrder")

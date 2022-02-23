@@ -2,9 +2,11 @@ package com.telebott.moviejava.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.telebott.moviejava.dao.CommodityDiamondDao;
 import com.telebott.moviejava.dao.CommodityVipDao;
 import com.telebott.moviejava.dao.MoblieConfigDao;
 import com.telebott.moviejava.dao.OnlinePayDao;
+import com.telebott.moviejava.entity.CommodityDiamond;
 import com.telebott.moviejava.entity.CommodityVip;
 import com.telebott.moviejava.entity.MoblieConfig;
 import com.telebott.moviejava.entity.OnlinePay;
@@ -27,6 +29,8 @@ public class MoblieConfigService {
     private OnlinePayDao onlinePayDao;
     @Autowired
     private CommodityVipDao commodityVipDao;
+    @Autowired
+    private CommodityDiamondDao commodityDiamondDao;
     public void save(MoblieConfig config){
         moblieConfigDao.save(config);
     }
@@ -48,9 +52,24 @@ public class MoblieConfigService {
             object.put("ossConfig", jsonObject);
             object.put("vipBuys",_getVipBuys());
             object.put("onlinePays",_getOnlinePays());
+            object.put("buyDiamonds",_getBuyDiamonds());
         }
         return object;
     }
+
+    private JSONArray _getBuyDiamonds() {
+        JSONArray array = new JSONArray();
+        List<CommodityDiamond> commodityDiamonds = commodityDiamondDao.findAllByStatus(1);
+        for (CommodityDiamond diamond: commodityDiamonds) {
+            JSONObject object = new JSONObject();
+            object.put("id", diamond.getId());
+            object.put("amount",diamond.getAmount());
+            object.put("diamond", diamond.getDiamond());
+            array.add(object);
+        }
+        return array;
+    }
+
     public JSONArray _getVipBuys(){
         List<CommodityVip> commodityVipList = commodityVipDao.findAllByStatus(1);
         JSONArray array = new JSONArray();
