@@ -34,6 +34,8 @@ public class UserControl {
     private CommodityVipOrderService commodityVipOrderService;
     @Autowired
     private CommodityDiamondOrderService commodityDiamondOrderService;
+    @Autowired
+    private CommodityGoldOrderService commodityGoldOrderService;
     @GetMapping("/cancelVipOrder")
     public ResultData cancelOrder(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
@@ -108,6 +110,48 @@ public class UserControl {
 //        System.out.println(data);
         return data;
     }
+    @GetMapping("/cancelGoldOrder")
+    public ResultData cancelGoldOrder(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        Users user = requestData.getUser();
+        JSONObject object = JSONObject.parseObject(requestData.getData());
+        if (object.get("id") == null){
+            data.setCode(201);
+            data.setMessage("版本太低，请先升级版本!");
+        }else {
+            data.setData(commodityGoldOrderService._cancelOrder(user, object.get("id").toString()));
+        }
+        return data;
+    }
+    @GetMapping("/crateGoldOrder")
+    public ResultData crateGoldOrder(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        Users user = requestData.getUser();
+        JSONObject object = JSONObject.parseObject(requestData.getData());
+        if (object.get("id") == null  ){
+            data.setCode(201);
+            data.setMessage("版本太低，请先升级版本!");
+        }else {
+            data.setData(commodityGoldOrderService._crateOrder(user,object.get("id").toString()));
+        }
+        return data;
+    }
+    @GetMapping("/getGoldOrder")
+    public ResultData getGoldOrder(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        Users user = requestData.getUser();
+        data.setData(commodityGoldOrderService._getOrder(user,requestData.getData()));
+        return data;
+    }
+    @GetMapping("/getGoldRecords")
+    public ResultData getGoldRecords(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        Users user = requestData.getUser();
+        data.setData(commodityGoldOrderService._getRecords(user,requestData.getData()));
+//        System.out.println(data);
+        return data;
+    }
+
     @GetMapping("/postCrateOrder")
     public ResultData postCrateOrder(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
@@ -201,9 +245,6 @@ public class UserControl {
             }
         }
         return data;
-    }
-    private boolean _checkPhone(){
-        return false;
     }
     @GetMapping("/checkInviteCode")
     public  ResultData checkInviteCode(@ModelAttribute RequestData requestData){
