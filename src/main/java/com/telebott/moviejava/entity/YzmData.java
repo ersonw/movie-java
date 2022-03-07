@@ -1,5 +1,6 @@
 package com.telebott.moviejava.entity;
 
+import com.alibaba.fastjson.JSONObject;
 import lombok.*;
 
 @Data
@@ -20,8 +21,19 @@ public class YzmData {
     private int sp_status;
     private String mp4domain;
     private String rpath;
+    private String path;
     private String orgfile;
     private String domain;
     private int progress;
-    private int md5;
+    private String md5;
+    private String output;
+    private String category;
+    private String outdir;
+
+    public MetaData getMetadata(){
+        return JSONObject.toJavaObject(JSONObject.parseObject(metadata),MetaData.class);
+    }
+    public OutPutData getOutput(){
+        return JSONObject.toJavaObject(JSONObject.parseObject(output),OutPutData.class);
+    }
 }

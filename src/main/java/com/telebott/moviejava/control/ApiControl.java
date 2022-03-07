@@ -1,6 +1,7 @@
 package com.telebott.moviejava.control;
 
 import com.alibaba.fastjson.JSONObject;
+import com.telebott.moviejava.dao.VideoActorsDao;
 import com.telebott.moviejava.entity.*;
 import com.telebott.moviejava.service.*;
 import com.telebott.moviejava.util.AliOssUtil;
@@ -27,6 +28,8 @@ public class ApiControl {
     private SmsRecordsService smsRecordsService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private VideosService videosService;
     @GetMapping("/test")
     public ResultData test(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
@@ -243,7 +246,14 @@ public class ApiControl {
         ResultData data = new ResultData();
         String jsonStr = getJsonBodyString(httpServletRequest);
         if (jsonStr != null){
-
+            System.out.println(jsonStr);
+            JSONObject object = JSONObject.parseObject(jsonStr);
+            if (object != null){
+                YzmData yzmData = JSONObject.toJavaObject(object,YzmData.class);
+                if (yzmData != null && yzmData.getResult().equals("ok")){
+                    videosService.handlerYzm(yzmData);
+                }
+            }
         }
         return data;
     }

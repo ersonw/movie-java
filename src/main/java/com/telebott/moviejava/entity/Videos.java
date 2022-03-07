@@ -19,9 +19,9 @@ public class Videos {
     private long id;
     private String title;
     private String picThumb;
+    private String gifThumb;
     private long vodTimeAdd;
-    private long vodTime;
-    private int vodClass;
+    private long vodClass;
     private long vodDuration;
     private String vodPlayUrl;
     private String vodContent;
@@ -30,4 +30,7 @@ public class Videos {
     private long actor;
     private long diamond;
     private int status;
+    private long collects;
+    private long recommends;
+    private String shareId;
 }
