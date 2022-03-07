@@ -10,6 +10,9 @@ import com.telebott.moviejava.util.SmsBaoUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Random;
 import java.util.UUID;
 
@@ -235,5 +238,28 @@ public class ApiControl {
         UUID uuid = UUID.randomUUID();
         return uuid.toString().replaceAll("-","")+System.currentTimeMillis();
     }
+    @RequestMapping("/Yzm")
+    public  ResultData Yzm(HttpServletRequest httpServletRequest){
+        ResultData data = new ResultData();
+        String jsonStr = getJsonBodyString(httpServletRequest);
+        if (jsonStr != null){
 
+        }
+        return data;
+    }
+    private String getJsonBodyString(HttpServletRequest httpServletRequest){
+        try {
+            InputStream inputStream = httpServletRequest.getInputStream();
+            StringBuilder stringBuilder = new StringBuilder();
+            int temp;
+            while ((temp = inputStream.read()) != -1)
+            {
+                stringBuilder.append((char) temp);
+            }
+            return stringBuilder.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

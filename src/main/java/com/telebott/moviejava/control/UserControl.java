@@ -36,6 +36,8 @@ public class UserControl {
     private CommodityDiamondOrderService commodityDiamondOrderService;
     @Autowired
     private CommodityGoldOrderService commodityGoldOrderService;
+    @Autowired
+    private VideosService videosService;
     @GetMapping("/cancelVipOrder")
     public ResultData cancelOrder(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
