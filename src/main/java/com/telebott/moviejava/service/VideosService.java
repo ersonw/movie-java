@@ -29,14 +29,19 @@ public class VideosService {
     private VideoActorsDao videoActorsDao;
     @Autowired
     private VideoCategoryDao videoCategoryDao;
+    @Autowired
+    private SearchTagsDao searchTagsDao;
 
     public void handlerYzm(YzmData yzmData) {
-        Videos videos = videosDao.findAllByShareId(yzmData.getTitle());
-        if (videos != null) return;
-        videos = new Videos();
+        Videos videos = videosDao.findAllByShareId(yzmData.getShareid());
+        if (videos == null){
+            videos = new Videos();
+            videos.setVodTimeAdd(System.currentTimeMillis());
+        }else {
+            videos.setVodTimeUpdate(System.currentTimeMillis());
+            videos.setShareId(yzmData.getShareid());
+        }
         videos.setTitle(yzmData.getTitle());
-        videos.setVodTimeAdd(System.currentTimeMillis());
-        videos.setShareId(yzmData.getShareid());
         videos.setVodContent(yzmData.getTitle());
         videos.setStatus(1);
         if (StringUtils.isNotEmpty(yzmData.getCategory())){
@@ -73,5 +78,16 @@ public class VideosService {
         if (StringUtils.isNotEmpty(yzmData.getMp4domain())) downloadDomain = yzmData.getMp4domain();
         videos.setVodDownUrl(downloadDomain+yzmData.getRpath()+"/mp4/"+yzmData.getPath()+".mp4");
         videosDao.saveAndFlush(videos);
+    }
+
+    public JSONObject gethotTags() {
+        List<SearchTags> tags = searchTagsDao.getHots();
+        JSONObject object = new JSONObject();
+        List<String> list = new ArrayList<>();
+        for (SearchTags tag: tags) {
+            list.add(tag.getContext());
+        }
+        object.put("list",list);
+        return object;
     }
 }

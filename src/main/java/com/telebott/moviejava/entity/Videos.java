@@ -21,6 +21,7 @@ public class Videos {
     private String picThumb;
     private String gifThumb;
     private long vodTimeAdd;
+    private long vodTimeUpdate;
     private long vodClass;
     private long vodDuration;
     private String vodPlayUrl;

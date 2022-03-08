@@ -246,7 +246,6 @@ public class ApiControl {
         ResultData data = new ResultData();
         String jsonStr = getJsonBodyString(httpServletRequest);
         if (jsonStr != null){
-            System.out.println(jsonStr);
             JSONObject object = JSONObject.parseObject(jsonStr);
             if (object != null){
                 YzmData yzmData = JSONObject.toJavaObject(object,YzmData.class);
