@@ -17,6 +17,7 @@ public class Videos {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private long id;
+    private long uid;
     private String title;
     private String picThumb;
     private String gifThumb;
@@ -31,7 +32,8 @@ public class Videos {
     private long actor;
     private long diamond;
     private int status;
-    private long collects;
+    private long play;
     private long recommends;
     private String shareId;
+    private String numbers;
 }

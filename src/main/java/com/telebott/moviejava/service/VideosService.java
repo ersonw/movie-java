@@ -2,10 +2,15 @@ package com.telebott.moviejava.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.github.houbb.opencc4j.util.ZhConverterUtil;
 import com.telebott.moviejava.dao.*;
 import com.telebott.moviejava.entity.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -13,6 +18,7 @@ import java.util.List;
 
 @Service
 public class VideosService {
+    static int randomIndex = 0;
     @Autowired
     private UserService userService;
     @Autowired
@@ -31,6 +37,12 @@ public class VideosService {
     private VideoCategoryDao videoCategoryDao;
     @Autowired
     private SearchTagsDao searchTagsDao;
+    @Autowired
+    private VideoPlayDao videoPlayDao;
+    @Autowired
+    private VideoOrdersDao videoOrdersDao;
+    @Autowired
+    private VideoFavoritesDao videoFavoritesDao;
 
     public void handlerYzm(YzmData yzmData) {
         Videos videos = videosDao.findAllByShareId(yzmData.getShareid());
@@ -89,5 +101,146 @@ public class VideosService {
         }
         object.put("list",list);
         return object;
+    }
+
+    public JSONObject search(String data, Users user) {
+        JSONObject objectData = JSONObject.parseObject(data);
+        if (objectData != null && objectData.get("type") != null && objectData.get("text") != null){
+            SearchTags searchTags = new SearchTags();
+            searchTags.setAddTime(System.currentTimeMillis());
+            searchTags.setContext(objectData.get("text").toString());
+            searchTags.setUid(user.getId());
+            searchTagsDao.saveAndFlush(searchTags);
+            int page = 1;
+            if (objectData.get("page") != null && StringUtils.isNotEmpty(objectData.get("page").toString())) page=Integer.parseInt(objectData.get("page").toString());
+            page--;
+            Page<Videos> videosPage;
+            String sTitle = ZhConverterUtil.convertToSimple(objectData.get("text").toString());
+            String tTitle = ZhConverterUtil.convertToTraditional(objectData.get("text").toString());
+            Pageable pageable = PageRequest.of(page, 50, Sort.by(Sort.Direction.DESC, "id"));
+            switch (Integer.parseInt(objectData.get("type").toString())){
+                case 0:
+                    videosPage = videosDao.findByAv(sTitle,tTitle,pageable);
+                    return getVideoList(videosPage);
+                default:
+                    break;
+            }
+        }
+        return null;
+    }
+
+    private JSONObject getVideoList(Page<Videos> videosPage) {
+        JSONArray array = new JSONArray();
+        for (int i=0;i< videosPage.getContent().size();i++){
+            JSONObject item = new JSONObject();
+            Videos video = videosPage.getContent().get(i);
+            item.put("title",video.getTitle());
+            item.put("id",video.getId());
+            item.put("image",video.getPicThumb());
+            item.put("number",video.getNumbers());
+            if (video.getPlay() > 0) {
+                item.put("play",video.getPlay());
+            }else {
+                item.put("play",videoPlayDao.countAllByVid(video.getId()));
+            }
+            if (video.getRecommends() > 0){
+                item.put("remommends",video.getRecommends());
+            }else {
+                item.put("remommends",videoRecommendsDao.countAllByVid(video.getId()));
+            }
+//            item.put("account",video);
+            array.add(item);
+        }
+        JSONObject object = new JSONObject();
+        object.put("list",array);
+        return object;
+    }
+
+    public JSONObject player(String data, Users user) {
+        JSONObject objectData = JSONObject.parseObject(data);
+        if (objectData != null && objectData.get("id") != null){
+            Videos videos = videosDao.findAllByIdAndStatus(Long.parseLong(objectData.get("id").toString()),1);
+            if (videos != null){
+                VideoPlay videoPlay = new VideoPlay();
+                videoPlay.setVid(videos.getId());
+                videoPlay.setUid(user.getId());
+                videoPlay.setAddTime(System.currentTimeMillis());
+                videoPlayDao.saveAndFlush(videoPlay);
+                JSONObject info = getplayerObject(videos);
+                JSONObject object = new JSONObject();
+                object.put("verify",true);
+                VideoFavorites favorites = videoFavoritesDao.findAllByUidAndVid(user.getId(),videos.getId());
+                if (favorites != null){
+                    info.put("favorite",true);
+                }
+                if (videos.getDiamond() > 0){
+                    VideoOrders orders = videoOrdersDao.findAllByUidAndVid(user.getId(),videos.getId());
+                    if (orders == null){
+                        info.put("playUrl","");
+                        info.put("downloadUrl","");
+                        object.put("verify",false);
+                    }
+                }else {
+                    if (user.getExpired() < System.currentTimeMillis()){
+                        info.put("playUrl","");
+                        info.put("downloadUrl","");
+                        object.put("verify",false);
+                    }
+                }
+                object.put("info", info);
+                return object;
+            }
+        }
+        return (JSONObject) (new JSONObject()).put("error", true);
+    }
+    private JSONObject getActor(VideoActors actors){
+        JSONObject object = new JSONObject();
+        if (actors != null){
+            object.put("name",actors.getName());
+            object.put("avatar",actors.getAvatar());
+        }
+        return object;
+    }
+    private String getPlayUrl(String data){
+        List<VideoPlayUrl> videoPlayUrls = JSONArray.parseArray(data,VideoPlayUrl.class);
+        if (videoPlayUrls == null){
+            return null;
+        }
+        return videoPlayUrls.get(videoPlayUrls.size()-1).getUrl();
+    }
+    private JSONObject getplayerObject(Videos videos) {
+        JSONObject object = new JSONObject();
+        object.put("favorite",false);
+        object.put("id",videos.getId());
+        object.put("title",videos.getTitle());
+        object.put("duration",videos.getVodDuration());
+        object.put("actor",getActor(videoActorsDao.findAllById(videos.getActor())));
+        object.put("pic",videos.getPicThumb());
+        object.put("tag",videos.getVodTag());
+        object.put("diamond",videos.getDiamond());
+        object.put("downloadUrl",videos.getVodDownUrl());
+        object.put("playUrl",getPlayUrl(videos.getVodPlayUrl()));
+        if (videos.getPlay() > 0) {
+            object.put("play",videos.getPlay());
+        }else {
+            object.put("play",videoPlayDao.countAllByVid(videos.getId()));
+        }
+        if (videos.getRecommends() > 0){
+            object.put("recommendations",videos.getRecommends());
+        }else {
+            object.put("recommendations",videoRecommendsDao.countAllByVid(videos.getId()));
+        }
+        return object;
+    }
+
+    public JSONObject getRandom() {
+        Pageable pageable = PageRequest.of(randomIndex, 20, Sort.by(Sort.Direction.DESC, "id"));
+        Page<Videos> videosPage = videosDao.findAllByStatus(1,pageable);
+        if (videosPage.getTotalPages() > (randomIndex+1)){
+            randomIndex++;
+        }else {
+            randomIndex = 0;
+        }
+        return getVideoList(videosPage);
     }
 }

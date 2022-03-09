@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface VideoActorsDao extends JpaRepository<VideoActors, Integer>, CrudRepository<VideoActors, Integer> {
+    VideoActors findAllById(long id);
 }

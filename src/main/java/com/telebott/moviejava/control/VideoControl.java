@@ -16,10 +16,26 @@ public class VideoControl {
     private VideosService videosService;
     @GetMapping("/hotTags")
     public ResultData hotTags(){
-//        @ModelAttribute RequestData requestData
-//        System.out.println(requestData.getUser());
         ResultData data = new ResultData();
         data.setData(videosService.gethotTags());
+        return data;
+    }
+    @GetMapping("/random")
+    public ResultData random(){
+        ResultData data = new ResultData();
+        data.setData(videosService.getRandom());
+        return data;
+    }
+    @GetMapping("/search")
+    public ResultData search(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(videosService.search(requestData.getData(),requestData.getUser()));
+        return data;
+    }
+    @GetMapping("/player")
+    public ResultData player(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(videosService.player(requestData.getData(),requestData.getUser()));
         return data;
     }
 }
