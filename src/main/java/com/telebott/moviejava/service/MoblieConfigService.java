@@ -45,6 +45,7 @@ public class MoblieConfigService {
             jsonObject.put("bucketName", systemConfigService.getValueByKey("bucketName"));
             jsonObject.put("endpoint", systemConfigService.getValueByKey("endpoint"));
             jsonObject.put("ossName", systemConfigService.getValueByKey("ossName"));
+            object.put("domain", systemConfigService.getValueByKey("domain"));
             object.put("ossConfig", jsonObject);
             object.put("vipBuys",_getVipBuys());
             object.put("onlinePays",_getOnlinePays());

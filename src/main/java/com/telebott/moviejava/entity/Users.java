@@ -14,8 +14,7 @@ import javax.persistence.*;
 @ToString(includeFieldNames = true)
 public class Users {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @GeneratedValue
     private long id;
     private String nickname;
     private int sex;
@@ -33,6 +32,8 @@ public class Users {
     private String uid;
     private String identifier;
     private long superior;
+    private long experience;
+    @Column(name = "expireds")
     private long expired;
     @Transient
     private String token;

@@ -146,6 +146,7 @@ public class ApiControl {
                 user.setIdentifier(object.get("identifier").toString());
                 user.setUid(md5Util.getMD5(user.getIdentifier()));
                 user.setSalt(userService._getSalt());
+                user.setInvite(userService._getInvite());
                 md5Util.setSalt(user.getSalt());
                 if (object.get("passwd").toString().length() < 32){
                     user.setPassword(md5Util.getPassWord(md5Util.getMD5(object.get("passwd").toString())));

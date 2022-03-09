@@ -44,6 +44,8 @@ public class OnlineOrderService {
     private CommodityGoldDao commodityGoldDao;
     @Autowired
     private  CommodityGoldOrderDao commodityGoldOrderDao;
+    @Autowired
+    private AuthDao authDao;
     public void _save(OnlineOrder onlineOrder){
         onlineOrderDao.saveAndFlush(onlineOrder);
     }
@@ -185,6 +187,11 @@ public class OnlineOrderService {
             Users user = userService._getById(order.getUid());
             CommodityVip commodityVip = commodityVipDao.findAllById(order.getCid());
             commodityVipOrderService._handlerAddTime(user,commodityVip);
+//            Users _user = authDao.findUserByIdentifier(user.getIdentifier());
+//            user.setToken(_user.getToken());
+//            long time = CommodityVipOrderService._getAddTime(commodityVip.getAddTime(),user.getExpired());
+//            user.setExpired(time);
+//            userService._saveAndPush(user);
         }
     }
     public JSONObject _postCrateOrder(Users user,String type, String order_id, String pid) {

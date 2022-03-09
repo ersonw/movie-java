@@ -2,8 +2,10 @@ package com.telebott.moviejava.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.telebott.moviejava.dao.AuthDao;
 import com.telebott.moviejava.dao.CommodityVipDao;
 import com.telebott.moviejava.dao.CommodityVipOrderDao;
+import com.telebott.moviejava.dao.UsersDao;
 import com.telebott.moviejava.entity.CommodityVip;
 import com.telebott.moviejava.entity.CommodityVipOrder;
 import com.telebott.moviejava.entity.Users;
@@ -26,6 +28,10 @@ public class CommodityVipOrderService {
     private CommodityVipDao commodityVipDao;
     @Autowired
     private UserService userService;
+    @Autowired
+    private UsersDao usersDao;
+    @Autowired
+    private AuthDao authDao;
     public void _save(CommodityVipOrder commodityVipOrder){
         commodityVipOrderDao.saveAndFlush(commodityVipOrder);
     }
@@ -51,11 +57,21 @@ public class CommodityVipOrderService {
         }
         return object;
     }
-    public void _handlerAddTime(Users user, CommodityVip commodityVip){
-        user.setExpired(_getAddTime(commodityVip.getAddTime()));
-        userService._saveAndPush(user);
+    public void _handlerAddTime(Users user, CommodityVip commodityVip) {
+        Users _user = authDao.findUserByIdentifier(user.getIdentifier());
+        user.setToken(_user.getToken());
+        long time = _getAddTime(commodityVip.getAddTime(),user.getExpired());
+        user.setExpired(time);
+//        userService._saveAndPush(user);
+//        System.out.println(user);
+        usersDao.save(user);
+        authDao.pushUser(user);
     }
-    private long _getAddTime(String time){
+    public static long _getAddTime(String time, long e){
+        long t = e>0 ? e - System.currentTimeMillis() : 0;
+        return _getAddTime(time) + t;
+    }
+    private static long _getAddTime(String time){
         if (StringUtils.isEmpty(time)){
             return TimeUtil.manyDaysLater(365 * 99);
         }

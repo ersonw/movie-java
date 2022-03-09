@@ -24,6 +24,9 @@ public class UserService {
     public void _save(Users users){
         usersDao.saveAndFlush(users);
     }
+    public void _push(Users users){
+        authDao.pushUser(users);
+    }
     public Users _getInviteOwner(String invite){
         return usersDao.findAllByInvite(invite);
     }
@@ -32,13 +35,21 @@ public class UserService {
         if (isUser(_user.getId())){
             _save(_user);
         }
-        authDao.pushUser(_user);
+        _push(_user);
     }
     public Users _getById(long id){
         return usersDao.findAllById(id);
     }
     public String _getSalt(){
         return RandomStringUtils.randomAlphanumeric(32);
+    }
+    public String _getInvite(){
+        String invite = RandomStringUtils.randomAlphanumeric(6);
+        Users users = usersDao.findAllByInvite(invite);
+        if (users != null){
+            return _getInvite();
+        }
+        return invite;
     }
     public Users _change(JSONObject object){
         Users _user = JSONObject.toJavaObject(object,Users.class);
@@ -86,6 +97,7 @@ public class UserService {
             object.put("invite",users.getInvite());
             object.put("superior", users.getSuperior());
             object.put("expired",users.getExpired());
+            object.put("experience",users.getExperience());
         }
         return object;
     }
