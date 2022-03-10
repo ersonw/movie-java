@@ -38,4 +38,16 @@ public class VideoControl {
         data.setData(videosService.player(requestData.getData(),requestData.getUser()));
         return data;
     }
+    @GetMapping("/favorite")
+    public ResultData favorite(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(videosService.favorite(requestData.getData(),requestData.getUser()));
+        return data;
+    }
+    @GetMapping("/buy")
+    public ResultData buy(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(videosService.buy(requestData.getData(),requestData.getUser()));
+        return data;
+    }
 }

@@ -43,6 +43,8 @@ public class VideosService {
     private VideoOrdersDao videoOrdersDao;
     @Autowired
     private VideoFavoritesDao videoFavoritesDao;
+    @Autowired
+    private DiamondRecordsDao diamondRecordsDao;
 
     public void handlerYzm(YzmData yzmData) {
         Videos videos = videosDao.findAllByShareId(yzmData.getShareid());
@@ -242,5 +244,66 @@ public class VideosService {
             randomIndex = 0;
         }
         return getVideoList(videosPage);
+    }
+
+    public JSONObject favorite(String d, Users user) {
+        JSONObject data = JSONObject.parseObject(d);
+        JSONObject object = new JSONObject();
+        object.put("verify", false);
+        if (data != null && data.get("id") != null){
+            Videos videos = videosDao.findAllById(Long.parseLong(data.get("id").toString()));
+            if (videos != null){
+                VideoFavorites favorites = videoFavoritesDao.findAllByUidAndVid(user.getId(),videos.getId());
+                if (favorites == null){
+                    favorites = new VideoFavorites();
+                    favorites.setVid(videos.getId());
+                    favorites.setUid(user.getId());
+                    favorites.setAddTime(System.currentTimeMillis());
+                    videoFavoritesDao.saveAndFlush(favorites);
+                }else {
+                    videoFavoritesDao.delete(favorites);
+                }
+                object.put("verify", true);
+            }
+        }
+        return object;
+    }
+
+    public JSONObject buy(String d, Users user) {
+        JSONObject data = JSONObject.parseObject(d);
+        JSONObject object = new JSONObject();
+        object.put("verify", false);
+        if (data != null && data.get("id") != null) {
+            Videos videos = videosDao.findAllById(Long.parseLong(data.get("id").toString()));
+            if (videos != null) {
+                if (videos.getDiamond() > 0){
+                    if (user.getDiamond() < videos.getDiamond()){
+                        object.put("msg", "钻石余额不足，请先充值!");
+                    }else {
+                        object.put("verify", true);
+                        VideoOrders orders = videoOrdersDao.findAllByUidAndVid(user.getId(),videos.getId());
+                        if (orders == null){
+                            DiamondRecords records = new DiamondRecords();
+                            records.setCtime(System.currentTimeMillis());
+                            records.setUid(user.getId());
+                            records.setReason("购买了付费影片《"+videos.getTitle()+"》");
+                            records.setDiamond(-(videos.getDiamond()));
+                            diamondRecordsDao.saveAndFlush(records);
+                            orders = new VideoOrders();
+                            orders.setAddTime(System.currentTimeMillis());
+                            orders.setVid(videos.getId());
+                            orders.setStatus(1);
+                            orders.setUid(user.getId());
+                            videoOrdersDao.saveAndFlush(orders);
+                            user.setDiamond(user.getDiamond()-videos.getDiamond());
+                            userService._saveAndPush(user);
+                        }
+                    }
+                }else {
+                    object.put("msg", "该影片为会员影片，开通会员免费观看!");
+                }
+            }
+        }
+        return object;
     }
 }
