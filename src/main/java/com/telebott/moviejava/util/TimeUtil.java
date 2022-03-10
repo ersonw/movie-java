@@ -96,6 +96,9 @@ public class TimeUtil {
     public static long getAfterDaysZero(int days){
         return getTodayZero() + (days * 86400000L);
     }
+    public static long getBeforeDaysZero(int days){
+        return getTodayZero() - (days * 86400000L);
+    }
     public static String format(Temporal co, String pattern) {
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern(pattern);
         String str = fmt.format(co);

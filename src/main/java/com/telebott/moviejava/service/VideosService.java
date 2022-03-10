@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.github.houbb.opencc4j.util.ZhConverterUtil;
 import com.telebott.moviejava.dao.*;
 import com.telebott.moviejava.entity.*;
+import com.telebott.moviejava.util.TimeUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -45,6 +46,8 @@ public class VideosService {
     private VideoFavoritesDao videoFavoritesDao;
     @Autowired
     private DiamondRecordsDao diamondRecordsDao;
+    @Autowired
+    private RecommendLikesDao recommendLikesDao;
 
     public void handlerYzm(YzmData yzmData) {
         Videos videos = videosDao.findAllByShareId(yzmData.getShareid());
@@ -268,6 +271,28 @@ public class VideosService {
         }
         return object;
     }
+    public JSONObject likeComment(String d, Users user) {
+        JSONObject data = JSONObject.parseObject(d);
+        JSONObject object = new JSONObject();
+        object.put("verify", false);
+        if (data != null && data.get("id") != null){
+            VideoRecommends recommends = videoRecommendsDao.findAllById(Long.parseLong(data.get("id").toString()));
+            if (recommends != null){
+                RecommendLikes recommendLikes = recommendLikesDao.findAllByUidAndRid(user.getId(),recommends.getId());
+                if (recommendLikes == null){
+                    recommendLikes = new RecommendLikes();
+                    recommendLikes.setRid(recommends.getId());
+                    recommendLikes.setUid(user.getId());
+                    recommendLikes.setAddTime(System.currentTimeMillis());
+                    recommendLikesDao.saveAndFlush(recommendLikes);
+                }else {
+                    recommendLikesDao.delete(recommendLikes);
+                }
+                object.put("verify", true);
+            }
+        }
+        return object;
+    }
 
     public JSONObject buy(String d, Users user) {
         JSONObject data = JSONObject.parseObject(d);
@@ -303,6 +328,109 @@ public class VideosService {
                     object.put("msg", "该影片为会员影片，开通会员免费观看!");
                 }
             }
+        }
+        return object;
+    }
+
+    public JSONObject recommend(String d, Users user) {
+        JSONObject data = JSONObject.parseObject(d);
+        JSONObject object = new JSONObject();
+        object.put("verify", false);
+        if (data != null && data.get("id") != null && data.get("reason") != null) {
+            if (data.get("reason").toString().length() < 101){
+                Videos videos = videosDao.findAllById(Long.parseLong(data.get("id").toString()));
+                if (videos != null) {
+                    VideoRecommends videoRecommends = videoRecommendsDao.findAllByUidAndVid(user.getId(),videos.getId());
+                    if (videoRecommends == null){
+                        object.put("verify", true);
+                        videoRecommends = new VideoRecommends();
+                        videoRecommends.setVid(videos.getId());
+                        videoRecommends.setReason(data.get("reason").toString());
+                        videoRecommends.setUid(user.getId());
+                        videoRecommends.setStatus(1);
+                        videoRecommends.setAddTime(System.currentTimeMillis());
+                        videoRecommendsDao.saveAndFlush(videoRecommends);
+                    }else {
+                        object.put("msg", "不可重复推荐!");
+                    }
+                }else {
+                    object.put("msg", "系统错误!");
+                }
+            }else {
+                object.put("msg", "推荐理由超出字数限制!");
+            }
+        }
+        return object;
+    }
+    private JSONArray getRecommends(long vid, int page, long _uid){
+        JSONArray array = new JSONArray();
+        page--;
+        Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
+        Page<VideoRecommends> videoRecommendsPage = videoRecommendsDao.findAllByVidAndStatus(vid,1,pageable);
+        for (VideoRecommends recommend: videoRecommendsPage.getContent()) {
+            Users users = userService._getById(recommend.getUid());
+            if (users != null){
+                JSONObject object = new JSONObject();
+                object.put("likes",recommendLikesDao.countAllByRid(recommend.getId()));
+                object.put("id",recommend.getId());
+                object.put("context",recommend.getReason());
+                object.put("isFirst",_isFirst(recommend.getVid(),recommend.getUid()));
+                object.put("isLike",false);
+                RecommendLikes likes = recommendLikesDao.findAllByUidAndRid(_uid,recommend.getId());
+                if (likes != null){
+                    object.put("isLike",true);
+                }
+                object.put("avatar",users.getAvatar());
+                object.put("nickname",users.getNickname());
+                object.put("uid",users.getId());
+                array.add(object);
+            }
+        }
+        return array;
+    }
+    private boolean _isFirst(long vid, long uid){
+        VideoRecommends recommends = videoRecommendsDao.getFirst(vid);
+        if (recommends != null){
+            if (recommends.getUid() == uid) return true;
+        }
+        return false;
+    }
+    private JSONObject getVideoLists(Page<VideoRecommends> videoRecommendsPage, Users user){
+        JSONObject data =new JSONObject();
+        JSONArray array = new JSONArray();
+        data.put("total",videoRecommendsPage.getTotalPages());
+        for (int i=0; i < videoRecommendsPage.getContent().size();i++){
+            VideoRecommends recommends = videoRecommendsPage.getContent().get(i);
+            Videos videos = videosDao.findAllById(recommends.getVid());
+            if (videos != null){
+                JSONObject object = new JSONObject();
+                object.put("comments",getRecommends(recommends.getVid(),1,user.getId()));
+                object.put("id",recommends.getId());
+                object.put("image",videos.getPicThumb());
+                object.put("vid",videos.getId());
+                object.put("recommends",videoRecommendsDao.countAllByVid(recommends.getVid()));
+                array.add(object);
+            }
+        }
+        data.put("list",array);
+        return data;
+    }
+    public JSONObject recommends(String d, Users user) {
+        int page = 1;
+        JSONObject data = JSONObject.parseObject(d);
+        JSONObject object = new JSONObject();
+        if (data.get("page") != null) page = Integer.parseInt(data.get("page").toString());
+        page--;
+        Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
+        if (data.get("type") == null || data.get("type").toString().equals("today")){
+            Page<VideoRecommends> videoRecommendsPage = videoRecommendsDao.getAllByDateTime(TimeUtil.getTodayZero(), pageable);
+            object = getVideoLists(videoRecommendsPage,user);
+        }else if (data.get("type").toString().equals("week")){
+            Page<VideoRecommends> videoRecommendsPage = videoRecommendsDao.getAllByDateTime(TimeUtil.getBeforeDaysZero(7), pageable);
+            object = getVideoLists(videoRecommendsPage,user);
+        }else if (data.get("type").toString().equals("all")){
+            Page<VideoRecommends> videoRecommendsPage = videoRecommendsDao.getAllByAll(pageable);
+            object = getVideoLists(videoRecommendsPage,user);
         }
         return object;
     }
