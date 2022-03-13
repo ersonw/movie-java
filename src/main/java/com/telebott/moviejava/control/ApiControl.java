@@ -30,6 +30,10 @@ public class ApiControl {
     private UserService userService;
     @Autowired
     private VideosService videosService;
+    @Autowired
+    private SystemConfigService systemConfigService;
+    @Autowired
+    private VideoFeaturedsService videoFeaturedsService;
     @GetMapping("/test")
     public ResultData test(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
@@ -37,6 +41,30 @@ public class ApiControl {
         smsCode.setPhone("+8618172195974");
         smsRecordsService._sendSmsCode(smsCode);
         data.setMessage(smsCode.getId());
+        return data;
+    }
+    @GetMapping("/carousels")
+    public ResultData carousels(){
+        ResultData data = new ResultData();
+        data.setData(systemConfigService.getCarousel());
+        return data;
+    }
+    @GetMapping("/featureds")
+    public ResultData featureds(){
+        ResultData data = new ResultData();
+        data.setData(videoFeaturedsService.getFeatureds());
+        return data;
+    }
+    @GetMapping("/featuredTags")
+    public ResultData featuredTags(){
+        ResultData data = new ResultData();
+        data.setData(videoFeaturedsService.getFeaturedTags());
+        return data;
+    }
+    @GetMapping("/featuredLists")
+    public ResultData featuredLists(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(videoFeaturedsService.getFeaturedLists(requestData.getData()));
         return data;
     }
     @GetMapping("/forgotPasswd")
