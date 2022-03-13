@@ -14,7 +14,8 @@ public interface VideosDao extends JpaRepository<Videos, Integer>, CrudRepositor
     Videos findAllByIdAndStatus(long id, int status);
     Page<Videos> findAllByStatus(int status,Pageable pageable);
     Videos findAllByShareId(String id);
-    Long findAllByUid(long uid);
+    long countAllByActor(long actor);
+    long countAllByUid(long uid);
     @Query(value = "select * from videos where status =1 and (title like %:sTitle% or title like %:tTitle%) ", nativeQuery = true)
     Page<Videos> findByAv(String sTitle, String tTitle, Pageable pageable);
     @Query(value = "select * from videos where status =1 and (title like %:sTitle% or title like %:tTitle%) ", nativeQuery = true)

@@ -3,9 +3,7 @@ package com.telebott.moviejava.service;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.telebott.moviejava.dao.*;
-import com.telebott.moviejava.entity.VideoFeaturedRecords;
-import com.telebott.moviejava.entity.VideoFeatureds;
-import com.telebott.moviejava.entity.Videos;
+import com.telebott.moviejava.entity.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -30,6 +28,12 @@ public class VideoFeaturedsService {
     private VideoPlayDao videoPlayDao;
     @Autowired
     private VideoRecommendsDao videoRecommendsDao;
+    @Autowired
+    private ActorMeasurementsDao actorMeasurementsDao;
+    @Autowired
+    private VideoActorsDao videoActorsDao;
+    @Autowired
+    private VideoCollectsDao videoCollectsDao;
     public JSONObject getFeatureds() {
         List<VideoFeatureds> featuredsList = videoFeaturedsDao.findAllByStatus(1);
         JSONArray array = new JSONArray();
@@ -99,22 +103,45 @@ public class VideoFeaturedsService {
             if (data.get("type") != null) type = Integer.parseInt(data.get("type").toString());
             if (data.get("tag") != null) tagId = Long.parseLong(data.get("tag").toString());
             page--;
-            Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
-            Page<VideoFeaturedRecords> videoFeaturedRecordsPage;
-            if (tagId > 0){
-                VideoFeatureds featureds = videoFeaturedsDao.findAllById(tagId);
-                if (featureds != null){
-                    videoFeaturedRecordsPage = videoFeaturedRecordsDao.findAllByFid(featureds.getId(), pageable);
+            List<Videos> videosList = new ArrayList<>();
+            if (type == 0){
+                Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
+                Page<VideoFeaturedRecords> videoFeaturedRecordsPage;
+                if (tagId > 0){
+                    VideoFeatureds featureds = videoFeaturedsDao.findAllById(tagId);
+                    if (featureds != null){
+                        videoFeaturedRecordsPage = videoFeaturedRecordsDao.findAllByFid(featureds.getId(), pageable);
+                    }else {
+                        videoFeaturedRecordsPage = videoFeaturedRecordsDao.findAll(pageable);
+                    }
                 }else {
                     videoFeaturedRecordsPage = videoFeaturedRecordsDao.findAll(pageable);
                 }
+                object.put("total",videoFeaturedRecordsPage.getTotalPages());
+                videosList = handlerPlayAndRemommends(getVideoList(videoFeaturedRecordsPage));
             }else {
-                videoFeaturedRecordsPage = videoFeaturedRecordsDao.findAll(pageable);
-            }
-            object.put("total",videoFeaturedRecordsPage.getTotalPages());
-            List<Videos> videosList = handlerPlayAndRemommends(getVideoList(videoFeaturedRecordsPage));
-            if (type == 1){
-                videosList = getVideoListSort(videosList);
+                List<VideoFeaturedRecords> recordsList = new ArrayList<>();
+                if (tagId > 0){
+                    VideoFeatureds featureds = videoFeaturedsDao.findAllById(tagId);
+                    if (featureds != null){
+                        recordsList = videoFeaturedRecordsDao.findHotsByTag(featureds.getId(),page,20);
+                    }else {
+                        recordsList = videoFeaturedRecordsDao.findHots(page,20);
+                    }
+
+                }else {
+                    recordsList = videoFeaturedRecordsDao.findHots(page,20);
+                }
+                if (recordsList.size() < 20){
+                    object.put("total", page++);
+                }else {
+                    object.put("total", page+2);
+                }
+                for (VideoFeaturedRecords records: recordsList) {
+                    Videos video = videosDao.findAllById(records.getVid());
+                    if (video != null) videosList.add(video);
+                }
+                videosList = handlerPlayAndRemommends(videosList);
             }
             array = getVideoList(videosList);
         }
@@ -159,5 +186,89 @@ public class VideoFeaturedsService {
             if (videos != null) videosList.add(videos);
         }
         return videosList;
+    }
+
+    public JSONObject getMeasurementTags() {
+        List<ActorMeasurements> measurements = actorMeasurementsDao.findAllByStatus(1);
+        JSONObject object = new JSONObject();
+        JSONArray array = new JSONArray();
+        for (ActorMeasurements measurement: measurements) {
+            JSONObject data = new JSONObject();
+            data.put("id", measurement.getId());
+            data.put("title", measurement.getTitle());
+            array.add(data);
+        }
+        object.put("list",array);
+        return object;
+    }
+
+    public JSONObject getActorLists(String d) {
+        JSONObject data = JSONObject.parseObject(d);
+        JSONObject object = new JSONObject();
+        JSONArray array = new JSONArray();
+        int page = 1;
+        int type = 0;
+        long tagId = 0;
+        if (data != null){
+            if (data.get("page") != null) page = Integer.parseInt(data.get("page").toString());
+            if (data.get("type") != null) type = Integer.parseInt(data.get("type").toString());
+            if (data.get("tag") != null) tagId = Long.parseLong(data.get("tag").toString());
+            page--;
+            List<VideoActors> actors = new ArrayList<>();
+            if (type == 0){
+                Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
+                Page<VideoActors> videoActorsPage;
+                if (tagId > 0){
+                    ActorMeasurements measurements = actorMeasurementsDao.findAllById(tagId);
+                    if (measurements != null){
+                        videoActorsPage = videoActorsDao.findAllByMeasurements(measurements.getId(), pageable);
+                    }else {
+                        videoActorsPage = videoActorsDao.findAll(pageable);
+                    }
+                }else {
+                    videoActorsPage = videoActorsDao.findAll(pageable);
+                }
+                object.put("total",videoActorsPage.getTotalPages());
+                actors = videoActorsPage.getContent();
+            }else if (type == 1){
+                if (tagId>0){
+                    ActorMeasurements measurements = actorMeasurementsDao.findAllById(tagId);
+                    if (measurements != null){
+                         actors = videoActorsDao.getHotsByTag(tagId,page,20);
+                    }else {
+                         actors = videoActorsDao.getHots(page,20);
+                    }
+                }else {
+                     actors = videoActorsDao.getHots(page,20);
+                }
+                if (actors.size() < 20){
+                    object.put("total",page++);
+                }else {
+                    object.put("total",page+2);
+                }
+            }
+            for (VideoActors actor: actors) {
+                array.add(getActor(actor));
+            }
+        }
+        object.put("list",array);
+        return object;
+    }
+    private JSONObject getActor(VideoActors actors){
+        JSONObject object = new JSONObject();
+        if (actors != null){
+            object.put("id",actors.getId());
+            object.put("name",actors.getName());
+            object.put("avatar",actors.getAvatar());
+            object.put("collects",videoCollectsDao.countAllByAid(actors.getId()));
+            object.put("work", videosDao.countAllByActor(actors.getId()));
+            ActorMeasurements measurements = actorMeasurementsDao.findAllById(actors.getMeasurements());
+            if (measurements != null){
+                object.put("measurements", measurements.getTitle());
+            }else {
+                object.put("measurements", "?罩杯");
+            }
+        }
+        return object;
     }
 }

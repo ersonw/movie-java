@@ -48,6 +48,8 @@ public class VideosService {
     private DiamondRecordsDao diamondRecordsDao;
     @Autowired
     private RecommendLikesDao recommendLikesDao;
+    @Autowired
+    private ActorMeasurementsDao actorMeasurementsDao;
 
     public void handlerYzm(YzmData yzmData) {
         Videos videos = videosDao.findAllByShareId(yzmData.getShareid());
@@ -122,7 +124,7 @@ public class VideosService {
             Page<Videos> videosPage;
             String sTitle = ZhConverterUtil.convertToSimple(objectData.get("text").toString());
             String tTitle = ZhConverterUtil.convertToTraditional(objectData.get("text").toString());
-            Pageable pageable = PageRequest.of(page, 50, Sort.by(Sort.Direction.DESC, "id"));
+            Pageable pageable = PageRequest.of(page, 30, Sort.by(Sort.Direction.DESC, "id"));
             switch (Integer.parseInt(objectData.get("type").toString())){
                 case 0:
                     videosPage = videosDao.findByAv(sTitle,tTitle,pageable);
@@ -171,7 +173,7 @@ public class VideosService {
                 videoPlay.setUid(user.getId());
                 videoPlay.setAddTime(System.currentTimeMillis());
                 videoPlayDao.saveAndFlush(videoPlay);
-                JSONObject info = getplayerObject(videos);
+                JSONObject info = getplayerObject(videos, user);
                 JSONObject object = new JSONObject();
                 object.put("verify",true);
                 VideoFavorites favorites = videoFavoritesDao.findAllByUidAndVid(user.getId(),videos.getId());
@@ -201,8 +203,17 @@ public class VideosService {
     private JSONObject getActor(VideoActors actors){
         JSONObject object = new JSONObject();
         if (actors != null){
+            object.put("id",actors.getId());
             object.put("name",actors.getName());
             object.put("avatar",actors.getAvatar());
+            object.put("collects",videoCollectsDao.countAllByAid(actors.getId()));
+            object.put("work", videosDao.countAllByActor(actors.getId()));
+            ActorMeasurements measurements = actorMeasurementsDao.findAllById(actors.getMeasurements());
+            if (measurements != null){
+                object.put("measurements", measurements.getTitle());
+            }else {
+                object.put("measurements", "?罩杯");
+            }
         }
         return object;
     }
@@ -213,13 +224,18 @@ public class VideosService {
         }
         return videoPlayUrls.get(videoPlayUrls.size()-1).getUrl();
     }
-    private JSONObject getplayerObject(Videos videos) {
+    private JSONObject getplayerObject(Videos videos, Users user) {
         JSONObject object = new JSONObject();
         object.put("favorite",false);
         object.put("id",videos.getId());
         object.put("title",videos.getTitle());
         object.put("duration",videos.getVodDuration());
-        object.put("actor",getActor(videoActorsDao.findAllById(videos.getActor())));
+        JSONObject actor = getActor(videoActorsDao.findAllById(videos.getActor()));
+        VideoCollects collects = videoCollectsDao.findAllByUidAndAid(user.getId(),videos.getActor());
+        if (collects != null){
+            actor.put("collect",true);
+        }
+        object.put("actor",actor);
         object.put("pic",videos.getPicThumb());
         object.put("tag",videos.getVodTag());
         object.put("diamond",videos.getDiamond());

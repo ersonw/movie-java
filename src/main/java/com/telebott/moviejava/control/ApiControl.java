@@ -61,6 +61,18 @@ public class ApiControl {
         data.setData(videoFeaturedsService.getFeaturedTags());
         return data;
     }
+    @GetMapping("/measurementTags")
+    public ResultData measurementTags(){
+        ResultData data = new ResultData();
+        data.setData(videoFeaturedsService.getMeasurementTags());
+        return data;
+    }
+    @GetMapping("/ActorLists")
+    public ResultData ActorLists(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(videoFeaturedsService.getActorLists(requestData.getData()));
+        return data;
+    }
     @GetMapping("/featuredLists")
     public ResultData featuredLists(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();

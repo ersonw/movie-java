@@ -20,4 +20,13 @@ public class VideoFeaturedRecords {
     private long fid;
     private long vid;
     private long addTime;
+    public VideoFeaturedRecords(VideoFeaturedRecords records){
+        this.id = records.getId();
+        this.fid = records.getFid();
+        this.vid = records.getVid();
+        this.addTime = records.getAddTime();
+    }
+    public VideoFeaturedRecords(){
+        super();
+    }
 }

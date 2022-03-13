@@ -19,7 +19,7 @@ public class VideoActors {
     private long id;
     private String name;
     private String avatar;
-    private String measurements;
+    private long measurements;
     private int status;
     private long addTime;
     private long updateTime;

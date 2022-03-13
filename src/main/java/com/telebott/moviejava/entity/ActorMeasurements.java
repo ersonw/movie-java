@@ -9,15 +9,14 @@ import javax.persistence.*;
 @Setter
 @Getter
 @Entity
-@Table(name = "video_collects")
+@Table(name = "actor_measurements")
 @Cacheable
 @ToString(includeFieldNames = true)
-public class VideoCollects {
+public class ActorMeasurements {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private long id;
-    private long uid;
-    private long aid;
+    private String title;
+    private int status;
     private long addTime;
 }
