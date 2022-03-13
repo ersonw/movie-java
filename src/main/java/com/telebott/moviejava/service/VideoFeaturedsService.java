@@ -13,7 +13,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import javax.script.Compilable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -110,7 +112,7 @@ public class VideoFeaturedsService {
                 videoFeaturedRecordsPage = videoFeaturedRecordsDao.findAll(pageable);
             }
             object.put("total",videoFeaturedRecordsPage.getTotalPages());
-            List<Videos> videosList = getVideoList(videoFeaturedRecordsPage);
+            List<Videos> videosList = handlerPlayAndRemommends(getVideoList(videoFeaturedRecordsPage));
             if (type == 1){
                 videosList = getVideoListSort(videosList);
             }
@@ -121,8 +123,20 @@ public class VideoFeaturedsService {
     }
 
     private List<Videos> getVideoListSort(List<Videos> videosList) {
-
-        return videosList;
+        Videos[] videos = videosList.toArray(new Videos[0]);
+        Arrays.sort(videos);
+        return Arrays.asList(videos);
+    }
+    private List<Videos> handlerPlayAndRemommends(List<Videos> videos){
+        for (int i=0;i< videos.size();i++){
+            if (videos.get(i).getPlay() == 0){
+                videos.get(i).setPlay(videoPlayDao.countAllByVid(videos.get(i).getId()));
+            }
+            if (videos.get(i).getRecommends() == 0){
+                videos.get(i).setRecommends(videoRecommendsDao.countAllByVid(videos.get(i).getId()));
+            }
+        }
+        return videos;
     }
     private JSONArray getVideoList(List<Videos> videosList) {
         JSONArray array = new JSONArray();
@@ -131,16 +145,8 @@ public class VideoFeaturedsService {
             object.put("id",video.getId());
             object.put("title",video.getTitle());
             object.put("image",video.getPicThumb());
-            if (video.getPlay() > 0){
-                object.put("play",video.getPlay());
-            }else {
-                object.put("play",videoPlayDao.countAllByVid(video.getId()));
-            }
-            if (video.getRecommends() > 0){
-                object.put("remommends", video.getRecommends());
-            }else {
-                object.put("remommends", videoRecommendsDao.countAllByVid(video.getId()));
-            }
+            object.put("play",video.getPlay());
+            object.put("remommends", video.getRecommends());
             array.add(object);
         }
         return array;

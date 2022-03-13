@@ -12,7 +12,7 @@ import javax.persistence.*;
 @Table(name = "videos")
 @Cacheable
 @ToString(includeFieldNames = true)
-public class Videos {
+public class Videos implements Comparable<Videos> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -36,4 +36,15 @@ public class Videos {
     private long recommends;
     private String shareId;
     private String numbers;
+
+    @Override
+    public int compareTo(Videos video) {
+//        int result = Long.valueOf(this.play - video.getPlay()).intValue();
+        int result = Long.valueOf(video.getPlay() - this.play).intValue();
+        if (0 == result){
+            result = this.title.compareTo(video.title);
+//            result = video.title.compareTo(this.title);
+        }
+        return result;
+    }
 }
