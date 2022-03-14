@@ -194,6 +194,7 @@ public class ApiControl {
                     user.setPassword(md5Util.getPassWord(object.get("passwd").toString()));
                 }
                 userService._save(user);
+                userService._push(user);
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("verify", true);
                 data.setData(jsonObject);

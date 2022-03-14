@@ -60,12 +60,12 @@ public class CommodityVipOrderService {
     public void _handlerAddTime(Users user, CommodityVip commodityVip) {
         Users _user = authDao.findUserByIdentifier(user.getIdentifier());
         user.setToken(_user.getToken());
-        long time = _getAddTime(commodityVip.getAddTime(),user.getExpired());
-        user.setExpired(time);
+        long time = _getAddTime(commodityVip.getAddTime(),user.getExpireds());
+        user.setExpireds(time);
 //        userService._saveAndPush(user);
-//        System.out.println(user);
-        usersDao.save(user);
-        authDao.pushUser(user);
+        System.out.println(user);
+        usersDao.saveAndFlush(user);
+//        authDao.pushUser(user);
     }
     public static long _getAddTime(String time, long e){
         long t = e>0 ? e - System.currentTimeMillis() : 0;

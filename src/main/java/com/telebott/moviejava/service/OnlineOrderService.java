@@ -46,6 +46,8 @@ public class OnlineOrderService {
     private  CommodityGoldOrderDao commodityGoldOrderDao;
     @Autowired
     private AuthDao authDao;
+    @Autowired
+    private UsersDao usersDao;
     public void _save(OnlineOrder onlineOrder){
         onlineOrderDao.saveAndFlush(onlineOrder);
     }
@@ -108,7 +110,7 @@ public class OnlineOrderService {
         OnlinePay onlinePay = onlinePayDao.findAllById(order.getPid());
         JSONObject object = new JSONObject();
         object.put("state","error");
-        object.put("msg","未知错误!");
+        object.put("msg","");
         if (onlinePay.getTitle().contains("钻石")){
             if (user.getDiamond() >= order.getAmount()){
                 DiamondRecords diamondRecords = new DiamondRecords();
@@ -117,9 +119,16 @@ public class OnlineOrderService {
                 diamondRecords.setCtime(System.currentTimeMillis());
                 switch (type){
                     case PAY_ONLINE_VIP:
-                        _handlerVipStatus(order.getOrderNo());
+//                        _handlerVipStatus(order.getOrderNo());
                         order.setStatus(1);
                         user.setDiamond(user.getDiamond() - order.getAmount());
+                        CommodityVipOrder orders = commodityVipOrderDao.findAllByOrderId(order.getOrderNo());
+                        orders.setStatus(1);
+                        commodityVipOrderDao.saveAndFlush(orders);
+                        CommodityVip commodityVip = commodityVipDao.findAllById(orders.getCid());
+                        long time = CommodityVipOrderService._getAddTime(commodityVip.getAddTime(),user.getExpireds());
+                        user.setExpireds(time);
+                        user.setUtime(System.currentTimeMillis() / 1000);
                         userService._saveAndPush(user);
                         onlineOrderDao.saveAndFlush(order);
                         object.put("state","ok");
@@ -186,11 +195,14 @@ public class OnlineOrderService {
             commodityVipOrderDao.saveAndFlush(order);
             Users user = userService._getById(order.getUid());
             CommodityVip commodityVip = commodityVipDao.findAllById(order.getCid());
-            commodityVipOrderService._handlerAddTime(user,commodityVip);
-//            Users _user = authDao.findUserByIdentifier(user.getIdentifier());
-//            user.setToken(_user.getToken());
-//            long time = CommodityVipOrderService._getAddTime(commodityVip.getAddTime(),user.getExpired());
-//            user.setExpired(time);
+//            commodityVipOrderService._handlerAddTime(user,commodityVip);
+            Users _user = authDao.findUserByIdentifier(user.getIdentifier());
+            user.setToken(_user.getToken());
+            long time = CommodityVipOrderService._getAddTime(commodityVip.getAddTime(),user.getExpireds());
+            user.setExpireds(time);
+            user.setUtime(System.currentTimeMillis() / 1000);
+            usersDao.save(user);
+            System.out.println(user);
 //            userService._saveAndPush(user);
         }
     }

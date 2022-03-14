@@ -188,7 +188,7 @@ public class VideosService {
                         object.put("verify",false);
                     }
                 }else {
-                    if (user.getExpired() < System.currentTimeMillis()){
+                    if (user.getExpireds() < System.currentTimeMillis()){
                         info.put("playUrl","");
                         info.put("downloadUrl","");
                         object.put("verify",false);

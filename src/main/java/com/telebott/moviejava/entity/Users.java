@@ -33,8 +33,7 @@ public class Users {
     private String identifier;
     private long superior;
     private long experience;
-    @Column(name = "expireds")
-    private long expired;
+    private long expireds;
     @Transient
     private String token;
 }

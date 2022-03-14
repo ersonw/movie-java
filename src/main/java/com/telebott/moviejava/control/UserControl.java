@@ -286,6 +286,11 @@ public class UserControl {
         Users users = null;
         if (requestData.getUser() != null){
             users = requestData.getUser();
+            if (users.getId() > 0){
+                Users _user = userService._getById(users.getId());
+                _user.setToken(users.getToken());
+                authDao.pushUser(_user);
+            }
 //            System.out.println(users.getIdentifier());
         }else if (StringUtils.isNotEmpty(requestData.getIdentifier())){
             users = userService.loginByIdentifier(requestData.getIdentifier());

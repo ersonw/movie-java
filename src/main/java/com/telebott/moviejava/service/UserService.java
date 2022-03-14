@@ -103,7 +103,7 @@ public class UserService {
             object.put("diamond", users.getDiamond());
             object.put("invite",users.getInvite());
             object.put("superior", users.getSuperior());
-            object.put("expired",users.getExpired());
+            object.put("expired",users.getExpireds());
             object.put("experience",users.getExperience());
             object.put("remommends",videoRecommendsDao.countAllByUid(users.getId()));
             object.put("follows", userFollowsDao.countAllByUid(users.getId()));
