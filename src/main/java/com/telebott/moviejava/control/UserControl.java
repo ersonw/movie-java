@@ -38,6 +38,12 @@ public class UserControl {
     private CommodityGoldOrderService commodityGoldOrderService;
     @Autowired
     private VideosService videosService;
+    @GetMapping("/collectActor")
+    public ResultData collectActor(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(videosService.collectActor(requestData.getData(),requestData.getUser()));
+        return data;
+    }
     @GetMapping("/cancelVipOrder")
     public ResultData cancelOrder(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();

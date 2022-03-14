@@ -73,6 +73,18 @@ public class ApiControl {
         data.setData(videoFeaturedsService.getActorLists(requestData.getData()));
         return data;
     }
+    @GetMapping("/Actor")
+    public ResultData Actor(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(videosService.Actor(requestData.getData(),requestData.getUser()));
+        return data;
+    }
+    @GetMapping("/ActorVideos")
+    public ResultData ActorVideos(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(videosService.ActorVideos(requestData.getData()));
+        return data;
+    }
     @GetMapping("/featuredLists")
     public ResultData featuredLists(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();

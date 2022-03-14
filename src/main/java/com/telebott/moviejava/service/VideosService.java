@@ -136,11 +136,11 @@ public class VideosService {
         return null;
     }
 
-    private JSONObject getVideoList(Page<Videos> videosPage) {
+    private JSONArray getVideoList(List<Videos> videosList) {
         JSONArray array = new JSONArray();
-        for (int i=0;i< videosPage.getContent().size();i++){
+        for (int i=0;i< videosList.size();i++){
             JSONObject item = new JSONObject();
-            Videos video = videosPage.getContent().get(i);
+            Videos video = videosList.get(i);
             item.put("title",video.getTitle());
             item.put("id",video.getId());
             item.put("image",video.getPicThumb());
@@ -158,8 +158,12 @@ public class VideosService {
 //            item.put("account",video);
             array.add(item);
         }
+        return array;
+    }
+    private JSONObject getVideoList(Page<Videos> videosPage) {
         JSONObject object = new JSONObject();
-        object.put("list",array);
+        object.put("list",getVideoList(videosPage.getContent()));
+        object.put("total",videosPage.getTotalPages());
         return object;
     }
 
@@ -381,9 +385,11 @@ public class VideosService {
     private JSONArray getRecommends(long vid, int page, long _uid){
         JSONArray array = new JSONArray();
         page--;
-        Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
-        Page<VideoRecommends> videoRecommendsPage = videoRecommendsDao.findAllByVidAndStatus(vid,1,pageable);
-        for (VideoRecommends recommend: videoRecommendsPage.getContent()) {
+        List<VideoRecommends> recommendsList = videoRecommendsDao.getAllComments(vid,page,20);
+//        Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
+//        Page<VideoRecommends> videoRecommendsPage = videoRecommendsDao.findAllByVidAndStatus(vid,1,pageable);
+//        for (VideoRecommends recommend: videoRecommendsPage.getContent()) {
+        for (VideoRecommends recommend: recommendsList) {
             Users users = userService._getById(recommend.getUid());
             if (users != null){
                 JSONObject object = new JSONObject();
@@ -447,6 +453,81 @@ public class VideosService {
         }else if (data.get("type").toString().equals("all")){
             Page<VideoRecommends> videoRecommendsPage = videoRecommendsDao.getAllByAll(pageable);
             object = getVideoLists(videoRecommendsPage,user);
+        }
+        return object;
+    }
+
+    public JSONObject Actor(String d, Users user) {
+        JSONObject object = new JSONObject();
+        JSONObject data = JSONObject.parseObject(d);
+        if (data != null && data.get("aid") != null){
+            VideoActors actors = videoActorsDao.findAllById(Long.parseLong(data.get("aid").toString()));
+            if (actors != null){
+                object = getActor(actors);
+                if (user != null){
+                    VideoCollects collects = videoCollectsDao.findAllByUidAndAid(user.getId(),actors.getId());
+                    if (collects != null){
+                        object.put("collect",true);
+                    }else {
+                        object.put("collect",false);
+                    }
+                }
+            }
+        }
+        return object;
+    }
+
+    public JSONObject collectActor(String d, Users user) {
+        JSONObject data = JSONObject.parseObject(d);
+        JSONObject object = new JSONObject();
+        object.put("verify", false);
+        if (data != null && data.get("aid") !=null){
+            VideoActors actors = videoActorsDao.findAllById(Long.parseLong(data.get("aid").toString()));
+            if (actors != null){
+                object.put("verify", true);
+                VideoCollects collects = videoCollectsDao.findAllByUidAndAid(user.getId(),actors.getId());
+                if (collects == null){
+                    collects = new VideoCollects();
+                    collects.setAddTime(System.currentTimeMillis());
+                    collects.setUid(user.getId());
+                    collects.setAid(actors.getId());
+                    videoCollectsDao.saveAndFlush(collects);
+                }else {
+                    videoCollectsDao.delete(collects);
+                }
+            }
+        }else {
+            object.put("msg", "系统错误！请先升级版本后重试!");
+        }
+        return object;
+    }
+
+    public JSONObject ActorVideos(String d) {
+        JSONObject object = new JSONObject();
+        JSONObject data = JSONObject.parseObject(d);
+        if (data != null && data.get("aid") != null){
+            VideoActors actors = videoActorsDao.findAllById(Long.parseLong(data.get("aid").toString()));
+            if (actors != null){
+                int page = 1;
+                if (data.get("page") != null) page = Integer.parseInt(data.get("page").toString());
+                if (page < 1) page=1;
+                page--;
+                System.out.println(page);
+                int type = 0;
+                if (data.get("type") != null) type = Integer.parseInt(data.get("type").toString());
+                if (type == 0){
+                    List<Videos> videosList = videosDao.getPlay(actors.getId(),page,20);
+                    object.put("list",getVideoList(videosList));
+                    object.put("total",(videosDao.countAllByActor(actors.getId()) / 20)+1);
+                    object.put("count",videosDao.countAllByActor(actors.getId()));
+                }else {
+                    Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
+                    Page<Videos>  videosPage = videosDao.findAllByActorAndStatus(actors.getId(),1,pageable);
+                    object.put("list",getVideoList(videosPage.getContent()));
+                    object.put("total", videosPage.getTotalPages());
+                    object.put("count",videosPage.getTotalElements());
+                }
+            }
         }
         return object;
     }

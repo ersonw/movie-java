@@ -102,6 +102,7 @@ public class VideoFeaturedsService {
             if (data.get("page") != null) page = Integer.parseInt(data.get("page").toString());
             if (data.get("type") != null) type = Integer.parseInt(data.get("type").toString());
             if (data.get("tag") != null) tagId = Long.parseLong(data.get("tag").toString());
+            if (page < 1) page=1;
             page--;
             List<Videos> videosList = new ArrayList<>();
             if (type == 0){
@@ -213,7 +214,9 @@ public class VideoFeaturedsService {
             if (data.get("page") != null) page = Integer.parseInt(data.get("page").toString());
             if (data.get("type") != null) type = Integer.parseInt(data.get("type").toString());
             if (data.get("tag") != null) tagId = Long.parseLong(data.get("tag").toString());
+            if (page < 1) page=1;
             page--;
+            long total = 1;
             List<VideoActors> actors = new ArrayList<>();
             if (type == 0){
                 Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
@@ -234,18 +237,38 @@ public class VideoFeaturedsService {
                 if (tagId>0){
                     ActorMeasurements measurements = actorMeasurementsDao.findAllById(tagId);
                     if (measurements != null){
-                         actors = videoActorsDao.getHotsByTag(tagId,page,20);
+                         actors = videoActorsDao.getAllByPlays(tagId,page,20);
+                        total = (videoActorsDao.countAllByMeasurements(tagId) / 20);
                     }else {
-                         actors = videoActorsDao.getHots(page,20);
+                         actors = videoActorsDao.getAllByPlays(page,20);
+                        total = (videoActorsDao.count() / 20);
                     }
                 }else {
-                     actors = videoActorsDao.getHots(page,20);
+                    total = (videoActorsDao.count() / 20);
+                     actors = videoActorsDao.getAllByPlays(page,20);
                 }
-                if (actors.size() < 20){
-                    object.put("total",page++);
+                if (total < 1){
+                    total = 1;
+                }
+                object.put("total",total);
+            }else if (type == 2){
+                if (tagId>0) {
+                    ActorMeasurements measurements = actorMeasurementsDao.findAllById(tagId);
+                    if (measurements != null) {
+                        actors = videoActorsDao.getAllByWorks(tagId,page,20);
+                        total = (videoActorsDao.countAllByMeasurements(tagId) / 20);
+                    }else {
+                        total = (videoActorsDao.count() / 20);
+                        actors = videoActorsDao.getAllByWorks(page,20);
+                    }
                 }else {
-                    object.put("total",page+2);
+                    total = (videoActorsDao.count() / 20);
+                    actors = videoActorsDao.getAllByWorks(page,20);
                 }
+                if (total < 1){
+                    total = 1;
+                }
+                object.put("total",total);
             }
             for (VideoActors actor: actors) {
                 array.add(getActor(actor));
