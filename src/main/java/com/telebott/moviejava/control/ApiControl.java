@@ -91,6 +91,12 @@ public class ApiControl {
         data.setData(videoFeaturedsService.getFeaturedLists(requestData.getData()));
         return data;
     }
+    @GetMapping("/PopularList")
+    public ResultData PopularList(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(videosService.getPopularList(requestData.getData()));
+        return data;
+    }
     @GetMapping("/forgotPasswd")
     public ResultData forgotPasswd(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();

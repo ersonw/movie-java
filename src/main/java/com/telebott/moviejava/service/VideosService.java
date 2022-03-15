@@ -138,6 +138,7 @@ public class VideosService {
 
     private JSONArray getVideoList(List<Videos> videosList) {
         JSONArray array = new JSONArray();
+        if (videosList.get(0) == null) return array;
         for (int i=0;i< videosList.size();i++){
             JSONObject item = new JSONObject();
             Videos video = videosList.get(i);
@@ -512,7 +513,7 @@ public class VideosService {
                 if (data.get("page") != null) page = Integer.parseInt(data.get("page").toString());
                 if (page < 1) page=1;
                 page--;
-                System.out.println(page);
+//                System.out.println(page);
                 int type = 0;
                 if (data.get("type") != null) type = Integer.parseInt(data.get("type").toString());
                 if (type == 0){
@@ -529,6 +530,12 @@ public class VideosService {
                 }
             }
         }
+        return object;
+    }
+
+    public JSONObject getPopularList(String d) {
+        JSONObject object = new JSONObject();
+        JSONObject data = JSONObject.parseObject(d);
         return object;
     }
 }

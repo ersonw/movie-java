@@ -120,7 +120,8 @@ public class MoblieConfigService {
             object.put("version",Double.parseDouble(config.getVersion()));
             object.put("hash",config.getHash());
             object.put("force", config.getForces() > 0);
-            object.put("url", config.getUrl());
+            object.put("urlIos", systemConfigService.getValueByKey("urlIos"));
+            object.put("urlAndroid", systemConfigService.getValueByKey("urlAndroid"));
         }
         return object;
     }
