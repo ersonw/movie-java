@@ -138,7 +138,7 @@ public class VideosService {
 
     private JSONArray getVideoList(List<Videos> videosList) {
         JSONArray array = new JSONArray();
-        if (videosList.get(0) == null) return array;
+        if (videosList.size() > 0 && videosList.get(0) == null) return array;
         for (int i=0;i< videosList.size();i++){
             JSONObject item = new JSONObject();
             Videos video = videosList.get(i);
@@ -146,6 +146,12 @@ public class VideosService {
             item.put("id",video.getId());
             item.put("image",video.getPicThumb());
             item.put("number",video.getNumbers());
+            if (video.getActor() > 0){
+                VideoActors videoActors = videoActorsDao.findAllById(video.getActor());
+                if (videoActors != null){
+                    item.put("actor",getActor(videoActors));
+                }
+            }
             if (video.getPlay() > 0) {
                 item.put("play",video.getPlay());
             }else {
@@ -536,6 +542,100 @@ public class VideosService {
     public JSONObject getPopularList(String d) {
         JSONObject object = new JSONObject();
         JSONObject data = JSONObject.parseObject(d);
+        int type = 0;
+        if (data != null && data.get("type") != null) type = Integer.parseInt(data.get("type").toString());
+        List<Videos> videosList = new ArrayList<>();
+        if (type == 2){
+            videosList = videosDao.findAllHots();
+        }else {
+            long time = TimeUtil.getTodayZero();
+            if (type == 1){
+                time = TimeUtil.getBeforeDaysZero(7);
+            }
+            videosList = videosDao.findAllHots(time);
+        }
+        object.put("list",getVideoList(videosList));
+        return object;
+    }
+
+    public JSONObject classLists() {
+        List<VideoCategory> categoryList = videoCategoryDao.findAllByStatus(1);
+        JSONArray array = new JSONArray();
+        for (VideoCategory category: categoryList) {
+            JSONObject object = new JSONObject();
+            object.put("id",category.getId());
+            object.put("title",category.getName());
+            array.add(object);
+        }
+        JSONObject object = new JSONObject();
+        object.put("list",array);
+        return object;
+    }
+
+    public JSONObject classTags() {
+        List<SearchTags> searchTags = searchTagsDao.getHots(20);
+        JSONArray array = new JSONArray();
+        for (SearchTags category: searchTags) {
+            JSONObject object = new JSONObject();
+            object.put("id",category.getId());
+            object.put("title",category.getContext());
+            array.add(object);
+        }
+        JSONObject object = new JSONObject();
+        object.put("list",array);
+        return object;
+    }
+
+    public JSONObject classVideos(String d) {
+        JSONObject object = new JSONObject();
+        JSONObject data = JSONObject.parseObject(d);
+        int type = 0;
+        int page = 1;
+        long classs = 0;
+        long tag = 0;
+        if (data != null){
+            if (data.get("type") != null) type = Integer.parseInt(data.get("type").toString());
+            if (data.get("page") != null) page = Integer.parseInt(data.get("page").toString());
+            if (data.get("class") != null) classs = Long.parseLong(data.get("class").toString());
+            if (data.get("tag") != null) tag = Long.parseLong(data.get("tag").toString());
+        }
+        page--;
+        if (page < 0){
+            page = 0;
+        }
+        VideoCategory category = videoCategoryDao.findAllById(classs);
+        SearchTags tags = searchTagsDao.findAllById(tag);
+        List<Videos> videosList = new ArrayList<>();
+        if (type == 2){
+            if (category == null && tags == null){
+                videosList = videosDao.getAllByClass(page,20);
+                object.put("total",videosDao.countAllByStatus(1));
+            }else if (category == null){
+                videosList = videosDao.getAllByClass("%"+tags.getContext()+"%",page,20);
+                object.put("total",videosDao.countAllByTitleLikeAndStatus("%"+tags.getContext()+"%",1));
+            }else if (tags == null){
+                videosList = videosDao.getAllByClass(category.getId(),page,20);
+                object.put("total",videosDao.countAllByVodClassAndStatus(category.getId(),1));
+            }else {
+                videosList = videosDao.getAllByClass(category.getId(),"%"+tags.getContext()+"%",page,20);
+                object.put("total",videosDao.countAllByVodClassAndTitleLikeAndStatus(category.getId(),"%"+tags.getContext()+"%",1));
+            }
+        }else {
+            Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
+            Page<Videos>  videosPage;
+            if (category == null && tags == null){
+                videosPage = videosDao.findAllByStatus(1,pageable);
+            }else if (category == null){
+                videosPage = videosDao.findAllByTitleLikeAndStatus("%"+tags.getContext()+"%",1,pageable);
+            }else if (tags == null){
+                videosPage = videosDao.findAllByVodClassAndStatus(category.getId(),1,pageable);
+            }else {
+                videosPage = videosDao.findAllByVodClassAndTitleLikeAndStatus(category.getId(),"%"+tags.getContext()+"%",1,pageable);
+            }
+            videosList = videosPage.getContent();
+            object.put("total",videosPage.getTotalPages());
+        }
+        object.put("list",getVideoList(videosList));
         return object;
     }
 }

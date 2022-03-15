@@ -97,6 +97,24 @@ public class ApiControl {
         data.setData(videosService.getPopularList(requestData.getData()));
         return data;
     }
+    @GetMapping("/classLists")
+    public ResultData classLists(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(videosService.classLists());
+        return data;
+    }
+    @GetMapping("/classTags")
+    public ResultData classTags(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(videosService.classTags());
+        return data;
+    }
+    @GetMapping("/classVideos")
+    public ResultData classVideos(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(videosService.classVideos(requestData.getData()));
+        return data;
+    }
     @GetMapping("/forgotPasswd")
     public ResultData forgotPasswd(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
