@@ -14,6 +14,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class VideoControl {
     @Autowired
     private VideosService videosService;
+    @GetMapping("/report")
+    public ResultData report(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(videosService.report(requestData.getData(),requestData.getUser()));
+        return data;
+    }
     @GetMapping("/hotTags")
     public ResultData hotTags(){
         ResultData data = new ResultData();

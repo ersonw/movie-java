@@ -13,7 +13,7 @@ import java.util.List;
 @Repository
 public interface VideoActorsDao extends JpaRepository<VideoActors, Integer>, CrudRepository<VideoActors, Integer> {
     VideoActors findAllById(long id);
-//    long countAllByMeasurements(long mid);
+    Page<VideoActors> findAllByNameLikeAndStatus(String name, int status, Pageable pageable);
     Page<VideoActors> findAllByMeasurements(long mid, Pageable pageable);
     long countAllByMeasurements(long mid);
     @Query(value = "SELECT va.id,va.name,va.avatar,va.measurements,va.status,va.add_time,va.update_time,(SELECT COUNT(*) FROM video_collects as vc WHERE vc.aid=va.id)AS c FROM video_actors AS va ORDER BY c DESC LIMIT  :page,:limit", nativeQuery = true)

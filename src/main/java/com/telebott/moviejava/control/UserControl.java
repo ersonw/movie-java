@@ -44,6 +44,7 @@ public class UserControl {
         data.setData(videosService.collectActor(requestData.getData(),requestData.getUser()));
         return data;
     }
+
     @GetMapping("/cancelVipOrder")
     public ResultData cancelOrder(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();

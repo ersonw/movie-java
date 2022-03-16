@@ -50,6 +50,12 @@ public class VideosService {
     private RecommendLikesDao recommendLikesDao;
     @Autowired
     private ActorMeasurementsDao actorMeasurementsDao;
+    @Autowired
+    private UsersDao usersDao;
+    @Autowired
+    private UserFollowsDao userFollowsDao;
+    @Autowired
+    private VideoReportDao videoReportDao;
 
     public void handlerYzm(YzmData yzmData) {
         Videos videos = videosDao.findAllByShareId(yzmData.getShareid());
@@ -127,13 +133,51 @@ public class VideosService {
             Pageable pageable = PageRequest.of(page, 30, Sort.by(Sort.Direction.DESC, "id"));
             switch (Integer.parseInt(objectData.get("type").toString())){
                 case 0:
+                case 1:
                     videosPage = videosDao.findByAv(sTitle,tTitle,pageable);
                     return getVideoList(videosPage);
+                case 2:
+                    videosPage = videosDao.findByNumber(objectData.get("text").toString(),pageable);
+                    return getVideoList(videosPage);
+                case 3:
+                    Page<Users> usersPage = usersDao.findAllByNicknameLikeAndStatus("%"+objectData.get("text").toString()+"%",1,pageable);
+                    return getUserList(usersPage,user);
+                case 4:
+                    Page<VideoActors> actorsPage = videoActorsDao.findAllByNameLikeAndStatus("%"+objectData.get("text").toString()+"%",1,pageable);
+                    return getActor(actorsPage,user);
                 default:
                     break;
             }
         }
         return null;
+    }
+
+    private JSONArray getUserList(List<Users> usersList,Users users) {
+        JSONArray array = new JSONArray();
+        if (usersList.size() > 0 && usersList.get(0) == null) return array;
+        for (Users user: usersList) {
+            JSONObject object = new JSONObject();
+            object.put("id",user.getId());
+            object.put("avatar",user.getAvatar());
+            object.put("nickname",user.getNickname());
+            object.put("fans", userFollowsDao.countAllByToUid(user.getId()));
+            object.put("work", videosDao.countAllByUidAndStatus(user.getId(),1));
+            object.put("follow",false);
+            if (users != null){
+                UserFollows userFollows = userFollowsDao.findAllByUidAndToUid(users.getId(),user.getId());
+                if (userFollows != null){
+                    object.put("follow",true);
+                }
+            }
+            array.add(object);
+        }
+        return  array;
+    }
+    private JSONObject getUserList(Page<Users> usersPage, Users users) {
+        JSONObject object = new JSONObject();
+        object.put("list",getUserList(usersPage.getContent(),users));
+        object.put("total",usersPage.getTotalPages());
+        return object;
     }
 
     private JSONArray getVideoList(List<Videos> videosList) {
@@ -210,6 +254,27 @@ public class VideosService {
             }
         }
         return (JSONObject) (new JSONObject()).put("error", true);
+    }
+    private JSONArray getActor(List<VideoActors> videoActorsList,Users users){
+        JSONArray array = new JSONArray();
+        for (VideoActors actor: videoActorsList) {
+            JSONObject object = getActor(actor);
+            object.put("collect",false);
+            if (users != null){
+                VideoCollects collects = videoCollectsDao.findAllByUidAndAid(users.getId(),actor.getId());
+                if (collects != null){
+                    object.put("collect",true);
+                }
+            }
+            array.add(object);
+        }
+        return array;
+    }
+    private JSONObject getActor(Page<VideoActors> actorsPage, Users users){
+        JSONObject object = new JSONObject();
+        object.put("list",getActor(actorsPage.getContent(),users));
+        object.put("total",actorsPage.getTotalPages());
+        return object;
     }
     private JSONObject getActor(VideoActors actors){
         JSONObject object = new JSONObject();
@@ -607,19 +672,26 @@ public class VideosService {
         SearchTags tags = searchTagsDao.findAllById(tag);
         List<Videos> videosList = new ArrayList<>();
         if (type == 2){
+            long total = 1;
             if (category == null && tags == null){
                 videosList = videosDao.getAllByClass(page,20);
-                object.put("total",videosDao.countAllByStatus(1));
+                total = videosDao.countAllByStatus(1);
             }else if (category == null){
                 videosList = videosDao.getAllByClass("%"+tags.getContext()+"%",page,20);
-                object.put("total",videosDao.countAllByTitleLikeAndStatus("%"+tags.getContext()+"%",1));
+                total = videosDao.countAllByTitleLikeAndStatus("%"+tags.getContext()+"%",1);
             }else if (tags == null){
                 videosList = videosDao.getAllByClass(category.getId(),page,20);
-                object.put("total",videosDao.countAllByVodClassAndStatus(category.getId(),1));
+                total = videosDao.countAllByVodClassAndStatus(category.getId(),1);
             }else {
                 videosList = videosDao.getAllByClass(category.getId(),"%"+tags.getContext()+"%",page,20);
-                object.put("total",videosDao.countAllByVodClassAndTitleLikeAndStatus(category.getId(),"%"+tags.getContext()+"%",1));
+                total = videosDao.countAllByVodClassAndTitleLikeAndStatus(category.getId(),"%"+tags.getContext()+"%",1);
             }
+            if (total > 20){
+                total = total / 20;
+            }else {
+                total = 1;
+            }
+            object.put("total",total);
         }else {
             Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
             Page<Videos>  videosPage;
@@ -636,6 +708,28 @@ public class VideosService {
             object.put("total",videosPage.getTotalPages());
         }
         object.put("list",getVideoList(videosList));
+        return object;
+    }
+
+    public JSONObject report(String d, Users user) {
+        JSONObject object = new JSONObject();
+        object.put("verify",false);
+        object.put("msg","该操作需要先完善身份信息!");
+        JSONObject data = JSONObject.parseObject(d);
+        if (data != null && data.get("id") != null && user.getId() > 0){
+            VideoReport report = videoReportDao.findAllByUidAndVid(user.getId(), Long.parseLong(data.get("id").toString()));
+            if (report == null){
+                object.put("verify",true);
+                object.put("msg","");
+                report = new VideoReport();
+                report.setVid(Long.parseLong(data.get("id").toString()));
+                report.setAddTime(System.currentTimeMillis());
+                report.setUid(user.getId());
+                videoReportDao.saveAndFlush(report);
+            }else {
+                object.put("msg","举报正在受理中!");
+            }
+        }
         return object;
     }
 }

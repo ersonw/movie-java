@@ -12,6 +12,7 @@ public interface UserFollowsDao extends JpaRepository<UserFollows, Integer>, Cru
     long countAllByUid(long uid);
     long countAllByToUid(long uid);
     UserFollows findAllById(long id);
+    UserFollows findAllByUidAndToUid(long uid, long toUid);
     Page<UserFollows> findAllByUid(long uid, Pageable pageable);
     Page<UserFollows> findAllByToUid(long uid, Pageable pageable);
 }
