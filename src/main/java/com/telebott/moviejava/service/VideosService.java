@@ -179,35 +179,35 @@ public class VideosService {
         object.put("total",usersPage.getTotalPages());
         return object;
     }
-
+    private JSONObject getVideoList(Videos video){
+        JSONObject item = new JSONObject();
+        item.put("title",video.getTitle());
+        item.put("id",video.getId());
+        item.put("image",video.getPicThumb());
+        item.put("number",video.getNumbers());
+        if (video.getActor() > 0){
+            VideoActors videoActors = videoActorsDao.findAllById(video.getActor());
+            if (videoActors != null){
+                item.put("actor",getActor(videoActors));
+            }
+        }
+        if (video.getPlay() > 0) {
+            item.put("play",video.getPlay());
+        }else {
+            item.put("play",videoPlayDao.countAllByVid(video.getId()));
+        }
+        if (video.getRecommends() > 0){
+            item.put("remommends",video.getRecommends());
+        }else {
+            item.put("remommends",videoRecommendsDao.countAllByVid(video.getId()));
+        }
+        return item;
+    }
     private JSONArray getVideoList(List<Videos> videosList) {
         JSONArray array = new JSONArray();
         if (videosList.size() > 0 && videosList.get(0) == null) return array;
         for (int i=0;i< videosList.size();i++){
-            JSONObject item = new JSONObject();
-            Videos video = videosList.get(i);
-            item.put("title",video.getTitle());
-            item.put("id",video.getId());
-            item.put("image",video.getPicThumb());
-            item.put("number",video.getNumbers());
-            if (video.getActor() > 0){
-                VideoActors videoActors = videoActorsDao.findAllById(video.getActor());
-                if (videoActors != null){
-                    item.put("actor",getActor(videoActors));
-                }
-            }
-            if (video.getPlay() > 0) {
-                item.put("play",video.getPlay());
-            }else {
-                item.put("play",videoPlayDao.countAllByVid(video.getId()));
-            }
-            if (video.getRecommends() > 0){
-                item.put("remommends",video.getRecommends());
-            }else {
-                item.put("remommends",videoRecommendsDao.countAllByVid(video.getId()));
-            }
-//            item.put("account",video);
-            array.add(item);
+            array.add(getVideoList(videosList.get(i)));
         }
         return array;
     }
@@ -730,6 +730,47 @@ public class VideosService {
                 object.put("msg","举报正在受理中!");
             }
         }
+        return object;
+    }
+
+    public JSONObject collectList(String d, Users user) {
+        JSONObject object = new JSONObject();
+        int type = 0;
+        int page = 1;
+        JSONObject data = JSONObject.parseObject(d);
+        if (data != null){
+            if (data.get("page") != null) page = Integer.parseInt(data.get("page").toString());
+            if (data.get("type") != null) type = Integer.parseInt(data.get("type").toString());
+        }
+        page--;
+        if (page < 0) page = 0;
+        Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
+        JSONArray array = new JSONArray();
+        if (type == 1){
+            Page<VideoCollects> collectsPage = videoCollectsDao.findAllByUid(user.getId(),pageable);
+            for (VideoCollects collect: collectsPage.getContent()) {
+                VideoActors actor = videoActorsDao.findAllById(collect.getAid());
+                if (actor != null){
+                    JSONObject actors = getActor(actor);
+                    actors.put("collect", true);
+                    array.add(actors);
+                }
+            }
+            object.put("total",collectsPage.getTotalPages());
+        }else if (type == 2){
+
+        }else  if (type == 0){
+            Page<VideoFavorites> favoritesPage = videoFavoritesDao.findAllByUid(user.getId(), pageable);
+            for (VideoFavorites favorite: favoritesPage.getContent()) {
+                Videos video = videosDao.findAllById(favorite.getVid());
+                if (video != null){
+                    array.add(getVideoList(video));
+                }
+            }
+            object.put("total",favoritesPage.getTotalPages());
+        }
+        object.put("list",array);
+        System.out.println(object);
         return object;
     }
 }

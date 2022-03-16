@@ -13,4 +13,5 @@ public interface VideoCollectsDao extends JpaRepository<VideoCollects, Integer>,
     Page<VideoCollects> findAllByAid(long aid, Pageable pageable);
     VideoCollects findAllById(long id);
     VideoCollects findAllByUidAndAid(long uid, long aid);
+    Page<VideoCollects> findAllByUid(long uid, Pageable pageable);
 }

@@ -44,7 +44,12 @@ public class UserControl {
         data.setData(videosService.collectActor(requestData.getData(),requestData.getUser()));
         return data;
     }
-
+    @GetMapping("/collectList")
+    public ResultData collectList(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(videosService.collectList(requestData.getData(),requestData.getUser()));
+        return data;
+    }
     @GetMapping("/cancelVipOrder")
     public ResultData cancelOrder(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
@@ -316,8 +321,9 @@ public class UserControl {
                     users.setNickname(nickname.toString());
                     users.setUid(md5Util.getMD5(requestData.getIdentifier()));
                     users.setCtime(System.currentTimeMillis() /1000L);
+                    users.setStatus(1);
 //                    users.setAvatar("http://htm-download.oss-cn-hongkong.aliyuncs.com/default_head.gif");
-//                userService._save(users);
+                    userService._save(users);
                     users.setToken(getToken());
                     authDao.pushUser(users);
                 }
