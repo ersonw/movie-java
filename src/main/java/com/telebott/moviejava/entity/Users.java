@@ -17,6 +17,8 @@ public class Users {
     @GeneratedValue
     private long id;
     private String nickname;
+    private String bkImage;
+    private String signature;
     private int sex;
     private long birthday;
     private String password;

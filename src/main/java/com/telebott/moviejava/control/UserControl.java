@@ -336,10 +336,22 @@ public class UserControl {
         data.setData(userService.getResult(users));
         return data;
     }
-    @GetMapping("getStsAccount")
+    @GetMapping("/getStsAccount")
     public ResultData getStsAccount(@ModelAttribute UploadData uploadData){
         ResultData data = new ResultData();
         data.setData(JSONObject.parseObject(AliOssUtil.getToken()));
+        return data;
+    }
+    @GetMapping("/getUserInfo")
+    public ResultData getUserInfo(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(videosService.getUserInfo(requestData.getData(),requestData.getUser()));
+        return data;
+    }
+    @GetMapping("/followUser")
+    public ResultData followUser(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(videosService.followUser(requestData.getData(),requestData.getUser()));
         return data;
     }
     private String getToken(){

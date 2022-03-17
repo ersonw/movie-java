@@ -152,24 +152,31 @@ public class VideosService {
         return null;
     }
 
+    private JSONObject getUserList(Users user,Users users) {
+        JSONObject object = new JSONObject();
+        object.put("id",user.getId());
+        object.put("avatar",user.getAvatar());
+        object.put("nickname",user.getNickname());
+        object.put("signature",user.getSignature());
+        object.put("bkImage",user.getBkImage());
+        object.put("fans", userFollowsDao.countAllByToUid(user.getId()));
+        object.put("follows",userFollowsDao.countAllByUid(user.getId()));
+        object.put("work", videosDao.countAllByUidAndStatus(user.getId(),1));
+        object.put("remommends", videoRecommendsDao.countAllByUid(user.getId()));
+        object.put("follow",false);
+        if (users != null){
+            UserFollows userFollows = userFollowsDao.findAllByUidAndToUid(users.getId(),user.getId());
+            if (userFollows != null){
+                object.put("follow",true);
+            }
+        }
+        return object;
+    }
     private JSONArray getUserList(List<Users> usersList,Users users) {
         JSONArray array = new JSONArray();
         if (usersList.size() > 0 && usersList.get(0) == null) return array;
         for (Users user: usersList) {
-            JSONObject object = new JSONObject();
-            object.put("id",user.getId());
-            object.put("avatar",user.getAvatar());
-            object.put("nickname",user.getNickname());
-            object.put("fans", userFollowsDao.countAllByToUid(user.getId()));
-            object.put("work", videosDao.countAllByUidAndStatus(user.getId(),1));
-            object.put("follow",false);
-            if (users != null){
-                UserFollows userFollows = userFollowsDao.findAllByUidAndToUid(users.getId(),user.getId());
-                if (userFollows != null){
-                    object.put("follow",true);
-                }
-            }
-            array.add(object);
+            array.add(getUserList(user,users));
         }
         return  array;
     }
@@ -770,7 +777,69 @@ public class VideosService {
             object.put("total",favoritesPage.getTotalPages());
         }
         object.put("list",array);
-        System.out.println(object);
+//        System.out.println(object);
+        return object;
+    }
+
+    public JSONObject VideoRecords(String d, Users user) {
+        JSONObject object = new JSONObject();
+        int page = 1;
+        JSONObject data = JSONObject.parseObject(d);
+        if (data != null) if (data.get("page") != null) page = Integer.parseInt(data.get("page").toString());
+        page--;
+        if (page < 0) page = 0;
+        Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
+        Page<VideoPlay> videoPlayPage = videoPlayDao.findRecords(user.getId(),pageable);
+        object.put("total",videoPlayPage.getTotalPages());
+        JSONArray array = new JSONArray();
+        for (VideoPlay play: videoPlayPage.getContent()) {
+            Videos video = videosDao.findAllById(play.getVid());
+            if (video != null){
+                array.add(getVideoList(video));
+            }
+        }
+        object.put("list",array);
+        return object;
+    }
+
+    public JSONObject getUserInfo(String d, Users user) {
+        JSONObject object = new JSONObject();
+        JSONObject data = JSONObject.parseObject(d);
+        if (data != null && data.get("id") != null){
+            Users users = usersDao.findAllById(Long.parseLong(data.get("id").toString()));
+            if (users != null){
+                object = getUserList(users,user);
+            }
+        }
+        return object;
+    }
+
+    public JSONObject followUser(String d, Users user) {
+        JSONObject object = new JSONObject();
+        object.put("verify",false);
+        JSONObject data = JSONObject.parseObject(d);
+        if (data != null && data.get("id") != null){
+            Users users = usersDao.findAllById(Long.parseLong(data.get("id").toString()));
+            if (users != null){
+                if (user.getId() == users.getId()){
+                    object.put("msg","不能关注自己！");
+                }else {
+                    UserFollows follows = userFollowsDao.findAllByUidAndToUid(user.getId(),users.getId());
+                    object.put("verify",true);
+                    if (follows == null){
+                        follows = new UserFollows();
+                        follows.setAddTime(System.currentTimeMillis());
+                        follows.setUid(user.getId());
+                        follows.setToUid(users.getId());
+                        userFollowsDao.saveAndFlush(follows);
+                    }else {
+                        userFollowsDao.delete(follows);
+                    }
+                }
+            }else {
+                object.put("msg","用户不存在！");
+            }
+        }
         return object;
     }
 }
