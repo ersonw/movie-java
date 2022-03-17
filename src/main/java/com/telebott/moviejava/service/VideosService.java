@@ -56,6 +56,8 @@ public class VideosService {
     private UserFollowsDao userFollowsDao;
     @Autowired
     private VideoReportDao videoReportDao;
+    @Autowired
+    private UserPostsDao userPostsDao;
 
     public void handlerYzm(YzmData yzmData) {
         Videos videos = videosDao.findAllByShareId(yzmData.getShareid());

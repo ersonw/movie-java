@@ -1,10 +1,7 @@
 package com.telebott.moviejava.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.telebott.moviejava.dao.AuthDao;
-import com.telebott.moviejava.dao.UserFollowsDao;
-import com.telebott.moviejava.dao.UsersDao;
-import com.telebott.moviejava.dao.VideoRecommendsDao;
+import com.telebott.moviejava.dao.*;
 import com.telebott.moviejava.entity.UserFollows;
 import com.telebott.moviejava.entity.Users;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -28,6 +25,8 @@ public class UserService {
     private VideoRecommendsDao videoRecommendsDao;
     @Autowired
     private UserFollowsDao userFollowsDao;
+    @Autowired
+    private UserPostsDao userPostsDao;
     public void _save(Users users){
         usersDao.saveAndFlush(users);
     }
