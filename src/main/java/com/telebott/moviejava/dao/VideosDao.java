@@ -14,6 +14,7 @@ import java.util.List;
 public interface VideosDao extends JpaRepository<Videos, Integer>, CrudRepository<Videos, Integer> {
     Videos findAllById(long id);
     Videos findAllByIdAndStatus(long id, int status);
+//    Page<Videos> findAllByUidAndStatus(long uid, int status, Pageable pageable);
     Page<Videos> findAllByStatus(int status,Pageable pageable);
     Page<Videos> findAllByVodClassAndStatus(long classId,int status,Pageable pageable);
     Page<Videos> findAllByTitleLikeAndStatus(String likes,int status,Pageable pageable);

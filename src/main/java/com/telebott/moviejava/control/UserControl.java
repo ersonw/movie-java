@@ -354,6 +354,18 @@ public class UserControl {
         data.setData(videosService.followUser(requestData.getData(),requestData.getUser()));
         return data;
     }
+    @GetMapping("/PushRecords")
+    public ResultData PushRecords(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(videosService.PushRecords(requestData.getData(),requestData.getUser()));
+        return data;
+    }
+    @GetMapping("/likeUserVideo")
+    public ResultData likeUserVideo(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(videosService.likeUserVideo(requestData.getData(),requestData.getUser()));
+        return data;
+    }
     private String getToken(){
 //        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
 //        HttpSession session = request.getSession();

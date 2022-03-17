@@ -13,4 +13,5 @@ public interface VideoLikesDao extends JpaRepository<VideoLikes, Integer>, CrudR
     Page<VideoLikes> findAllByUid(long uid, Pageable pageable);
     Page<VideoLikes> findAllByVid(long vid, Pageable pageable);
     VideoLikes findAllByUidAndVid(long uid,long vid);
+    long countAllByVid(long vid);
 }

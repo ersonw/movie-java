@@ -842,4 +842,79 @@ public class VideosService {
         }
         return object;
     }
+    private JSONArray getUserVideo(List<Videos> videosList, Users user){
+        JSONArray array = new JSONArray();
+        for (Videos video: videosList) {
+            JSONObject item = new JSONObject();
+            item.put("title",video.getTitle());
+            item.put("id",video.getId());
+            item.put("image",video.getPicThumb());
+            item.put("number",video.getNumbers());
+            item.put("duration",video.getVodDuration());
+            item.put("likes", videoLikesDao.countAllByVid(video.getId()));
+            item.put("like",false);
+            VideoLikes likes = videoLikesDao.findAllByUidAndVid(user.getId(),video.getId());
+            if (likes != null){
+                item.put("like",true);
+            }
+            if (video.getPlay() > 0) {
+                item.put("play",video.getPlay());
+            }else {
+                item.put("play",videoPlayDao.countAllByVid(video.getId()));
+            }
+            array.add(item);
+        }
+        return  array;
+    }
+    public JSONObject PushRecords(String d, Users user) {
+        JSONObject data = JSONObject.parseObject(d);
+        JSONObject object = new JSONObject();
+        JSONArray array = new JSONArray();
+        if (data != null && data.get("id") != null){
+            int type = 0;
+            int page = 1;
+            if (data.get("type") != null) type = Integer.parseInt(data.get("type").toString());
+            if (data.get("page") != null) page = Integer.parseInt(data.get("page").toString());
+            page--;
+            if (page < 0) page = 0;
+            Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
+            Users _user = usersDao.findAllById(Long.parseLong(data.get("id").toString()));
+            if (_user != null){
+                if (type == 0){
+                    Page<Videos> videosPage = videosDao.findAllByUidAndStatus(_user.getId(),1,pageable);
+                    array = getUserVideo(videosPage.getContent(),user);
+                    object.put("total",videosPage.getTotalPages());
+                }
+            }
+        }
+        object.put("list",array);
+        return object;
+    }
+
+    public JSONObject likeUserVideo(String d, Users user) {
+        JSONObject data = JSONObject.parseObject(d);
+        JSONObject object = new JSONObject();
+        object.put("verify",false);
+        if (data != null && data.get("id") != null){
+            Videos video = videosDao.findAllById(Long.parseLong(data.get("id").toString()));
+            if (video == null){
+                object.put("msg","视频不存在或已被删除！");
+            }else if (video.getUid() == user.getId()){
+                object.put("msg","不能给自己的视频点赞！");
+            }else {
+                object.put("verify",true);
+                VideoLikes likes = videoLikesDao.findAllByUidAndVid(user.getId(),video.getId());
+                if (likes == null){
+                    likes = new VideoLikes();
+                    likes.setAddTime(System.currentTimeMillis());
+                    likes.setVid(video.getId());
+                    likes.setUid(user.getId());
+                    videoLikesDao.saveAndFlush(likes);
+                }else {
+                    videoLikesDao.delete(likes);
+                }
+            }
+        }
+        return object;
+    }
 }
