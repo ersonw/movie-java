@@ -173,7 +173,7 @@ public class OnlineOrderService {
                                 commodityDiamondOrderDao.saveAndFlush(commodityDiamondOrder);
                                 user.setDiamond(user.getDiamond()+ commodityDiamond.getDiamond());
                                 DiamondRecords diamondRecords = new DiamondRecords();
-                                diamondRecords.setDiamond(commodityDiamondOrder.getDiamond());
+                                diamondRecords.setDiamond(commodityDiamond.getDiamond());
                                 diamondRecords.setReason("使用￥"+order.getAmount() / 100+"的余额购买了钻石");
                                 diamondRecords.setUid(user.getId());
                                 diamondRecords.setCtime(System.currentTimeMillis());
