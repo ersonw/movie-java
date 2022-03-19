@@ -14,6 +14,7 @@ import java.util.List;
 public interface VideoRecommendsDao extends JpaRepository<VideoRecommends, Integer>, CrudRepository<VideoRecommends, Integer> {
     Long countAllByVid(long vid);
     Long countAllByUid(long uid);
+    Page<VideoRecommends> findAllByUidAndStatus(long uid, int status, Pageable pageable);
     VideoRecommends findAllById(long id);
     VideoRecommends findAllByUidAndVid(long uid, long vid);
     Page<VideoRecommends> findAllByVidAndStatus(long vid, int status, Pageable pageable);

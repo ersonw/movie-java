@@ -919,4 +919,72 @@ public class VideosService {
         }
         return object;
     }
+
+    public JSONObject RecommendRecords(String d, Users user) {
+        JSONObject object = new JSONObject();
+        int page = 1;
+        JSONObject data = JSONObject.parseObject(d);
+        if (data != null) if (data.get("page") != null) page = Integer.parseInt(data.get("page").toString());
+        page--;
+        if (page < 0) page = 0;
+        Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
+        Page<VideoRecommends> recommendsPage = videoRecommendsDao.findAllByUidAndStatus(user.getId(),1,pageable);
+        object.put("total",recommendsPage.getTotalPages());
+        JSONArray array = new JSONArray();
+        for (VideoRecommends recommends: recommendsPage.getContent()) {
+            Videos video = videosDao.findAllById(recommends.getVid());
+            if (video != null){
+                JSONObject r = new JSONObject();
+                r.put("data",getVideoList(video));
+                r.put("id",recommends.getId());
+                r.put("vid",recommends.getVid());
+                r.put("reason",recommends.getReason());
+                array.add(r);
+            }
+        }
+        object.put("list",array);
+        return object;
+    }
+
+    public JSONObject followRecords(String d, Users user) {
+        JSONObject object = new JSONObject();
+        int page = 1;
+        JSONObject data = JSONObject.parseObject(d);
+        if (data != null) if (data.get("page") != null) page = Integer.parseInt(data.get("page").toString());
+        page--;
+        if (page < 0) page = 0;
+        Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
+        Page<UserFollows> followsPage = userFollowsDao.findAllByUid(user.getId(),pageable);
+        object.put("total",followsPage.getTotalPages());
+        JSONArray array = new JSONArray();
+        for (UserFollows follows: followsPage.getContent()) {
+            Users users = usersDao.findAllById(follows.getToUid());
+            if (users != null){
+                array.add(getUserList(users,user));
+            }
+        }
+        object.put("list",array);
+        return object;
+    }
+
+    public JSONObject fansRecords(String d, Users user) {
+        JSONObject object = new JSONObject();
+        int page = 1;
+        JSONObject data = JSONObject.parseObject(d);
+        if (data != null) if (data.get("page") != null) page = Integer.parseInt(data.get("page").toString());
+        page--;
+        if (page < 0) page = 0;
+        Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
+        Page<UserFollows> followsPage = userFollowsDao.findAllByToUid(user.getId(),pageable);
+        object.put("total",followsPage.getTotalPages());
+        JSONArray array = new JSONArray();
+        for (UserFollows follows: followsPage.getContent()) {
+            Users users = usersDao.findAllById(follows.getUid());
+            if (users != null){
+                array.add(getUserList(users,user));
+            }
+        }
+        object.put("list",array);
+        return object;
+    }
 }

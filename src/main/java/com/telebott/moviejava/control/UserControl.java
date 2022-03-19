@@ -372,6 +372,24 @@ public class UserControl {
         data.setData(videosService.VideoRecords(requestData.getData(),requestData.getUser()));
         return data;
     }
+    @GetMapping("/RecommendRecords")
+    public ResultData RecommendRecords(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(videosService.RecommendRecords(requestData.getData(),requestData.getUser()));
+        return data;
+    }
+    @GetMapping("/followRecords")
+    public ResultData followRecords(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(videosService.followRecords(requestData.getData(),requestData.getUser()));
+        return data;
+    }
+    @GetMapping("/fansRecords")
+    public ResultData fansRecords(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(videosService.fansRecords(requestData.getData(),requestData.getUser()));
+        return data;
+    }
     private String getToken(){
 //        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
 //        HttpSession session = request.getSession();
