@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.telebott.moviejava.dao.*;
 import com.telebott.moviejava.entity.*;
+import com.telebott.moviejava.util.ShowPayUtil;
 import com.telebott.moviejava.util.TimeUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +49,8 @@ public class OnlineOrderService {
     private AuthDao authDao;
     @Autowired
     private UsersDao usersDao;
+    @Autowired
+    private BalanceOrdersDao balanceOrdersDao;
     public void _save(OnlineOrder onlineOrder){
         onlineOrderDao.saveAndFlush(onlineOrder);
     }
@@ -111,55 +114,75 @@ public class OnlineOrderService {
         JSONObject object = new JSONObject();
         object.put("state","error");
         object.put("msg","");
-        if (onlinePay.getTitle().contains("钻石")){
-            if (user.getDiamond() >= order.getAmount()){
-                DiamondRecords diamondRecords = new DiamondRecords();
-                diamondRecords.setDiamond((-order.getAmount()));
-                diamondRecords.setUid(user.getId());
-                diamondRecords.setCtime(System.currentTimeMillis());
-                switch (type){
+        if (onlinePay.getTitle().contains("余额")){
+            long balance = balanceOrdersDao.countAllByBalance(user.getId());
+            if (order.getAmount() < balance){
+                BalanceOrders balanceOrders = new BalanceOrders();
+                balanceOrders.setAmount(-order.getAmount());
+                balanceOrders.setAddTime(System.currentTimeMillis());
+                balanceOrders.setStatus(1);
+                balanceOrders.setUid(user.getId());
+                balanceOrders.setUpdateTime(System.currentTimeMillis());
+                order.setStatus(1);
+                onlineOrderDao.saveAndFlush(order);
+                object.put("state", "ok");
+                switch (type) {
                     case PAY_ONLINE_VIP:
-//                        _handlerVipStatus(order.getOrderNo());
-                        order.setStatus(1);
-                        user.setDiamond(user.getDiamond() - order.getAmount());
                         CommodityVipOrder orders = commodityVipOrderDao.findAllByOrderId(order.getOrderNo());
-                        orders.setStatus(1);
-                        commodityVipOrderDao.saveAndFlush(orders);
-                        CommodityVip commodityVip = commodityVipDao.findAllById(orders.getCid());
-                        long time = CommodityVipOrderService._getAddTime(commodityVip.getAddTime(),user.getExpireds());
-                        user.setExpireds(time);
-                        user.setUtime(System.currentTimeMillis() / 1000);
-                        userService._saveAndPush(user);
-                        onlineOrderDao.saveAndFlush(order);
-                        object.put("state","ok");
-                        diamondRecords.setReason("兑换价值￥"+(order.getAmount() /100)+"的会员");
-                        diamondRecordsDao.saveAndFlush(diamondRecords);
+                        if (orders != null){
+                            CommodityVip commodityVip = commodityVipDao.findAllById(orders.getCid());
+                            if (commodityVip != null){
+                                orders.setStatus(1);
+                                commodityVipOrderDao.saveAndFlush(orders);
+                                long time = CommodityVipOrderService._getAddTime(commodityVip.getAddTime(), user.getExpireds());
+                                user.setExpireds(time);
+                                user.setUtime(System.currentTimeMillis() / 1000);
+                                userService._saveAndPush(user);
+                                onlineOrderDao.saveAndFlush(order);
+                                balanceOrders.setReason("购买了价值￥" + (order.getAmount() / 100) + "的会员");
+                                balanceOrdersDao.saveAndFlush(balanceOrders);
+                            }
+                        }
                         break;
                     case PAY_ONLINE_GOLD:
-                        object.put("state","ok");
-                        diamondRecords.setReason("兑换价值￥"+(order.getAmount() / 100)+"的金币");
-                        diamondRecordsDao.saveAndFlush(diamondRecords);
-                        order.setStatus(1);
-                        user.setDiamond(user.getDiamond() - order.getAmount());
                         CommodityGoldOrder commodityGoldOrder = commodityGoldOrderDao.findAllByOrderId(order.getOrderNo());
                         if (commodityGoldOrder != null){
-                            commodityGoldOrder.setStatus(1);
-                            commodityGoldOrderDao.saveAndFlush(commodityGoldOrder);
                             CommodityGold commodityGold = commodityGoldDao.findAllById(commodityGoldOrder.getCid());
                             if (commodityGold != null){
+                                commodityGoldOrder.setStatus(1);
+                                commodityGoldOrderDao.saveAndFlush(commodityGoldOrder);
                                 user.setGold(user.getGold() + commodityGold.getGold());
                                 GoldRecords goldRecords = new GoldRecords();
                                 goldRecords.setGold(commodityGold.getGold());
                                 goldRecords.setCtime(System.currentTimeMillis());
                                 goldRecords.setUid(user.getId());
-                                goldRecords.setReason("使用"+order.getAmount()+"的钻石兑换了金币");
+                                goldRecords.setReason("使用￥"+order.getAmount() / 100+"的余额购买了金币");
                                 goldRecordsDao.saveAndFlush(goldRecords);
+                                userService._saveAndPush(user);
+                                balanceOrders.setReason("购买了价值￥"+(order.getAmount() / 100)+"的金币");
+                                balanceOrdersDao.saveAndFlush(balanceOrders);
                             }
                         }
-                        userService._saveAndPush(user);
                         break;
                     case PAY_ONLINE_DIAMOND:
-                        object.put("msg","不支持钻石兑换钻石，请选择在线支付!");
+                        CommodityDiamondOrder commodityDiamondOrder = commodityDiamondOrderDao.findAllByOrderId(order.getOrderNo());
+                        if (commodityDiamondOrder != null){
+                            CommodityDiamond commodityDiamond = commodityDiamondDao.findAllById(commodityDiamondOrder.getCid());
+                            if (commodityDiamond != null){
+                                commodityDiamondOrder.setStatus(1);
+                                commodityDiamondOrderDao.saveAndFlush(commodityDiamondOrder);
+                                user.setDiamond(user.getDiamond()+ commodityDiamond.getDiamond());
+                                DiamondRecords diamondRecords = new DiamondRecords();
+                                diamondRecords.setDiamond(commodityDiamondOrder.getDiamond());
+                                diamondRecords.setReason("使用￥"+order.getAmount() / 100+"的余额购买了钻石");
+                                diamondRecords.setUid(user.getId());
+                                diamondRecords.setCtime(System.currentTimeMillis());
+                                diamondRecordsDao.saveAndFlush(diamondRecords);
+                                userService._saveAndPush(user);
+                                balanceOrders.setReason("购买了价值￥"+(order.getAmount() / 100)+"的钻石");
+                                balanceOrdersDao.saveAndFlush(balanceOrders);
+                            }
+                        }
                         break;
                     default:
                         break;
@@ -167,25 +190,64 @@ public class OnlineOrderService {
             }else {
                 object.put("msg","余额不足，请选择在线支付!");
             }
-        }else {
-//            order.setStatus(1);
-//            onlineOrderDao.saveAndFlush(order);
-//            CommodityDiamondOrder commodityDiamondOrder = commodityDiamondOrderDao.findAllByOrderId(order.getOrderNo());
-//            if (commodityDiamondOrder != null){
-//                commodityDiamondOrder.setStatus(1);
-//                commodityDiamondOrderDao.saveAndFlush(commodityDiamondOrder);
+//            if (user.getDiamond() >= order.getAmount()){
+//                DiamondRecords diamondRecords = new DiamondRecords();
+//                diamondRecords.setDiamond((-order.getAmount()));
+//                diamondRecords.setUid(user.getId());
+//                diamondRecords.setCtime(System.currentTimeMillis());
+//                switch (type){
+//                    case PAY_ONLINE_VIP:
+////                        _handlerVipStatus(order.getOrderNo());
+//                        order.setStatus(1);
+//                        user.setDiamond(user.getDiamond() - order.getAmount());
+//                        CommodityVipOrder orders = commodityVipOrderDao.findAllByOrderId(order.getOrderNo());
+//                        orders.setStatus(1);
+//                        commodityVipOrderDao.saveAndFlush(orders);
+//                        CommodityVip commodityVip = commodityVipDao.findAllById(orders.getCid());
+//                        long time = CommodityVipOrderService._getAddTime(commodityVip.getAddTime(),user.getExpireds());
+//                        user.setExpireds(time);
+//                        user.setUtime(System.currentTimeMillis() / 1000);
+//                        userService._saveAndPush(user);
+//                        onlineOrderDao.saveAndFlush(order);
+//                        object.put("state","ok");
+//                        diamondRecords.setReason("兑换价值￥"+(order.getAmount() /100)+"的会员");
+//                        diamondRecordsDao.saveAndFlush(diamondRecords);
+//                        break;
+//                    case PAY_ONLINE_GOLD:
+//                        object.put("state","ok");
+//                        diamondRecords.setReason("兑换价值￥"+(order.getAmount() / 100)+"的金币");
+//                        diamondRecordsDao.saveAndFlush(diamondRecords);
+//                        order.setStatus(1);
+//                        user.setDiamond(user.getDiamond() - order.getAmount());
+//                        CommodityGoldOrder commodityGoldOrder = commodityGoldOrderDao.findAllByOrderId(order.getOrderNo());
+//                        if (commodityGoldOrder != null){
+//                            commodityGoldOrder.setStatus(1);
+//                            commodityGoldOrderDao.saveAndFlush(commodityGoldOrder);
+//                            CommodityGold commodityGold = commodityGoldDao.findAllById(commodityGoldOrder.getCid());
+//                            if (commodityGold != null){
+//                                user.setGold(user.getGold() + commodityGold.getGold());
+//                                GoldRecords goldRecords = new GoldRecords();
+//                                goldRecords.setGold(commodityGold.getGold());
+//                                goldRecords.setCtime(System.currentTimeMillis());
+//                                goldRecords.setUid(user.getId());
+//                                goldRecords.setReason("使用"+order.getAmount()+"的钻石兑换了金币");
+//                                goldRecordsDao.saveAndFlush(goldRecords);
+//                            }
+//                        }
+//                        userService._saveAndPush(user);
+//                        break;
+//                    case PAY_ONLINE_DIAMOND:
+//                        object.put("msg","不支持钻石兑换钻石，请选择在线支付!");
+//                        break;
+//                    default:
+//                        break;
+//                }
+//            }else {
+//                object.put("msg","余额不足，请选择在线支付!");
 //            }
-//            DiamondRecords diamondRecords = new DiamondRecords();
-//            diamondRecords.setDiamond((+order.getAmount()));
-//            diamondRecords.setUid(user.getId());
-//            diamondRecords.setCtime(System.currentTimeMillis());
-//            diamondRecords.setReason("充值价值￥"+(order.getAmount() /100)+"的钻石");
-//            diamondRecordsDao.saveAndFlush(diamondRecords);
-//            user.setDiamond(user.getDiamond()+order.getAmount());
-//            userService._saveAndPush(user);
-//            object.put("state","ok");
+        }else {
+            ShowPayUtil.request("http://192.168.254.142:8015/api/user/info","identifier=test");
         }
-
         return object;
     }
     public void _handlerVipStatus(String orderId){

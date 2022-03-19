@@ -2,6 +2,7 @@ package com.telebott.moviejava.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.telebott.moviejava.dao.*;
+import com.telebott.moviejava.entity.BalanceOrders;
 import com.telebott.moviejava.entity.UserFollows;
 import com.telebott.moviejava.entity.Users;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -27,6 +28,8 @@ public class UserService {
     private UserFollowsDao userFollowsDao;
     @Autowired
     private UserPostsDao userPostsDao;
+    @Autowired
+    private BalanceOrdersDao balanceOrdersDao;
     public void _save(Users users){
         usersDao.saveAndFlush(users);
     }
@@ -112,5 +115,10 @@ public class UserService {
     }
     public Users getUserByPhone(String phone){
         return usersDao.findAllByPhone(phone);
+    }
+    public JSONObject getBalance(Users user) {
+        JSONObject object = new JSONObject();
+        object.put("balance",balanceOrdersDao.countAllByBalance(user.getId()));
+        return object;
     }
 }

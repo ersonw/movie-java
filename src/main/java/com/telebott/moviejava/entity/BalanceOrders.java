@@ -9,18 +9,17 @@ import javax.persistence.*;
 @Setter
 @Getter
 @Entity
-@Table(name = "online_pay")
+@Table(name = "balance_orders")
 @Cacheable
 @ToString(includeFieldNames = true)
-public class OnlinePay {
+public class BalanceOrders {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private long id;
-    private String title;
-    private String iconImage;
+    private long uid;
+    private long amount;
     private int status;
-    private int ctime;
-    private int utime;
-    private String type;
+    private long addTime;
+    private long updateTime;
+    private String reason;
 }

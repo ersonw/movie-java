@@ -6,21 +6,16 @@ import lombok.ToString;
 
 import javax.persistence.*;
 
+@Entity
+@Table(name = "show_pay_orders")
+@ToString(includeFieldNames = true)
 @Setter
 @Getter
-@Entity
-@Table(name = "online_pay")
-@Cacheable
-@ToString(includeFieldNames = true)
-public class OnlinePay {
+public class ShowPayOrders {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private long id;
-    private String title;
-    private String iconImage;
+    private int id;
+    private String order_id;
+    private String order_no;
     private int status;
-    private int ctime;
-    private int utime;
-    private String type;
 }

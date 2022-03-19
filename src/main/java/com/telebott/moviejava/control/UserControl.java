@@ -390,6 +390,12 @@ public class UserControl {
         data.setData(videosService.fansRecords(requestData.getData(),requestData.getUser()));
         return data;
     }
+    @GetMapping("/getBalance")
+    public ResultData getBalance(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(userService.getBalance(requestData.getUser()));
+        return data;
+    }
     private String getToken(){
 //        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
 //        HttpSession session = request.getSession();
