@@ -118,7 +118,12 @@ public class UserService {
     }
     public JSONObject getBalance(Users user) {
         JSONObject object = new JSONObject();
-        object.put("balance",balanceOrdersDao.countAllByBalance(user.getId()));
+        long amount = balanceOrdersDao.countAllByUid(user.getId());
+        if (amount > 0){
+            object.put("balance",balanceOrdersDao.countAllByBalance(user.getId()));
+        }else {
+            object.put("balance",0);
+        }
         return object;
     }
 }
