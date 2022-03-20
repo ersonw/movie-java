@@ -1060,7 +1060,7 @@ public class VideosService {
             if (_user == null) {
                 object.put("msg", "邀请信息已过期，请重新获取！");
             } else {
-                ShareRecords records = shareRecordsDao.findAllByUidAndToUid(_user.getId(), user.getId());
+                ShareRecords records = shareRecordsDao.findAllByToUid(user.getId());
                 if (records == null){
                     boolean shareAwardEnable = Objects.equals(systemConfigService.getValueByKey("shareAwardEnable"), "1");
                     if (shareAwardEnable) {
@@ -1129,7 +1129,7 @@ public class VideosService {
                 object.put("msg", "邀请信息已过期，请重新获取！");
             } else {
                 boolean shareAwardVideoEnable = Objects.equals(systemConfigService.getValueByKey("shareAwardVideoEnable"), "1");
-                VideoShares videoShares = videoSharesDao.findAllByUidAndToUidAndVid(_user.getId(),user.getId(),video.getId());
+                VideoShares videoShares = videoSharesDao.findAllByToUidAndVid(user.getId(),video.getId());
                 if (shareAwardVideoEnable && videoShares == null) {
                     int shareAwardType = Integer.parseInt(systemConfigService.getValueByKey("shareAwardVideoType"));
                     long shareAwardAmount = Long.parseLong(systemConfigService.getValueByKey("shareAwardVideoAmount"));

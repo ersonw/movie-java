@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 public interface VideoSharesDao extends JpaRepository<VideoShares, Integer>, CrudRepository<VideoShares, Integer> {
     VideoShares findAllById(long id);
     VideoShares findAllByUidAndToUidAndVid(long uid, long tid, long vid);
+    VideoShares findAllByToUidAndVid(long tid, long vid);
     Page<VideoShares> findAllByUid(long uid, Pageable pageable);
     Page<VideoShares> findAllByToUid(long tid, Pageable pageable);
     Page<VideoShares> findAllByVid(long vid, Pageable pageable);
