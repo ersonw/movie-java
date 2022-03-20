@@ -988,5 +988,18 @@ public class VideosService {
         return object;
     }
 
-
+    public JSONObject shareRecords(String d, Users user) {
+        JSONObject data = JSONObject.parseObject(d);
+        JSONObject object = new JSONObject();
+        int page = 1;
+        if (data != null && data.get("page") != null) page = Integer.parseInt(data.get("page").toString());
+        page--;
+        if (page < 0) page=0;
+        Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
+        Page<Users> usersPage = usersDao.findAllBySuperior(user.getId(), pageable);
+        object = getUserList(usersPage,user);
+//        object.put("total",usersPage.getTotalPages());
+//        object.put("list", getUserList(usersPage.getContent(),user));
+        return object;
+    }
 }

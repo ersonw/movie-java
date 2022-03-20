@@ -396,6 +396,18 @@ public class UserControl {
         data.setData(userService.getBalance(requestData.getUser()));
         return data;
     }
+    @GetMapping("/getShareCount")
+    public ResultData getShareCount(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(userService.getShareCount(requestData.getUser()));
+        return data;
+    }
+    @GetMapping("/shareRecords")
+    public ResultData shareRecords(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(videosService.shareRecords(requestData.getData(),requestData.getUser()));
+        return data;
+    }
     private String getToken(){
 //        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
 //        HttpSession session = request.getSession();

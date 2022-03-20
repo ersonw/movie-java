@@ -3,11 +3,16 @@ package com.telebott.moviejava.service;
 import com.alibaba.fastjson.JSONObject;
 import com.telebott.moviejava.dao.*;
 import com.telebott.moviejava.entity.BalanceOrders;
+import com.telebott.moviejava.entity.SystemConfig;
 import com.telebott.moviejava.entity.UserFollows;
 import com.telebott.moviejava.entity.Users;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -30,6 +35,9 @@ public class UserService {
     private UserPostsDao userPostsDao;
     @Autowired
     private BalanceOrdersDao balanceOrdersDao;
+    @Autowired
+    private SystemConfigService systemConfigService;
+
     public void _save(Users users){
         usersDao.saveAndFlush(users);
     }
@@ -126,4 +134,14 @@ public class UserService {
         }
         return object;
     }
+
+    public JSONObject getShareCount(Users user) {
+        JSONObject object = new JSONObject();
+        object.put("count",usersDao.countAllBySuperior(user.getId()));
+        object.put("bgImage", systemConfigService.getValueByKey("shareBgImage"));
+        object.put("shareText", systemConfigService.getValueByKey("shareText"));
+        return object;
+    }
+
+
 }
