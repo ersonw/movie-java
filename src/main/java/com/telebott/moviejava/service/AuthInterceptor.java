@@ -1,5 +1,6 @@
 package com.telebott.moviejava.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.telebott.moviejava.dao.AuthDao;
 import com.telebott.moviejava.entity.Users;
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +30,7 @@ public class AuthInterceptor implements HandlerInterceptor {
             response.setStatus(106);
             return false;
         }
+        request.setAttribute("user", JSONObject.toJSONString(user));
 //        if(!Global.authRoles(user.getRoles())){
 //            response.setStatus(500);
 //        }

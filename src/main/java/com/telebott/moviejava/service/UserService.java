@@ -134,7 +134,6 @@ public class UserService {
         }
         return object;
     }
-
     public JSONObject getShareCount(Users user) {
         JSONObject object = new JSONObject();
         object.put("count",usersDao.countAllBySuperior(user.getId()));
@@ -142,6 +141,5 @@ public class UserService {
         object.put("shareText", systemConfigService.getValueByKey("shareText"));
         return object;
     }
-
 
 }

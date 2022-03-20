@@ -408,6 +408,21 @@ public class UserControl {
         data.setData(videosService.shareRecords(requestData.getData(),requestData.getUser()));
         return data;
     }
+    @PostMapping("/joinVideo")
+    public ResultData joinVideo(@ModelAttribute RequestData requestData, @RequestAttribute String user){
+        ResultData data = new ResultData();
+        Users users =  JSONObject.toJavaObject(JSONObject.parseObject(user),Users.class);
+        data.setData(videosService.joinVideo(requestData.getData(),users));
+        return data;
+    }
+    @PostMapping("/joinInvite")
+    public ResultData joinInvite(@ModelAttribute RequestData requestData, @RequestAttribute String user){
+        ResultData data = new ResultData();
+//        System.out.println(user);
+        Users users =  JSONObject.toJavaObject(JSONObject.parseObject(user),Users.class);
+        data.setData(videosService.joinInvite(requestData.getData(),users));
+        return data;
+    }
     private String getToken(){
 //        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
 //        HttpSession session = request.getSession();
