@@ -281,7 +281,9 @@ public class OnlineOrderService {
             map.put("callback_url", showPay.getCallbackUrl()); //支付成功同步回调地址
             map.put("error_url", showPay.getErrorUrl()); //支付失败同步回调地址
             String params = ShowPayUtil.getParams(map);
+            System.out.println(params);
             String sign = ShowPayUtil.getSign(params, showPay.getSecretKey());
+            System.out.println(sign);
             String d = ShowPayUtil.request(showPay.getDomain(),params+"&sign="+sign);
             System.out.println(d);
             PAY_MCH_INDEX++;
