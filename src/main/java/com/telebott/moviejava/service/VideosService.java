@@ -15,6 +15,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -213,6 +214,7 @@ public class VideosService {
         item.put("id", video.getId());
         item.put("image", video.getPicThumb());
         item.put("number", video.getNumbers());
+        item.put("diamond", video.getDiamond());
         if (video.getActor() > 0) {
             VideoActors videoActors = videoActorsDao.findAllById(video.getActor());
             if (videoActors != null) {
@@ -1173,6 +1175,32 @@ public class VideosService {
                 }
             }
         }
+        return object;
+    }
+
+    public JSONObject Recommends(String d, Users user) {
+        JSONObject data = JSONObject.parseObject(d);
+        JSONObject object = new JSONObject();
+        long date = TimeUtil.getTodayZero();
+        JSONArray array = new JSONArray();
+        if (data != null && data.get("date") != null) date = TimeUtil.dayToTime(data.get("date").toString());
+        if (date < TimeUtil.getAfterDaysZero(1)){
+            List<EditorRecommends> editorRecommendsList = editorRecommendsDao.findByDate(date);
+            for (EditorRecommends recommend : editorRecommendsList){
+                Videos video = videosDao.findAllById(recommend.getVid());
+                if (video != null){
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("id",recommend.getId());
+                    jsonObject.put("title",recommend.getTitle());
+                    jsonObject.put("face",recommend.getFace());
+                    jsonObject.put("funny",recommend.getFunny());
+                    jsonObject.put("hot",recommend.getHot());
+                    jsonObject.put("video",getVideoList(video));
+                    array.add(jsonObject);
+                }
+            }
+        }
+        object.put("list",array);
         return object;
     }
 }

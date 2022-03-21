@@ -340,6 +340,7 @@ public class UserControl {
     public ResultData getStsAccount(@ModelAttribute UploadData uploadData){
         ResultData data = new ResultData();
         data.setData(JSONObject.parseObject(AliOssUtil.getToken()));
+//        System.out.println(data);
         return data;
     }
     @GetMapping("/getUserInfo")

@@ -36,6 +36,8 @@ public class AliOssUtil {
     public static void rest(){
         accessKey = self.configService.getValueByKey("accessKey_ram");
         accessSecret = self.configService.getValueByKey("accessSecret_ram");
+//        accessKey = self.configService.getValueByKey("accessKey");
+//        accessSecret = self.configService.getValueByKey("accessSecret");
         regionld = self.configService.getValueByKey("regionld");
         roleArn = self.configService.getValueByKey("roleArn");
         roleSessionName = self.configService.getValueByKey("roleSessionName");

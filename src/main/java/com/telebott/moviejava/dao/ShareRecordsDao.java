@@ -14,4 +14,5 @@ public interface ShareRecordsDao extends JpaRepository<ShareRecords, Integer>, C
     ShareRecords findAllByToUid(long tid);
     Page<ShareRecords> findAllByUid(long uid, Pageable pageable);
     Page<ShareRecords> findAllByToUid(long tid, Pageable pageable);
+    long countAllByUid(long uid);
 }

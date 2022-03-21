@@ -37,6 +37,8 @@ public class UserService {
     private BalanceOrdersDao balanceOrdersDao;
     @Autowired
     private SystemConfigService systemConfigService;
+    @Autowired
+    private ShareRecordsDao shareRecordsDao;
 
     public void _save(Users users){
         usersDao.saveAndFlush(users);
@@ -136,7 +138,8 @@ public class UserService {
     }
     public JSONObject getShareCount(Users user) {
         JSONObject object = new JSONObject();
-        object.put("count",usersDao.countAllBySuperior(user.getId()));
+//        object.put("count",usersDao.countAllBySuperior(user.getId()));
+        object.put("count",shareRecordsDao.countAllByUid(user.getId()));
         object.put("bgImage", systemConfigService.getValueByKey("shareBgImage"));
         object.put("shareText", systemConfigService.getValueByKey("shareText"));
         return object;

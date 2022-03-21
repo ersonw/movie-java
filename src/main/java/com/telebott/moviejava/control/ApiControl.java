@@ -79,6 +79,12 @@ public class ApiControl {
         data.setData(videosService.Actor(requestData.getData(),requestData.getUser()));
         return data;
     }
+    @GetMapping("/Recommends")
+    public ResultData Recommends(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(videosService.Recommends(requestData.getData(),requestData.getUser()));
+        return data;
+    }
     @GetMapping("/ActorVideos")
     public ResultData ActorVideos(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();

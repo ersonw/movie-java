@@ -1,6 +1,7 @@
 package com.telebott.moviejava.util;
 
 import java.text.ParseException;
+import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -70,7 +71,11 @@ public class TimeUtil {
         calendar.set(Calendar.DAY_OF_YEAR, calendar.get(Calendar.DAY_OF_YEAR) + days);
         return calendar.getTimeInMillis();
     }
-
+    public static long dayToTime(String date){
+        long time = (new SimpleDateFormat("yyyy-MM-dd")).parse(date, new ParsePosition(0)).getTime();
+        if (time > 0) return time;
+        return getTodayZero();
+    }
     public static long manyDaysBefore(int days) {
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.DAY_OF_YEAR, calendar.get(Calendar.DAY_OF_YEAR) - days);
