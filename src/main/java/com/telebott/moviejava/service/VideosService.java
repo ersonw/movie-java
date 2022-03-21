@@ -1201,6 +1201,7 @@ public class VideosService {
             }
         }
         object.put("list",array);
+//        System.out.println(TimeUtil.getTodayZero());
         return object;
     }
 }
