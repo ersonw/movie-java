@@ -1,6 +1,7 @@
 package com.telebott.moviejava.util;
 
 import com.telebott.moviejava.entity.ToPayNotify;
+import org.springframework.util.DigestUtils;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -51,7 +52,8 @@ public class ShowPayUtil {
         return result;
     }
     public static String getSign(String params, String key){
-        return null;
+        String sign = params + key;
+        return DigestUtils.md5DigestAsHex(sign.getBytes()).toUpperCase();
     }
     public static boolean verifySign(ToPayNotify toPayNotify){
         return false;

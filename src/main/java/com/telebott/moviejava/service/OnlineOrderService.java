@@ -14,6 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -284,6 +286,15 @@ public class OnlineOrderService {
             System.out.println(params);
             String sign = ShowPayUtil.getSign(params, showPay.getSecretKey());
             System.out.println(sign);
+            try {
+                map.put("notify_url", URLEncoder.encode(showPay.getNotifyUrl(),"utf-8")); //支//异步回调地址
+                map.put("callback_url", URLEncoder.encode(showPay.getCallbackUrl(),"utf-8")); //支支付成功同步回调地址
+                map.put("error_url", URLEncoder.encode(showPay.getErrorUrl(),"utf-8")); //支付失败同步回调地址
+                params = ShowPayUtil.getParams(map);
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            System.out.println(params);
             String d = ShowPayUtil.request(showPay.getDomain(),params+"&sign="+sign);
             System.out.println(d);
             PAY_MCH_INDEX++;
