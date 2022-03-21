@@ -14,13 +14,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class OnlineOrderService {
     private static final int PAY_ONLINE_VIP = 100;
     private static final int PAY_ONLINE_GOLD = 101;
     private static final int PAY_ONLINE_DIAMOND = 102;
+    private static int PAY_MCH_INDEX = 0;
     @Autowired
     private OnlineOrderDao onlineOrderDao;
     @Autowired
@@ -51,6 +54,10 @@ public class OnlineOrderService {
     private UsersDao usersDao;
     @Autowired
     private BalanceOrdersDao balanceOrdersDao;
+    @Autowired
+    private ShowPayOrdersDao showPayOrdersDao;
+    @Autowired
+    private ShowPayDao showPayDao;
     public void _save(OnlineOrder onlineOrder){
         onlineOrderDao.saveAndFlush(onlineOrder);
     }
@@ -246,9 +253,43 @@ public class OnlineOrderService {
 //                object.put("msg","余额不足，请选择在线支付!");
 //            }
         }else {
-            ShowPayUtil.request("http://192.168.254.142:8015/api/user/info","identifier=test");
+//            ShowPayUtil.request("http://192.168.254.142:8015/api/user/info","identifier=test");
+            ShowPayOrders showPayOrders = new ShowPayOrders();
+            showPayOrders.setOrder_no(order.getOrderId());
+            showPayOrders.setStatus(0);
+            showPayOrders.setAmount(order.getAmount());
+            showPayOrders.setAddTime(System.currentTimeMillis());
+            String url = getPostOrder(showPayOrders);
+            if (url != null){
+                object.put("url",url);
+                object.put("state","ok");
+                onlineOrderDao.saveAndFlush(order);
+            }
         }
         return object;
+    }
+    public String getPostOrder(ShowPayOrders showPayOrders){
+        List<ShowPay> showPays = showPayDao.findAll();
+        if (showPays.size() > PAY_MCH_INDEX){
+            ShowPay showPay = showPays.get(PAY_MCH_INDEX);
+            //        showPayOrdersDao.saveAndFlush(showPayOrders);
+            HashMap<String, Object> map = new HashMap<>();
+            map.put("out_trade_no", showPayOrders.getOrder_no()); //订单号
+            map.put("mchid", showPay.getMchId()); //商户号
+            map.put("total_fee", showPayOrders.getAmount()); //金额 分单位
+            map.put("notify_url", showPay.getNotifyUrl()); //异步回调地址
+            map.put("callback_url", showPay.getCallbackUrl()); //支付成功同步回调地址
+            map.put("error_url", showPay.getErrorUrl()); //支付失败同步回调地址
+            String params = ShowPayUtil.getParams(map);
+            String sign = ShowPayUtil.getSign(params, showPay.getSecretKey());
+            String d = ShowPayUtil.request(showPay.getDomain(),params+"&sign="+sign);
+            System.out.println(d);
+            PAY_MCH_INDEX++;
+            if (PAY_MCH_INDEX == showPays.size()){
+                PAY_MCH_INDEX = 0;
+            }
+        }
+        return null;
     }
     public void _handlerVipStatus(String orderId){
         CommodityVipOrder order = commodityVipOrderDao.findAllByOrderId(orderId);

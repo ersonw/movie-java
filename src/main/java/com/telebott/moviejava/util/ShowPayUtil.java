@@ -1,7 +1,5 @@
 package com.telebott.moviejava.util;
 
-import com.telebott.moviejava.entity.ShowPay;
-import com.telebott.moviejava.entity.ToPayData;
 import com.telebott.moviejava.entity.ToPayNotify;
 
 import java.io.BufferedReader;
@@ -11,6 +9,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 public class ShowPayUtil {
     public static String request(String httpUrl, String body) {
@@ -51,11 +50,21 @@ public class ShowPayUtil {
         System.out.println(result);
         return result;
     }
-    public static String getSign(ShowPay showPay, ToPayData toPayData){
+    public static String getSign(String params, String key){
         return null;
     }
     public static boolean verifySign(ToPayNotify toPayNotify){
         return false;
+    }
+    public static String getParams(HashMap<String,Object> map){
+        String[] sortKeys = map.keySet().toArray(new String[]{});
+        Arrays.sort(sortKeys);
+        StringBuilder builder = new StringBuilder();
+        for (String key : sortKeys) {
+            builder.append(key).append("=").append(map.get(key)).append("&");
+        }
+        builder.deleteCharAt(builder.length()-1);
+        return builder.toString();
     }
 
 }

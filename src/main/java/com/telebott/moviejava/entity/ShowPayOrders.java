@@ -17,5 +17,7 @@ public class ShowPayOrders {
     private int id;
     private String order_id;
     private String order_no;
+    private long amount;
+    private long addTime;
     private int status;
 }
