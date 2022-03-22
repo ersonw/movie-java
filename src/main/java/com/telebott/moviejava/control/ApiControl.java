@@ -13,8 +13,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Random;
 import java.util.UUID;
 
@@ -225,6 +228,8 @@ public class ApiControl {
             data.setMessage("参数提交错误！请更新至最新版本！");
         }else {
             String phone = smsRecordsService._verifyCode(object.get("id").toString(),object.get("code").toString());
+            System.out.println(phone);
+//            System.out.println(requestData.getData());
             if (phone != null){
                 user.setUtime(System.currentTimeMillis() / 1000L);
                 user.setPhone(phone);
@@ -345,14 +350,24 @@ public class ApiControl {
     }
     private String getJsonBodyString(HttpServletRequest httpServletRequest){
         try {
-            InputStream inputStream = httpServletRequest.getInputStream();
-            StringBuilder stringBuilder = new StringBuilder();
-            int temp;
-            while ((temp = inputStream.read()) != -1)
-            {
-                stringBuilder.append((char) temp);
+            httpServletRequest.setCharacterEncoding("UTF-8");
+            StringBuilder buffer = new StringBuilder();
+            BufferedReader reader=null;
+            reader = new BufferedReader(new InputStreamReader(httpServletRequest.getInputStream(), StandardCharsets.UTF_8));
+            String line=null;
+            while((line = reader.readLine())!=null){
+                buffer.append(line);
             }
-            return stringBuilder.toString();
+//            System.out.println(buffer);
+            return buffer.toString();
+//            InputStream inputStream = httpServletRequest.getInputStream();
+//            StringBuilder stringBuilder = new StringBuilder();
+//            int temp;
+//            while ((temp = inputStream.read()) != -1)
+//            {
+//                stringBuilder.append((char) temp);
+//            }
+//            return stringBuilder.toString();
         } catch (IOException e) {
             e.printStackTrace();
         }
