@@ -9,6 +9,7 @@ import com.telebott.moviejava.util.MD5Util;
 import com.telebott.moviejava.util.MobileRegularExp;
 import com.telebott.moviejava.util.SmsBaoUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -34,6 +35,8 @@ public class ApiControl {
     private SystemConfigService systemConfigService;
     @Autowired
     private VideoFeaturedsService videoFeaturedsService;
+    @Autowired
+    private OnlineOrderService onlineOrderService;
     @GetMapping("/test")
     public ResultData test(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
@@ -355,4 +358,30 @@ public class ApiControl {
         }
         return null;
     }
+    @PostMapping("/toPayNotify")
+    public String toPayNotify(@ModelAttribute ToPayNotify payNotify){
+        if(onlineOrderService.handlerToPayNotify(payNotify)){
+            return "success";
+        }
+        return "fail";
+    }
+    @RequestMapping("/toPay")
+    public String toPay(@ModelAttribute ToPayNotify payNotify){
+        return "<!DOCTYPE html>\n" +
+                "<html>\n" +
+                "<head>\n" +
+                "    <meta charset=\"utf-8\">\n" +
+                "</head>\n" +
+                "<script type=\"text/javascript\">\n" +
+                "\n" +
+                "    function run(){\n" +
+                "        document.getElementById(\"sp\").click();\n" +
+                "    }\n" +
+                "</script>\n" +
+                "<body οnlοad=\"run()\">\n" +
+                "<a href=\"moviescheme://123\">打开应用<h1 id=\"sp\"></h1></a>\n" +
+                "</body>\n" +
+                "</html>";
+    }
+
 }

@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -118,12 +119,15 @@ public class OnlineOrderService {
         return object;
     }
 
-    public JSONObject _getResult(OnlineOrder order, Users user, int type){
+    public JSONObject _getResult(OnlineOrder order, Users user){
         OnlinePay onlinePay = onlinePayDao.findAllById(order.getPid());
         JSONObject object = new JSONObject();
         object.put("state","error");
-        object.put("msg","");
-        if (onlinePay.getTitle().contains("余额")){
+        if (onlineOrderDao.countAllByOrderNoAndStatus(order.getOrderNo(),0) > 0){
+            object.put("msg", "重复订单号！上个订单未处理完成");
+            return object;
+        }
+        if (onlinePay.getType() == 0){
             long balance = balanceOrdersDao.countAllByBalance(user.getId());
             if (order.getAmount() < balance){
                 BalanceOrders balanceOrders = new BalanceOrders();
@@ -135,7 +139,7 @@ public class OnlineOrderService {
                 order.setStatus(1);
                 onlineOrderDao.saveAndFlush(order);
                 object.put("state", "ok");
-                switch (type) {
+                switch (order.getType()) {
                     case PAY_ONLINE_VIP:
                         CommodityVipOrder orders = commodityVipOrderDao.findAllByOrderId(order.getOrderNo());
                         if (orders != null){
@@ -165,7 +169,7 @@ public class OnlineOrderService {
                                 goldRecords.setGold(commodityGold.getGold());
                                 goldRecords.setCtime(System.currentTimeMillis());
                                 goldRecords.setUid(user.getId());
-                                goldRecords.setReason("使用￥"+order.getAmount() / 100+"的余额购买了金币");
+                                goldRecords.setReason("通过 "+ onlinePay.getTitle() +"的在线支付购买了金币");
                                 goldRecordsDao.saveAndFlush(goldRecords);
                                 userService._saveAndPush(user);
                                 balanceOrders.setReason("购买了价值￥"+(order.getAmount() / 100)+"的金币");
@@ -183,7 +187,7 @@ public class OnlineOrderService {
                                 user.setDiamond(user.getDiamond()+ commodityDiamond.getDiamond());
                                 DiamondRecords diamondRecords = new DiamondRecords();
                                 diamondRecords.setDiamond(commodityDiamond.getDiamond());
-                                diamondRecords.setReason("使用￥"+order.getAmount() / 100+"的余额购买了钻石");
+                                diamondRecords.setReason("通过 "+ onlinePay.getTitle() +"的在线支付购买了钻石");
                                 diamondRecords.setUid(user.getId());
                                 diamondRecords.setCtime(System.currentTimeMillis());
                                 diamondRecordsDao.saveAndFlush(diamondRecords);
@@ -199,69 +203,13 @@ public class OnlineOrderService {
             }else {
                 object.put("msg","余额不足，请选择在线支付!");
             }
-//            if (user.getDiamond() >= order.getAmount()){
-//                DiamondRecords diamondRecords = new DiamondRecords();
-//                diamondRecords.setDiamond((-order.getAmount()));
-//                diamondRecords.setUid(user.getId());
-//                diamondRecords.setCtime(System.currentTimeMillis());
-//                switch (type){
-//                    case PAY_ONLINE_VIP:
-////                        _handlerVipStatus(order.getOrderNo());
-//                        order.setStatus(1);
-//                        user.setDiamond(user.getDiamond() - order.getAmount());
-//                        CommodityVipOrder orders = commodityVipOrderDao.findAllByOrderId(order.getOrderNo());
-//                        orders.setStatus(1);
-//                        commodityVipOrderDao.saveAndFlush(orders);
-//                        CommodityVip commodityVip = commodityVipDao.findAllById(orders.getCid());
-//                        long time = CommodityVipOrderService._getAddTime(commodityVip.getAddTime(),user.getExpireds());
-//                        user.setExpireds(time);
-//                        user.setUtime(System.currentTimeMillis() / 1000);
-//                        userService._saveAndPush(user);
-//                        onlineOrderDao.saveAndFlush(order);
-//                        object.put("state","ok");
-//                        diamondRecords.setReason("兑换价值￥"+(order.getAmount() /100)+"的会员");
-//                        diamondRecordsDao.saveAndFlush(diamondRecords);
-//                        break;
-//                    case PAY_ONLINE_GOLD:
-//                        object.put("state","ok");
-//                        diamondRecords.setReason("兑换价值￥"+(order.getAmount() / 100)+"的金币");
-//                        diamondRecordsDao.saveAndFlush(diamondRecords);
-//                        order.setStatus(1);
-//                        user.setDiamond(user.getDiamond() - order.getAmount());
-//                        CommodityGoldOrder commodityGoldOrder = commodityGoldOrderDao.findAllByOrderId(order.getOrderNo());
-//                        if (commodityGoldOrder != null){
-//                            commodityGoldOrder.setStatus(1);
-//                            commodityGoldOrderDao.saveAndFlush(commodityGoldOrder);
-//                            CommodityGold commodityGold = commodityGoldDao.findAllById(commodityGoldOrder.getCid());
-//                            if (commodityGold != null){
-//                                user.setGold(user.getGold() + commodityGold.getGold());
-//                                GoldRecords goldRecords = new GoldRecords();
-//                                goldRecords.setGold(commodityGold.getGold());
-//                                goldRecords.setCtime(System.currentTimeMillis());
-//                                goldRecords.setUid(user.getId());
-//                                goldRecords.setReason("使用"+order.getAmount()+"的钻石兑换了金币");
-//                                goldRecordsDao.saveAndFlush(goldRecords);
-//                            }
-//                        }
-//                        userService._saveAndPush(user);
-//                        break;
-//                    case PAY_ONLINE_DIAMOND:
-//                        object.put("msg","不支持钻石兑换钻石，请选择在线支付!");
-//                        break;
-//                    default:
-//                        break;
-//                }
-//            }else {
-//                object.put("msg","余额不足，请选择在线支付!");
-//            }
         }else {
-//            ShowPayUtil.request("http://192.168.254.142:8015/api/user/info","identifier=test");
             ShowPayOrders showPayOrders = new ShowPayOrders();
-            showPayOrders.setOrder_no(order.getOrderId());
+            showPayOrders.setOrderNo(order.getOrderId());
             showPayOrders.setStatus(0);
             showPayOrders.setAmount(order.getAmount());
             showPayOrders.setAddTime(System.currentTimeMillis());
-            String url = getPostOrder(showPayOrders);
+            String url = getPostOrder(showPayOrders, onlinePay.getType());
             if (url != null){
                 object.put("url",url);
                 object.put("state","ok");
@@ -270,56 +218,105 @@ public class OnlineOrderService {
         }
         return object;
     }
-    public String getPostOrder(ShowPayOrders showPayOrders){
-        List<ShowPay> showPays = showPayDao.findAll();
-        if (showPays.size() > PAY_MCH_INDEX){
-            ShowPay showPay = showPays.get(PAY_MCH_INDEX);
-            //        showPayOrdersDao.saveAndFlush(showPayOrders);
-            HashMap<String, Object> map = new HashMap<>();
-            map.put("out_trade_no", showPayOrders.getOrder_no()); //订单号
-            map.put("mchid", showPay.getMchId()); //商户号
-            map.put("total_fee", showPayOrders.getAmount()); //金额 分单位
-            map.put("notify_url", showPay.getNotifyUrl()); //异步回调地址
-            map.put("callback_url", showPay.getCallbackUrl()); //支付成功同步回调地址
-            map.put("error_url", showPay.getErrorUrl()); //支付失败同步回调地址
-            String params = ShowPayUtil.getParams(map);
-            System.out.println(params);
-            String sign = ShowPayUtil.getSign(params, showPay.getSecretKey());
-            System.out.println(sign);
-            try {
-                map.put("notify_url", URLEncoder.encode(showPay.getNotifyUrl(),"utf-8")); //支//异步回调地址
-                map.put("callback_url", URLEncoder.encode(showPay.getCallbackUrl(),"utf-8")); //支支付成功同步回调地址
-                map.put("error_url", URLEncoder.encode(showPay.getErrorUrl(),"utf-8")); //支付失败同步回调地址
-                params = ShowPayUtil.getParams(map);
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-            System.out.println(params);
-            String d = ShowPayUtil.request(showPay.getDomain(),params+"&sign="+sign);
-            System.out.println(d);
-            PAY_MCH_INDEX++;
-            if (PAY_MCH_INDEX == showPays.size()){
+    public String getPostOrder(ShowPayOrders showPayOrders, long pid){
+        ShowPay showPay = null;
+        if (pid > 0){
+            showPay = showPayDao.findAllById(pid);
+        }else {
+            List<ShowPay> showPays = showPayDao.findAll();
+            if (showPays.size() > PAY_MCH_INDEX){
+                showPay = showPays.get(PAY_MCH_INDEX);
+                PAY_MCH_INDEX++;
+                if (PAY_MCH_INDEX == showPays.size()){
+                    PAY_MCH_INDEX = 0;
+                }
+            }else {
                 PAY_MCH_INDEX = 0;
             }
         }
+        if (showPay == null) return null;
+        String url = ShowPayUtil.toPay(showPayOrders,showPay);
+        if (url != null){
+            showPayOrdersDao.saveAndFlush(showPayOrders);
+            return url;
+        }
         return null;
     }
-    public void _handlerVipStatus(String orderId){
-        CommodityVipOrder order = commodityVipOrderDao.findAllByOrderId(orderId);
+    public boolean handlerToPayNotify(ToPayNotify toPayNotify){
+        ShowPay showPay = showPayDao.findAllByMchId(toPayNotify.getMchid());
+        if (showPay == null) return false;
+        if (!ShowPayUtil.toPayNotify(toPayNotify,showPay)) return false;
+        ShowPayOrders showPayOrders = showPayOrdersDao.findAllByOrderNo(toPayNotify.getOut_trade_no());
+        if (showPayOrders != null && StringUtils.isEmpty(showPayOrders.getTradeNo()) && showPayOrders.getStatus() != 1){
+            showPayOrders.setTradeNo(toPayNotify.getTrade_no());
+            showPayOrders.setStatus(1);
+            showPayOrdersDao.saveAndFlush(showPayOrders);
+            handlerOrderNotify(showPayOrders);
+        }
+        return true;
+    }
+    private void handlerOrderNotify(ShowPayOrders showPayOrders){
+        OnlineOrder order = onlineOrderDao.findAllByOrderId(showPayOrders.getOrderNo());
         if (order != null){
+            OnlinePay onlinePay = onlinePayDao.findAllById(order.getPid());
+            Users user = usersDao.findAllById(order.getUid());
             order.setStatus(1);
-            commodityVipOrderDao.saveAndFlush(order);
-            Users user = userService._getById(order.getUid());
-            CommodityVip commodityVip = commodityVipDao.findAllById(order.getCid());
-//            commodityVipOrderService._handlerAddTime(user,commodityVip);
-            Users _user = authDao.findUserByIdentifier(user.getIdentifier());
-            user.setToken(_user.getToken());
-            long time = CommodityVipOrderService._getAddTime(commodityVip.getAddTime(),user.getExpireds());
-            user.setExpireds(time);
-            user.setUtime(System.currentTimeMillis() / 1000);
-            usersDao.save(user);
-            System.out.println(user);
-//            userService._saveAndPush(user);
+            onlineOrderDao.saveAndFlush(order);
+            switch (order.getType()) {
+                case PAY_ONLINE_VIP:
+                    CommodityVipOrder orders = commodityVipOrderDao.findAllByOrderId(order.getOrderNo());
+                    if (orders != null){
+                        CommodityVip commodityVip = commodityVipDao.findAllById(orders.getCid());
+                        if (commodityVip != null){
+                            orders.setStatus(1);
+                            commodityVipOrderDao.saveAndFlush(orders);
+                            long time = CommodityVipOrderService._getAddTime(commodityVip.getAddTime(), user.getExpireds());
+                            user.setExpireds(time);
+                            user.setUtime(System.currentTimeMillis() / 1000);
+                            userService._saveAndPush(user);
+                            onlineOrderDao.saveAndFlush(order);
+                        }
+                    }
+                    break;
+                case PAY_ONLINE_GOLD:
+                    CommodityGoldOrder commodityGoldOrder = commodityGoldOrderDao.findAllByOrderId(order.getOrderNo());
+                    if (commodityGoldOrder != null){
+                        CommodityGold commodityGold = commodityGoldDao.findAllById(commodityGoldOrder.getCid());
+                        if (commodityGold != null){
+                            commodityGoldOrder.setStatus(1);
+                            commodityGoldOrderDao.saveAndFlush(commodityGoldOrder);
+                            user.setGold(user.getGold() + commodityGold.getGold());
+                            GoldRecords goldRecords = new GoldRecords();
+                            goldRecords.setGold(commodityGold.getGold());
+                            goldRecords.setCtime(System.currentTimeMillis());
+                            goldRecords.setUid(user.getId());
+                            goldRecords.setReason("通过 "+ onlinePay.getTitle() +"的在线支付购买了金币");
+                            goldRecordsDao.saveAndFlush(goldRecords);
+                            userService._saveAndPush(user);
+                        }
+                    }
+                    break;
+                case PAY_ONLINE_DIAMOND:
+                    CommodityDiamondOrder commodityDiamondOrder = commodityDiamondOrderDao.findAllByOrderId(order.getOrderNo());
+                    if (commodityDiamondOrder != null){
+                        CommodityDiamond commodityDiamond = commodityDiamondDao.findAllById(commodityDiamondOrder.getCid());
+                        if (commodityDiamond != null){
+                            commodityDiamondOrder.setStatus(1);
+                            commodityDiamondOrderDao.saveAndFlush(commodityDiamondOrder);
+                            user.setDiamond(user.getDiamond()+ commodityDiamond.getDiamond());
+                            DiamondRecords diamondRecords = new DiamondRecords();
+                            diamondRecords.setDiamond(commodityDiamond.getDiamond());
+                            diamondRecords.setReason("通过 "+ onlinePay.getTitle() +"的在线支付购买了钻石");
+                            diamondRecords.setUid(user.getId());
+                            diamondRecords.setCtime(System.currentTimeMillis());
+                            diamondRecordsDao.saveAndFlush(diamondRecords);
+                            userService._saveAndPush(user);
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
     }
     public JSONObject _postCrateOrder(Users user,String type, String order_id, String pid) {
@@ -332,7 +329,7 @@ public class OnlineOrderService {
         order.setPid(Integer.parseInt(pid));
         order.setOrderNo(order_id);
         order.setType(Integer.parseInt(type));
-        switch (Integer.parseInt(type)){
+        switch (order.getType()){
             case PAY_ONLINE_VIP:
                 CommodityVipOrder commodityVipOrder = commodityVipOrderDao.findAllByOrderId(order_id);
                 if (commodityVipOrder != null){
@@ -354,7 +351,7 @@ public class OnlineOrderService {
             default:
                 break;
         }
-        return _getResult(order,user,Integer.parseInt(type));
+        return _getResult(order,user);
     }
     private JSONArray _getList(List<OnlineOrder> orders){
         JSONArray array = new JSONArray();

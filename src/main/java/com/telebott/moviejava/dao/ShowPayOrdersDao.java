@@ -8,4 +8,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ShowPayOrdersDao extends JpaRepository<ShowPayOrders, Integer>, CrudRepository<ShowPayOrders, Integer> {
     ShowPayOrders findAllById(long id);
+    ShowPayOrders findAllByOrderNo(String no);
 }

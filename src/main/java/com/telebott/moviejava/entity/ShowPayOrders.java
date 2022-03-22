@@ -15,8 +15,9 @@ public class ShowPayOrders {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private String order_id;
-    private String order_no;
+    private String orderId;
+    private String orderNo;
+    private String tradeNo;
     private long amount;
     private long addTime;
     private int status;

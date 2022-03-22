@@ -22,5 +22,5 @@ public class OnlinePay {
     private int status;
     private int ctime;
     private int utime;
-    private String type;
+    private long type;
 }
