@@ -231,7 +231,7 @@ public class ApiControl {
             System.out.println(phone);
 //            System.out.println(requestData.getData());
             if (phone != null){
-                user.setUtime(System.currentTimeMillis() / 1000L);
+                user.setUtime(System.currentTimeMillis());
                 user.setPhone(phone);
                 user.setIdentifier(object.get("identifier").toString());
                 user.setUid(md5Util.getMD5(user.getIdentifier()));

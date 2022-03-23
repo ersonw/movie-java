@@ -320,7 +320,7 @@ public class UserControl {
                     users.setIdentifier(requestData.getIdentifier());
                     users.setNickname(nickname.toString());
                     users.setUid(md5Util.getMD5(requestData.getIdentifier()));
-                    users.setCtime(System.currentTimeMillis() /1000L);
+                    users.setCtime(System.currentTimeMillis() );
                     users.setStatus(1);
 //                    users.setAvatar("http://htm-download.oss-cn-hongkong.aliyuncs.com/default_head.gif");
                     userService._save(users);

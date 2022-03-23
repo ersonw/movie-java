@@ -139,6 +139,7 @@ public class OnlineOrderService {
                 order.setStatus(1);
                 onlineOrderDao.saveAndFlush(order);
                 object.put("state", "ok");
+                user.setUtime(System.currentTimeMillis());
                 switch (order.getType()) {
                     case PAY_ONLINE_VIP:
                         CommodityVipOrder orders = commodityVipOrderDao.findAllByOrderId(order.getOrderNo());
@@ -149,7 +150,6 @@ public class OnlineOrderService {
                                 commodityVipOrderDao.saveAndFlush(orders);
                                 long time = CommodityVipOrderService._getAddTime(commodityVip.getAddTime(), user.getExpireds());
                                 user.setExpireds(time);
-                                user.setUtime(System.currentTimeMillis() / 1000);
                                 userService._saveAndPush(user);
                                 onlineOrderDao.saveAndFlush(order);
                                 balanceOrders.setReason("购买了价值￥" + (order.getAmount() / 100) + "的会员");
@@ -262,6 +262,7 @@ public class OnlineOrderService {
             Users user = usersDao.findAllById(order.getUid());
             order.setStatus(1);
             onlineOrderDao.saveAndFlush(order);
+            user.setUtime(System.currentTimeMillis());
             switch (order.getType()) {
                 case PAY_ONLINE_VIP:
                     CommodityVipOrder orders = commodityVipOrderDao.findAllByOrderId(order.getOrderNo());
@@ -272,7 +273,6 @@ public class OnlineOrderService {
                             commodityVipOrderDao.saveAndFlush(orders);
                             long time = CommodityVipOrderService._getAddTime(commodityVip.getAddTime(), user.getExpireds());
                             user.setExpireds(time);
-                            user.setUtime(System.currentTimeMillis() / 1000);
                             userService._saveAndPush(user);
                             onlineOrderDao.saveAndFlush(order);
                         }
