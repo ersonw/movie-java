@@ -75,9 +75,9 @@ public class UserService {
         if (_user != null && isUser(_user.getToken())){
             JSONObject _token = JSONObject.parseObject(JSONObject.toJSONString(authDao.findUserByToken(_user.getToken())));
             for (Map.Entry<String, Object> entry: object.entrySet()) {
-//                if (StringUtils.isNotEmpty(entry.getValue().toString())){
+                if (entry.getValue() != null){
                     _token.put(entry.getKey(), entry.getValue());
-//                }
+                }
             }
             _user = JSONObject.toJavaObject(_token,Users.class);
             _saveAndPush(_user);
