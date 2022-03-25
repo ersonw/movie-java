@@ -15,10 +15,11 @@ import javax.persistence.*;
 public class DiamondRecords {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private long id;
     private long uid;
     private long diamond;
-    private long ctime;
+    private long addTime;
+    private long updateTime;
+    private int status;
     private String reason;
 }

@@ -15,10 +15,11 @@ import javax.persistence.*;
 public class GoldRecords {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private long id;
     private long uid;
     private long gold;
-    private long ctime;
+    private long addTime;
+    private long updateTime;
+    private int status;
     private String reason;
 }

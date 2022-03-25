@@ -167,8 +167,9 @@ public class OnlineOrderService {
                                 user.setGold(user.getGold() + commodityGold.getGold());
                                 GoldRecords goldRecords = new GoldRecords();
                                 goldRecords.setGold(commodityGold.getGold());
-                                goldRecords.setCtime(System.currentTimeMillis());
+                                goldRecords.setAddTime(System.currentTimeMillis());
                                 goldRecords.setUid(user.getId());
+                                goldRecords.setStatus(1);
                                 goldRecords.setReason("通过 "+ onlinePay.getTitle() +"的在线支付购买了金币");
                                 goldRecordsDao.saveAndFlush(goldRecords);
                                 userService._saveAndPush(user);
@@ -189,7 +190,8 @@ public class OnlineOrderService {
                                 diamondRecords.setDiamond(commodityDiamond.getDiamond());
                                 diamondRecords.setReason("通过 "+ onlinePay.getTitle() +"的在线支付购买了钻石");
                                 diamondRecords.setUid(user.getId());
-                                diamondRecords.setCtime(System.currentTimeMillis());
+                                diamondRecords.setAddTime(System.currentTimeMillis());
+                                diamondRecords.setStatus(1);
                                 diamondRecordsDao.saveAndFlush(diamondRecords);
                                 userService._saveAndPush(user);
                                 balanceOrders.setReason("购买了价值￥"+(order.getAmount() / 100)+"的钻石");
@@ -288,8 +290,9 @@ public class OnlineOrderService {
                             user.setGold(user.getGold() + commodityGold.getGold());
                             GoldRecords goldRecords = new GoldRecords();
                             goldRecords.setGold(commodityGold.getGold());
-                            goldRecords.setCtime(System.currentTimeMillis());
+                            goldRecords.setAddTime(System.currentTimeMillis());
                             goldRecords.setUid(user.getId());
+                            goldRecords.setStatus(1);
                             goldRecords.setReason("通过 "+ onlinePay.getTitle() +"的在线支付购买了金币");
                             goldRecordsDao.saveAndFlush(goldRecords);
                             userService._saveAndPush(user);
@@ -308,9 +311,10 @@ public class OnlineOrderService {
                             diamondRecords.setDiamond(commodityDiamond.getDiamond());
                             diamondRecords.setReason("通过 "+ onlinePay.getTitle() +"的在线支付购买了钻石");
                             diamondRecords.setUid(user.getId());
-                            diamondRecords.setCtime(System.currentTimeMillis());
+                            diamondRecords.setAddTime(System.currentTimeMillis());
+                            diamondRecords.setStatus(1);
                             diamondRecordsDao.saveAndFlush(diamondRecords);
-                            userService._saveAndPush(user);
+//                            userService._saveAndPush(user);
                         }
                     }
                     break;

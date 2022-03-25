@@ -514,17 +514,18 @@ public class VideosService {
             Videos videos = videosDao.findAllById(Long.parseLong(data.get("id").toString()));
             if (videos != null) {
                 if (videos.getDiamond() > 0) {
-                    if (user.getDiamond() < videos.getDiamond()) {
+                    if (userService.getDiamond(user) < videos.getDiamond()) {
                         object.put("msg", "钻石余额不足，请先充值!");
                     } else {
                         object.put("verify", true);
                         VideoOrders orders = videoOrdersDao.findAllByUidAndVid(user.getId(), videos.getId());
                         if (orders == null) {
                             DiamondRecords records = new DiamondRecords();
-                            records.setCtime(System.currentTimeMillis());
+                            records.setAddTime(System.currentTimeMillis());
                             records.setUid(user.getId());
                             records.setReason("购买了付费影片《" + videos.getTitle() + "》");
                             records.setDiamond(-(videos.getDiamond()));
+                            records.setStatus(1);
                             diamondRecordsDao.saveAndFlush(records);
                             orders = new VideoOrders();
                             orders.setAddTime(System.currentTimeMillis());
@@ -532,8 +533,8 @@ public class VideosService {
                             orders.setStatus(1);
                             orders.setUid(user.getId());
                             videoOrdersDao.saveAndFlush(orders);
-                            user.setDiamond(user.getDiamond() - videos.getDiamond());
-                            userService._saveAndPush(user);
+//                            user.setDiamond(user.getDiamond() - videos.getDiamond());
+//                            userService._saveAndPush(user);
                         }
                     }
                 } else {
@@ -1165,7 +1166,9 @@ public class VideosService {
                             goldRecords.setGold(shareAwardAmount);
                             goldRecords.setReason(records.getReason() + "奖励：" + goldRecords.getGold() + "金币");
                             goldRecords.setUid(_user.getId());
-                            goldRecords.setCtime(System.currentTimeMillis());
+                            goldRecords.setAddTime(System.currentTimeMillis());
+                            goldRecords.setUpdateTime(System.currentTimeMillis());
+                            goldRecords.setStatus(1);
                             goldRecordsDao.saveAndFlush(goldRecords);
                             _user.setGold(_user.getGold() + goldRecords.getGold());
                             usersDao.saveAndFlush(_user);
@@ -1175,7 +1178,8 @@ public class VideosService {
                             diamondRecords.setDiamond(records.getAmount());
                             diamondRecords.setReason(records.getReason() + "奖励：" + diamondRecords.getDiamond() + "钻石");
                             diamondRecords.setUid(_user.getId());
-                            diamondRecords.setCtime(System.currentTimeMillis());
+                            diamondRecords.setAddTime(System.currentTimeMillis());
+                            diamondRecords.setStatus(1);
                             diamondRecordsDao.saveAndFlush(diamondRecords);
                             _user.setDiamond(_user.getDiamond() + records.getAmount());
                             usersDao.saveAndFlush(_user);
@@ -1229,7 +1233,7 @@ public class VideosService {
                         goldRecords.setGold(shareAwardAmount);
                         goldRecords.setReason(reason + "奖励：" + goldRecords.getGold() + "金币");
                         goldRecords.setUid(_user.getId());
-                        goldRecords.setCtime(System.currentTimeMillis());
+                        goldRecords.setAddTime(System.currentTimeMillis());
                         goldRecordsDao.saveAndFlush(goldRecords);
                         _user.setGold(_user.getGold() + shareAwardAmount);
                         usersDao.saveAndFlush(_user);
@@ -1238,7 +1242,7 @@ public class VideosService {
                         diamondRecords.setDiamond(shareAwardAmount);
                         diamondRecords.setReason(reason + "奖励：" + diamondRecords.getDiamond() + "钻石");
                         diamondRecords.setUid(_user.getId());
-                        diamondRecords.setCtime(System.currentTimeMillis());
+                        diamondRecords.setAddTime(System.currentTimeMillis());
                         diamondRecordsDao.saveAndFlush(diamondRecords);
                         _user.setDiamond(_user.getDiamond() + shareAwardAmount);
                         usersDao.saveAndFlush(_user);

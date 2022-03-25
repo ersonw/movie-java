@@ -39,6 +39,10 @@ public class UserService {
     private SystemConfigService systemConfigService;
     @Autowired
     private ShareRecordsDao shareRecordsDao;
+    @Autowired
+    private DiamondRecordsDao diamondRecordsDao;
+    @Autowired
+    private GoldRecordsDao goldRecordsDao;
 
     public void _save(Users users){
         usersDao.saveAndFlush(users);
@@ -111,8 +115,8 @@ public class UserService {
             object.put("token", users.getToken());
             object.put("phone", users.getPhone());
             object.put("avatar",users.getAvatar());
-            object.put("gold",users.getGold());
-            object.put("diamond", users.getDiamond());
+            object.put("gold", getGold(users));
+            object.put("diamond", getDiamond(users));
             object.put("invite",users.getInvite());
             object.put("superior", users.getSuperior());
             object.put("expired",users.getExpireds());
@@ -135,6 +139,20 @@ public class UserService {
             object.put("balance",0);
         }
         return object;
+    }
+    public long getDiamond(Users user) {
+        long amount = diamondRecordsDao.countAllByUidAndStatus(user.getId(),1);
+        if (amount > 0){
+            return diamondRecordsDao.countAllByBalance(user.getId());
+        }
+        return amount;
+    }
+    public long getGold(Users user) {
+        long amount = goldRecordsDao.countAllByUidAndStatus(user.getId(),1);
+        if (amount > 0){
+            return goldRecordsDao.countAllByBalance(user.getId());
+        }
+        return amount;
     }
     public JSONObject getShareCount(Users user) {
         JSONObject object = new JSONObject();
