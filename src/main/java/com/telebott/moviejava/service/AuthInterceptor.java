@@ -20,7 +20,8 @@ public class AuthInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
         String token = request.getHeader("Token");
-        System.out.println(token);
+//        System.out.println(token);
+        System.out.println(request.getServletPath()+"?"+request.getQueryString());
         if (StringUtils.isEmpty(token)){
             response.setStatus(105);
             return false;
