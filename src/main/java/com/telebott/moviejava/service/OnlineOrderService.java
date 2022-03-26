@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.relational.core.sql.In;
 import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
@@ -61,6 +62,13 @@ public class OnlineOrderService {
     private ShowPayOrdersDao showPayOrdersDao;
     @Autowired
     private ShowPayDao showPayDao;
+    @Autowired
+    private SystemConfigService systemConfigService;
+    @Autowired
+    private WithdrawalRecordsDao withdrawalRecordsDao;
+    @Autowired
+    private WithdrawalCardsDao withdrawalCardsDao;
+
     public void _save(OnlineOrder onlineOrder){
         onlineOrderDao.saveAndFlush(onlineOrder);
     }
@@ -389,6 +397,32 @@ public class OnlineOrderService {
         object.put("list",_getList(onlineOrders.getContent()));
         object.put("total",onlineOrders.getTotalPages());
         data.setData(object);
+        return data;
+    }
+
+    public JSONObject getWithdrawal(Users user) {
+        JSONObject object = new JSONObject();
+        object.put("proportionBalance", Integer.parseInt(systemConfigService.getValueByKey("proportionBalance")));
+        object.put("proportionDiamond", Integer.parseInt(systemConfigService.getValueByKey("proportionDiamond")));
+        object.put("proportionGold", Integer.parseInt(systemConfigService.getValueByKey("proportionGold")));
+        object.put("MaxWithdrawal", Integer.parseInt(systemConfigService.getValueByKey("MaxWithdrawal")));
+        object.put("MiniWithdrawal", Integer.parseInt(systemConfigService.getValueByKey("MiniWithdrawal")));
+        object.put("cards", withdrawalCardsDao.findAllByUid(user.getId()));
+        return object;
+    }
+
+    public JSONObject getWithdrawalRecords(String d, Users user) {
+        JSONObject data = JSONObject.parseObject(d);
+        return data;
+    }
+
+    public JSONObject Withdrawal(String d, Users user) {
+        JSONObject data = JSONObject.parseObject(d);
+        return data;
+    }
+
+    public JSONObject addCard(String d, Users user) {
+        JSONObject data = JSONObject.parseObject(d);
         return data;
     }
 }
