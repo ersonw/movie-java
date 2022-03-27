@@ -459,24 +459,25 @@ public class OnlineOrderService {
                 records.setStatus(0);
                 records.setUid(user.getId());
                 records.setCid(cards.getId());
+                System.out.println(((amount * 100) * (proportionBalance / 100d)));
                 switch (Integer.parseInt(data.getString("type"))){
                     case WITHDRAWAL_BALANCE:
                         balance = balanceOrdersDao.countAllByBalance(user.getId());
                         if (amount > balance){
                             object.put("msg","提现金额不得大于剩余余额！");
-                        }else if((amount / proportionBalance) > (MaxWithdrawal / 100)){
+                        }else if(((amount * 100) * (proportionBalance / 100d)) > (MaxWithdrawal)){
                             object.put("msg","单笔提现金额不得大于最大提现额度 ￥"+String.format("%.2f",MaxWithdrawal / 100d)+"！");
-                        }else if((amount / proportionBalance) < (MiniWithdrawal / 100)){
+                        }else if(((amount * 100) * (proportionBalance / 100d)) < (MiniWithdrawal)){
                             object.put("msg","单笔提现金额不得少于最小提现额度 ￥"+String.format("%.2f",MiniWithdrawal / 100d)+"！");
                         }else {
                             object.put("verify",true);
-                            records.setAmount((amount / proportionBalance) * 100);
+                            records.setAmount(new Double((amount * 100) * (proportionBalance / 100d)).longValue());
                             records.setReason("余额提现");
                             withdrawalRecordsDao.saveAndFlush(records);
                             BalanceOrders balanceOrders = new BalanceOrders();
                             balanceOrders.setReason(records.getReason());
                             balanceOrders.setStatus(1);
-                            balanceOrders.setAmount(-amount);
+                            balanceOrders.setAmount(-(amount * 100));
                             balanceOrders.setAddTime(System.currentTimeMillis());
                             balanceOrders.setUpdateTime(System.currentTimeMillis());
                             balanceOrders.setUid(user.getId());
@@ -600,7 +601,8 @@ public class OnlineOrderService {
                 orders.setAmount(records.getAmount());
                 if (records.getReason().contains("余额提现")){
                     int proportionBalance = Integer.parseInt(systemConfigService.getValueByKey("proportionBalance"));
-                    orders.setAmount(records.getAmount() * proportionBalance);
+//                    long amount = new Double(records.getAmount() * (1 - (proportionBalance / 100d))).longValue();
+                    orders.setAmount(new Double(records.getAmount() / (proportionBalance / 100d)).longValue());
                 }
                 orders.setStatus(1);
                 orders.setReason("提现订单退回: "+records.getOrderNo());
