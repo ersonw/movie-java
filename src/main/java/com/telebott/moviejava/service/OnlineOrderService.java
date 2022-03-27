@@ -27,6 +27,9 @@ public class OnlineOrderService {
     private static final int PAY_ONLINE_VIP = 100;
     private static final int PAY_ONLINE_GOLD = 101;
     private static final int PAY_ONLINE_DIAMOND = 102;
+    private static final int WITHDRAWAL_DIAMOND = 100;
+    private static final int WITHDRAWAL_BALANCE = 101;
+    private static final int WITHDRAWAL_GOLD = 102;
     private static int PAY_MCH_INDEX = 0;
     @Autowired
     private OnlineOrderDao onlineOrderDao;
@@ -413,16 +416,219 @@ public class OnlineOrderService {
 
     public JSONObject getWithdrawalRecords(String d, Users user) {
         JSONObject data = JSONObject.parseObject(d);
-        return data;
+        JSONObject object = new JSONObject();
+        JSONArray array = new JSONArray();
+        int page = 1;
+        if (data != null && data.get("page") != null) page = Integer.parseInt(data.getString("page"));
+        page--;
+        if (page < 0) page = 0;
+        Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
+        Page<WithdrawalRecords> withdrawalRecordsPage = withdrawalRecordsDao.findAllByUid(user.getId(),pageable);
+        for (WithdrawalRecords record: withdrawalRecordsPage.getContent()) {
+            JSONObject jsonObject = JSONObject.parseObject(JSONObject.toJSONString(record));
+            jsonObject.put("uid","");
+            array.add(jsonObject);
+        }
+        object.put("total",withdrawalRecordsPage.getTotalPages());
+        object.put("list",array);
+        return object;
     }
 
     public JSONObject Withdrawal(String d, Users user) {
         JSONObject data = JSONObject.parseObject(d);
-        return data;
+        JSONObject object = new JSONObject();
+        object.put("verify",false);
+        if (data != null &&
+                data.get("amount") != null && data.get("card") != null &&
+                data.get("type") != null && StringUtils.isNotEmpty(data.getString("amount")) &&
+                    StringUtils.isNotEmpty(data.getString("card")) &&
+                    StringUtils.isNotEmpty(data.getString("type"))){
+            WithdrawalCards cards = withdrawalCardsDao.findAllById(Long.parseLong(data.getString("card")));
+            if (cards != null){
+                long balance = 0;
+                long amount = Long.parseLong(data.getString("amount"));
+                int proportionBalance = Integer.parseInt(systemConfigService.getValueByKey("proportionBalance"));
+                int proportionDiamond = Integer.parseInt(systemConfigService.getValueByKey("proportionDiamond"));
+                int proportionGold = Integer.parseInt(systemConfigService.getValueByKey("proportionGold"));
+                int MaxWithdrawal = Integer.parseInt(systemConfigService.getValueByKey("MaxWithdrawal"));
+                int MiniWithdrawal = Integer.parseInt(systemConfigService.getValueByKey("MiniWithdrawal"));
+                WithdrawalRecords records = new WithdrawalRecords();
+                records.setAddTime(System.currentTimeMillis());
+                records.setUpdateTime(System.currentTimeMillis());
+                records.setOrderNo(TimeUtil._getOrderNo());
+                records.setStatus(0);
+                records.setUid(user.getId());
+                records.setCid(cards.getId());
+                switch (Integer.parseInt(data.getString("type"))){
+                    case WITHDRAWAL_BALANCE:
+                        balance = balanceOrdersDao.countAllByBalance(user.getId());
+                        if (amount > balance){
+                            object.put("msg","提现金额不得大于剩余余额！");
+                        }else if((amount / proportionBalance) > (MaxWithdrawal / 100)){
+                            object.put("msg","单笔提现金额不得大于最大提现额度 ￥"+String.format("%.2f",MaxWithdrawal / 100d)+"！");
+                        }else if((amount / proportionBalance) < (MiniWithdrawal / 100)){
+                            object.put("msg","单笔提现金额不得少于最小提现额度 ￥"+String.format("%.2f",MiniWithdrawal / 100d)+"！");
+                        }else {
+                            object.put("verify",true);
+                            records.setAmount((amount / proportionBalance) * 100);
+                            records.setReason("余额提现");
+                            withdrawalRecordsDao.saveAndFlush(records);
+                            BalanceOrders balanceOrders = new BalanceOrders();
+                            balanceOrders.setReason(records.getReason());
+                            balanceOrders.setStatus(1);
+                            balanceOrders.setAmount(-amount);
+                            balanceOrders.setAddTime(System.currentTimeMillis());
+                            balanceOrders.setUpdateTime(System.currentTimeMillis());
+                            balanceOrders.setUid(user.getId());
+                            balanceOrdersDao.saveAndFlush(balanceOrders);
+                        }
+                        break;
+                    case WITHDRAWAL_DIAMOND:
+                        balance = diamondRecordsDao.countAllByBalance(user.getId());
+                        if (amount > balance){
+                            object.put("msg","提现金额不得大于剩余余额！");
+                        }else if((amount / proportionDiamond) > (MaxWithdrawal / 100)){
+                            object.put("msg","单笔提现金额不得大于最大提现额度 ￥"+String.format("%.2f",MaxWithdrawal / 100d)+"！");
+                        }else if((amount / proportionDiamond) < (MiniWithdrawal / 100)){
+                            object.put("msg","单笔提现金额不得少于最小提现额度 ￥"+String.format("%.2f",MiniWithdrawal / 100d)+"！");
+                        }else {
+                            object.put("verify",true);
+                            records.setAmount((amount / proportionDiamond) * 100);
+                            records.setReason("钻石提现");
+                            withdrawalRecordsDao.saveAndFlush(records);
+                            DiamondRecords diamondRecords = new DiamondRecords();
+                            diamondRecords.setReason(records.getReason());
+                            diamondRecords.setStatus(1);
+                            diamondRecords.setDiamond(-amount);
+                            diamondRecords.setAddTime(System.currentTimeMillis());
+                            diamondRecords.setUpdateTime(System.currentTimeMillis());
+                            diamondRecords.setUid(user.getId());
+                            diamondRecordsDao.saveAndFlush(diamondRecords);
+                        }
+                        break;
+                    case WITHDRAWAL_GOLD:
+                        balance = goldRecordsDao.countAllByBalance(user.getId());
+                        if (amount > balance){
+                            object.put("msg","提现金额不得大于剩余余额！");
+                        }else if((amount / proportionGold) > (MaxWithdrawal / 100)){
+                            object.put("msg","单笔提现金额不得大于最大提现额度 ￥"+String.format("%.2f",MaxWithdrawal / 100d)+"！");
+                        }else if((amount / proportionGold) < (MiniWithdrawal / 100)){
+                            object.put("msg","单笔提现金额不得少于最小提现额度 ￥"+String.format("%.2f",MiniWithdrawal / 100d)+"！");
+                        }else {
+                            object.put("verify",true);
+                            records.setAmount((amount / proportionGold) * 100);
+                            records.setReason("金币提现");
+                            withdrawalRecordsDao.saveAndFlush(records);
+                            GoldRecords goldRecords = new GoldRecords();
+                            goldRecords.setReason(records.getReason());
+                            goldRecords.setStatus(1);
+                            goldRecords.setGold(-amount);
+                            goldRecords.setAddTime(System.currentTimeMillis());
+                            goldRecords.setUpdateTime(System.currentTimeMillis());
+                            goldRecords.setUid(user.getId());
+                            goldRecordsDao.saveAndFlush(goldRecords);
+                        }
+                        break;
+                }
+            }else {
+                object.put("msg","卡号不存在!");
+            }
+        }
+        return object;
     }
 
     public JSONObject addCard(String d, Users user) {
         JSONObject data = JSONObject.parseObject(d);
-        return data;
+        JSONObject object = new JSONObject();
+        object.put("verify",false);
+        if (data != null &&
+                data.get("name") != null && data.get("bank") != null && data.get("code") != null ){
+            if (StringUtils.isNotEmpty(data.getString("name")) &&
+                    StringUtils.isNotEmpty(data.getString("bank")) &&
+                    StringUtils.isNotEmpty(data.getString("code"))){
+                WithdrawalCards cards = withdrawalCardsDao.findAllByCode(data.getString("code"));
+                if (cards != null){
+                    object.put("msg","卡号已存在!");
+                }else {
+                    if (data.get("id") != null && Long.parseLong(data.getString("id")) > 0){
+                        cards = withdrawalCardsDao.findAllByIdAndUid(Long.parseLong(data.getString("id")), user.getId());
+                        if (cards == null){
+                            object.put("msg","收款方式不存在!");
+                        }else {
+                            cards.setUpdateTime(System.currentTimeMillis());
+                            cards.setName(data.getString("name"));
+                            cards.setBank(data.getString("bank"));
+                            cards.setCode(data.getString("code"));
+                            withdrawalCardsDao.saveAndFlush(cards);
+                            object.put("verify",true);
+                        }
+                    }else {
+                        cards =new WithdrawalCards();
+                        cards.setUpdateTime(System.currentTimeMillis());
+                        cards.setAddTime(System.currentTimeMillis());
+                        cards.setName(data.getString("name"));
+                        cards.setBank(data.getString("bank"));
+                        cards.setCode(data.getString("code"));
+                        cards.setUid(user.getId());
+                        withdrawalCardsDao.saveAndFlush(cards);
+                        object.put("verify",true);
+                    }
+                }
+            }else {
+                object.put("msg","各项都是必填参数，不可或缺!");
+            }
+        }else {
+            object.put("msg","版本太低，请先升级版本!");
+        }
+        return object;
+    }
+
+    public JSONObject cancelWithdrawal(String d, Users user) {
+        JSONObject data = JSONObject.parseObject(d);
+        JSONObject object = new JSONObject();
+        object.put("verify",false);
+        if (data != null && data.get("id") != null){
+            WithdrawalRecords records = withdrawalRecordsDao.findAllByIdAndUid(Long.parseLong(data.getString("id")),user.getId());
+            if (records != null && records.getStatus() == 0){
+                object.put("verify",true);
+                records.setStatus(-2);
+                withdrawalRecordsDao.saveAndFlush(records);
+                BalanceOrders orders = new BalanceOrders();
+                orders.setUid(user.getId());
+                orders.setAddTime(System.currentTimeMillis());
+                orders.setUpdateTime(System.currentTimeMillis());
+                orders.setAmount(records.getAmount());
+                if (records.getReason().contains("余额提现")){
+                    int proportionBalance = Integer.parseInt(systemConfigService.getValueByKey("proportionBalance"));
+                    orders.setAmount(records.getAmount() * proportionBalance);
+                }
+                orders.setStatus(1);
+                orders.setReason("提现订单退回: "+records.getOrderNo());
+                balanceOrdersDao.saveAndFlush(orders);
+            }else {
+                object.put("msg","订单不存在或者已进入受理阶段!");
+            }
+        }
+        return object;
+    }
+
+    public JSONObject getBalanceRecords(String d, Users user) {
+        JSONObject data = JSONObject.parseObject(d);
+        JSONObject object = new JSONObject();
+        JSONArray array = new JSONArray();
+        int page = 1;
+        if (data != null && data.get("page") != null) page = Integer.parseInt(data.getString("page"));
+        page--;
+        if (page < 0) page = 0;
+        Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
+        Page<BalanceOrders> balanceOrdersPage = balanceOrdersDao.findAllByUid(user.getId(),pageable);
+        for (BalanceOrders record: balanceOrdersPage.getContent()) {
+            JSONObject jsonObject = JSONObject.parseObject(JSONObject.toJSONString(record));
+            jsonObject.put("uid","");
+            array.add(jsonObject);
+        }
+        object.put("total",balanceOrdersPage.getTotalPages());
+        object.put("list",array);
+        return object;
     }
 }

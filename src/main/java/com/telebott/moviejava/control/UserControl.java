@@ -190,6 +190,18 @@ public class UserControl {
         data.setData(onlineOrderService.addCard(requestData.getData(),requestData.getUser()));
         return data;
     }
+    @GetMapping("/cancelWithdrawal")
+    public ResultData cancelWithdrawal(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(onlineOrderService.cancelWithdrawal(requestData.getData(),requestData.getUser()));
+        return data;
+    }
+    @GetMapping("/getBalanceRecords")
+    public ResultData getBalanceRecords(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(onlineOrderService.getBalanceRecords(requestData.getData(),requestData.getUser()));
+        return data;
+    }
 
     @GetMapping("/postCrateOrder")
     public ResultData postCrateOrder(@ModelAttribute RequestData requestData){

@@ -13,4 +13,5 @@ import java.util.List;
 public interface WithdrawalRecordsDao extends JpaRepository<WithdrawalRecords, Integer>, CrudRepository<WithdrawalRecords, Integer> {
     WithdrawalRecords findAllById(long id);
     Page<WithdrawalRecords> findAllByUid(long uid, Pageable pageable);
+    WithdrawalRecords findAllByIdAndUid(long id, long uid);
 }
