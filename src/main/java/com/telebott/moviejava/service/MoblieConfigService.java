@@ -40,7 +40,7 @@ public class MoblieConfigService {
             object.put("version",Double.parseDouble(config.getVersion()));
             object.put("hash",config.getHash());
             object.put("autoLogin", config.getAutoLogin() > 0);
-            object.put("bootImage", config.getBootImage());
+            object.put("bootImage", systemConfigService.getValueByKey("bootImage"));
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("bucketName", systemConfigService.getValueByKey("bucketName"));
             jsonObject.put("endpoint", systemConfigService.getValueByKey("endpoint"));

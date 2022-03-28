@@ -15,14 +15,11 @@ import javax.persistence.*;
 public class MoblieConfig {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private int id;
     private String version;
     private String hash;
-    private int autoLogin;
-    private String bootImage;
-    private String url;
     private int forces;
-    private Long ctime;
-    private Long utime;
+    private int autoLogin;
+    private long addTime;
+    private long updateTime;
 }
