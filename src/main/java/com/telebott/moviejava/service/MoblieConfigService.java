@@ -117,10 +117,12 @@ public class MoblieConfigService {
         Page<MoblieConfig> configPage = moblieConfigDao.findAll(pageable);
         JSONObject object = new JSONObject();
         if (configPage.getContent().size() > 0){
-            MoblieConfig config = configPage.getContent().get(0);
+            MoblieConfig config = configPage.getContent().get(configPage.getContent().size() - 1);
             object.put("version",Double.parseDouble(config.getVersion()));
             object.put("hash",config.getHash());
-            object.put("force", config.getForces() > 0);
+            object.put("force", config.getForces() == 1);
+            object.put("autoLogin", config.getAutoLogin() == 1);
+            object.put("text", config.getText());
             object.put("urlIos", systemConfigService.getValueByKey("urlIos"));
             object.put("urlAndroid", systemConfigService.getValueByKey("urlAndroid"));
         }

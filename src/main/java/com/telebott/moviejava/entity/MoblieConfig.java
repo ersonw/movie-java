@@ -20,6 +20,7 @@ public class MoblieConfig {
     private String hash;
     private int forces;
     private int autoLogin;
+    private String text;
     private long addTime;
     private long updateTime;
 }
