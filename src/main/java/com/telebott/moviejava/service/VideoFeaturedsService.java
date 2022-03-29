@@ -34,6 +34,9 @@ public class VideoFeaturedsService {
     private VideoActorsDao videoActorsDao;
     @Autowired
     private VideoCollectsDao videoCollectsDao;
+    @Autowired
+    private VideosService videosService;
+
     public JSONObject getFeatureds() {
         List<VideoFeatureds> featuredsList = videoFeaturedsDao.findAllByStatus(1);
         JSONArray array = new JSONArray();
@@ -58,7 +61,7 @@ public class VideoFeaturedsService {
                 JSONObject data = new JSONObject();
                 data.put("id",video.getId());
                 data.put("title",video.getTitle());
-                data.put("image",video.getPicThumb());
+                data.put("image",videosService.getPicThumbUrl(video.getPicThumb()));
                 if (video.getPlay() > 0){
                     data.put("play",video.getPlay());
                 }else {
@@ -172,7 +175,7 @@ public class VideoFeaturedsService {
             JSONObject object = new JSONObject();
             object.put("id",video.getId());
             object.put("title",video.getTitle());
-            object.put("image",video.getPicThumb());
+            object.put("image",videosService.getPicThumbUrl(video.getPicThumb()));
             object.put("play",video.getPlay());
             object.put("remommends", video.getRecommends());
             array.add(object);

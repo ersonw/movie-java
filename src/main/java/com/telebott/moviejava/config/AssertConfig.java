@@ -18,7 +18,7 @@ public class AssertConfig implements WebMvcConfigurer {
     private AuthDao authDao;
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/**").addResourceLocations("classpath:/static/").addResourceLocations( "classpath:/META-INF/resources/static/");
+        registry.addResourceHandler("/**").addResourceLocations("classpath:/static/").addResourceLocations( "classpath:/META-INF/static/").addResourceLocations( "classpath:/WEB-INF/classes/static/");
     }
 
     @Override

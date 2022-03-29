@@ -15,7 +15,6 @@ class MovieJavaApplicationTests {
 //    private TimeUtil timeUtil;
     @Test
     void contextLoads() {
-        System.out.println(TimeUtil.getTodayZero());
     }
 
 }

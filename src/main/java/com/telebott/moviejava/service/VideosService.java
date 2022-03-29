@@ -294,7 +294,7 @@ public class VideosService {
         JSONObject item = new JSONObject();
         item.put("title", video.getTitle());
         item.put("id", video.getId());
-        item.put("image", video.getPicThumb());
+        item.put("image", getPicThumbUrl(video.getPicThumb()));
         item.put("number", video.getNumbers());
         item.put("diamond", video.getDiamond());
         if (video.getActor() > 0) {
@@ -416,7 +416,7 @@ public class VideosService {
         if (videoPlayUrls == null) {
             return null;
         }
-        return videoPlayUrls.get(videoPlayUrls.size() - 1).getUrl();
+        return getPlayDomainUrl(videoPlayUrls.get(videoPlayUrls.size() - 1).getUrl());
     }
 
     private JSONObject getplayerObject(Videos videos, Users user) {
@@ -431,10 +431,10 @@ public class VideosService {
             actor.put("collect", true);
         }
         object.put("actor", actor);
-        object.put("pic", videos.getPicThumb());
+        object.put("pic", getPicThumbUrl(videos.getPicThumb()));
         object.put("tag", videos.getVodTag());
         object.put("diamond", videos.getDiamond());
-        object.put("downloadUrl", videos.getVodDownUrl());
+        object.put("downloadUrl", getDownloadDomainUrl(videos.getVodDownUrl()));
         object.put("playUrl", getPlayUrl(videos.getVodPlayUrl()));
         if (videos.getPlay() > 0) {
             object.put("play", videos.getPlay());
@@ -575,7 +575,73 @@ public class VideosService {
         }
         return object;
     }
-
+    //匹配域名并且替换
+    public static String getUrlWithoutDomain(String url){
+        if (StringUtils.isEmpty(url)) return null;
+        StringBuilder sb = new StringBuilder();
+        if (url.startsWith("https")){
+            sb.append("https://");
+        }else if (url.startsWith("http")){
+            sb.append("http://");
+        }
+        String[] urls = (url.replaceAll(sb.toString(),"")).split("/");
+        sb.append(urls[0]);
+        return url.replaceAll(sb.toString(),"");
+    }
+    public String getPicThumbUrl(String url) {
+        String domain = systemConfigService.getValueByKey("PicThumbDomain");
+        if (StringUtils.isNotEmpty(domain)){
+            String newUrl = domain;
+            if (!domain.startsWith("http")){
+                newUrl = "http://"+domain;
+            }
+            if (domain.endsWith("/")){
+                newUrl = newUrl.substring(0,newUrl.length()-1);
+            }
+            domain =  getUrlWithoutDomain(url);
+            if (domain != null){
+//                System.out.println(newUrl+domain);
+                return newUrl+domain;
+            }
+        }
+        return url;
+    }
+    public String getPlayDomainUrl(String url) {
+        String domain = systemConfigService.getValueByKey("PlayDomain");
+        if (StringUtils.isNotEmpty(domain)){
+            String newUrl = domain;
+            if (!domain.startsWith("http")){
+                newUrl = "http://"+domain;
+            }
+            if (domain.endsWith("/")){
+                newUrl = newUrl.substring(0,newUrl.length()-1);
+            }
+            domain =  getUrlWithoutDomain(url);
+            if (domain != null){
+//                System.out.println(newUrl+domain);
+                return newUrl+domain;
+            }
+        }
+        return url;
+    }
+    public String getDownloadDomainUrl(String url) {
+        String domain = systemConfigService.getValueByKey("DownloadDomain");
+        if (StringUtils.isNotEmpty(domain)){
+            String newUrl = domain;
+            if (!domain.startsWith("http")){
+                newUrl = "http://"+domain;
+            }
+            if (domain.endsWith("/")){
+                newUrl = newUrl.substring(0,newUrl.length()-1);
+            }
+            domain =  getUrlWithoutDomain(url);
+            if (domain != null){
+//                System.out.println(newUrl+domain);
+                return newUrl+domain;
+            }
+        }
+        return url;
+    }
     private JSONArray getRecommends(long vid, int page, long _uid) {
         JSONArray array = new JSONArray();
         page--;
@@ -967,7 +1033,7 @@ public class VideosService {
             JSONObject item = new JSONObject();
             item.put("title", video.getTitle());
             item.put("id", video.getId());
-            item.put("image", video.getPicThumb());
+            item.put("image", getPicThumbUrl(video.getPicThumb()));
             item.put("number", video.getNumbers());
             item.put("duration", video.getVodDuration());
             item.put("likes", videoLikesDao.countAllByVid(video.getId()));

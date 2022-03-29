@@ -76,7 +76,10 @@ public class ServerWebSocket {
      */
     @OnError
     public void onError(Session session, Throwable error) {
-        error.printStackTrace();
+//        error.printStackTrace();
+        if (user != null){
+            System.out.println("客户端退出异常： 用户昵称："+user.getNickname()+"用户ID： "+user.getId());
+        }
     }
 
     /**
