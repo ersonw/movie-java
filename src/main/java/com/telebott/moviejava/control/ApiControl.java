@@ -333,21 +333,21 @@ public class ApiControl {
         UUID uuid = UUID.randomUUID();
         return uuid.toString().replaceAll("-","")+System.currentTimeMillis();
     }
-    @RequestMapping("/Yzm")
-    public  ResultData Yzm(HttpServletRequest httpServletRequest){
-        ResultData data = new ResultData();
-        String jsonStr = getJsonBodyString(httpServletRequest);
-        if (jsonStr != null){
-            JSONObject object = JSONObject.parseObject(jsonStr);
-            if (object != null){
-                YzmData yzmData = JSONObject.toJavaObject(object,YzmData.class);
-                if (yzmData != null && yzmData.getResult().equals("ok")){
-                    videosService.handlerYzm(yzmData);
-                }
-            }
-        }
-        return data;
-    }
+//    @RequestMapping("/Yzm")
+//    public  ResultData Yzm(HttpServletRequest httpServletRequest){
+//        ResultData data = new ResultData();
+//        String jsonStr = getJsonBodyString(httpServletRequest);
+//        if (jsonStr != null){
+//            JSONObject object = JSONObject.parseObject(jsonStr);
+//            if (object != null){
+//                YzmData yzmData = JSONObject.toJavaObject(object,YzmData.class);
+//                if (yzmData != null && yzmData.getResult().equals("ok")){
+//                    videosService.handlerYzm(yzmData);
+//                }
+//            }
+//        }
+//        return data;
+//    }
     private String getJsonBodyString(HttpServletRequest httpServletRequest){
         try {
             httpServletRequest.setCharacterEncoding("UTF-8");
