@@ -582,17 +582,18 @@ public class OnlineOrderService {
                     object.put("msg","卡号已存在!");
                 }else {
                     if (data.get("id") != null && Long.parseLong(data.getString("id")) > 0){
-                        cards = withdrawalCardsDao.findAllByIdAndUid(Long.parseLong(data.getString("id")), user.getId());
-                        if (cards == null){
-                            object.put("msg","收款方式不存在!");
-                        }else {
-                            cards.setUpdateTime(System.currentTimeMillis());
-                            cards.setName(data.getString("name"));
-                            cards.setBank(data.getString("bank"));
-                            cards.setCode(data.getString("code"));
-                            withdrawalCardsDao.saveAndFlush(cards);
-                            object.put("verify",true);
-                        }
+                        object.put("msg","暂不支持自主修改，需要修改请联系在线客服!");
+//                        cards = withdrawalCardsDao.findAllByIdAndUid(Long.parseLong(data.getString("id")), user.getId());
+//                        if (cards == null){
+//                            object.put("msg","收款方式不存在!");
+//                        }else {
+//                            cards.setUpdateTime(System.currentTimeMillis());
+//                            cards.setName(data.getString("name"));
+//                            cards.setBank(data.getString("bank"));
+//                            cards.setCode(data.getString("code"));
+//                            withdrawalCardsDao.saveAndFlush(cards);
+//                            object.put("verify",true);
+//                        }
                     }else {
                         cards =new WithdrawalCards();
                         cards.setUpdateTime(System.currentTimeMillis());
