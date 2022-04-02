@@ -14,4 +14,6 @@ public interface WithdrawalCardsDao extends JpaRepository<WithdrawalCards, Integ
     List<WithdrawalCards> findAllByUid(long uid);
     long countAllByCode(String code);
     WithdrawalCards findAllByCode(String code);
+
+    WithdrawalCards findAllByCodeAndName(String code, String name);
 }

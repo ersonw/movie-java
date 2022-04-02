@@ -577,13 +577,15 @@ public class OnlineOrderService {
             if (StringUtils.isNotEmpty(data.getString("name")) &&
                     StringUtils.isNotEmpty(data.getString("bank")) &&
                     StringUtils.isNotEmpty(data.getString("code"))){
-                WithdrawalCards cards = withdrawalCardsDao.findAllByCode(data.getString("code"));
-                if (cards != null){
-                    object.put("msg","卡号已存在!");
-                }else {
-                    if (data.get("id") != null && Long.parseLong(data.getString("id")) > 0){
+                if (data.get("id") != null && Long.parseLong(data.getString("id")) > 0){
+                    WithdrawalCards cards = withdrawalCardsDao.findAllByIdAndUid(Long.parseLong(data.getString("id")), user.getId());
+                    if (cards != null){
                         object.put("msg","暂不支持自主修改，需要修改请联系在线客服!");
-//                        cards = withdrawalCardsDao.findAllByIdAndUid(Long.parseLong(data.getString("id")), user.getId());
+                    }else{
+//                        cards = withdrawalCardsDao.findAllByCode(data.getString("code"));
+                        cards = withdrawalCardsDao.findAllByCodeAndName(data.getString("code"),data.getString("name"));
+                        saveCard(user, data, object, cards);
+                    }
 //                        if (cards == null){
 //                            object.put("msg","收款方式不存在!");
 //                        }else {
@@ -594,18 +596,11 @@ public class OnlineOrderService {
 //                            withdrawalCardsDao.saveAndFlush(cards);
 //                            object.put("verify",true);
 //                        }
-                    }else {
-                        cards =new WithdrawalCards();
-                        cards.setUpdateTime(System.currentTimeMillis());
-                        cards.setAddTime(System.currentTimeMillis());
-                        cards.setName(data.getString("name"));
-                        cards.setBank(data.getString("bank"));
-                        cards.setCode(data.getString("code"));
-                        cards.setUid(user.getId());
-                        withdrawalCardsDao.saveAndFlush(cards);
-                        object.put("verify",true);
-                    }
+                }else {
+                    WithdrawalCards cards = withdrawalCardsDao.findAllByCodeAndName(data.getString("code"),data.getString("name"));
+                    saveCard(user, data, object, cards);
                 }
+
             }else {
                 object.put("msg","各项都是必填参数，不可或缺!");
             }
@@ -613,6 +608,22 @@ public class OnlineOrderService {
             object.put("msg","版本太低，请先升级版本!");
         }
         return object;
+    }
+
+    private void saveCard(Users user, JSONObject data, JSONObject object, WithdrawalCards cards) {
+        if (cards != null){
+            object.put("msg","卡号已存在,请先联系在线客服解绑!");
+        }else {
+            cards =new WithdrawalCards();
+            cards.setUpdateTime(System.currentTimeMillis());
+            cards.setAddTime(System.currentTimeMillis());
+            cards.setName(data.getString("name"));
+            cards.setBank(data.getString("bank"));
+            cards.setCode(data.getString("code"));
+            cards.setUid(user.getId());
+            withdrawalCardsDao.saveAndFlush(cards);
+            object.put("verify",true);
+        }
     }
 
     public JSONObject cancelWithdrawal(String d, Users user) {
