@@ -42,11 +42,49 @@ public class VideoFeaturedsService {
         JSONArray array = new JSONArray();
         JSONObject object = new JSONObject();
         for (VideoFeatureds featured: featuredsList) {
-            JSONObject data = getFeaturedRecords(featured);
+            JSONObject data = getFeaturedRecordsIndex(featured);
             if (data != null && !data.isEmpty()) array.add(data);
         }
         object.put("list",array);
         return object;
+    }
+
+    private JSONObject getFeaturedRecordsIndex(VideoFeatureds featured) {
+        JSONObject object = new JSONObject();
+        JSONArray array = new JSONArray();
+        object.put("id", featured.getId());
+        object.put("title",featured.getTitle());
+        List<VideoFeaturedRecords> videoFeaturedRecordsList = videoFeaturedRecordsDao.findAllByFid(featured.getId());
+        for (int i = 0; i < 4; i++){
+            if (i < videoFeaturedRecordsList.size()){
+                VideoFeaturedRecords record = videoFeaturedRecordsList.get(i);
+                getRecordVideo(array, record);
+            }
+        }
+        object.put("videos",array);
+        if (array.isEmpty()) return null;
+        return object;
+    }
+
+    private void getRecordVideo(JSONArray array, VideoFeaturedRecords record) {
+        Videos video = videosDao.findAllById(record.getVid());
+        if (video != null){
+            JSONObject data = new JSONObject();
+            data.put("id",video.getId());
+            data.put("title",video.getTitle());
+            data.put("image",videosService.getPicThumbUrl(video.getPicThumb()));
+            if (video.getPlay() > 0){
+                data.put("play",video.getPlay());
+            }else {
+                data.put("play",videoPlayDao.countAllByVid(video.getId()));
+            }
+            if (video.getRecommends() > 0){
+                data.put("recommendations", video.getRecommends());
+            }else {
+                data.put("recommendations", videoRecommendsDao.countAllByVid(video.getId()));
+            }
+            array.add(data);
+        }
     }
 
     private JSONObject getFeaturedRecords(VideoFeatureds featured) {
@@ -56,24 +94,7 @@ public class VideoFeaturedsService {
         object.put("title",featured.getTitle());
         List<VideoFeaturedRecords> videoFeaturedRecordsList = videoFeaturedRecordsDao.findAllByFid(featured.getId());
         for (VideoFeaturedRecords record: videoFeaturedRecordsList) {
-            Videos video = videosDao.findAllById(record.getVid());
-            if (video != null){
-                JSONObject data = new JSONObject();
-                data.put("id",video.getId());
-                data.put("title",video.getTitle());
-                data.put("image",videosService.getPicThumbUrl(video.getPicThumb()));
-                if (video.getPlay() > 0){
-                    data.put("play",video.getPlay());
-                }else {
-                    data.put("play",videoPlayDao.countAllByVid(video.getId()));
-                }
-                if (video.getRecommends() > 0){
-                    data.put("recommendations", video.getRecommends());
-                }else {
-                    data.put("recommendations", videoRecommendsDao.countAllByVid(video.getId()));
-                }
-                array.add(data);
-            }
+            getRecordVideo(array, record);
         }
         object.put("videos",array);
         if (array.isEmpty()) return null;

@@ -348,55 +348,55 @@ public class ApiControl {
 //        }
 //        return data;
 //    }
-    private String getJsonBodyString(HttpServletRequest httpServletRequest){
-        try {
-            httpServletRequest.setCharacterEncoding("UTF-8");
-            StringBuilder buffer = new StringBuilder();
-            BufferedReader reader=null;
-            reader = new BufferedReader(new InputStreamReader(httpServletRequest.getInputStream(), StandardCharsets.UTF_8));
-            String line=null;
-            while((line = reader.readLine())!=null){
-                buffer.append(line);
-            }
-//            System.out.println(buffer);
-            return buffer.toString();
-//            InputStream inputStream = httpServletRequest.getInputStream();
-//            StringBuilder stringBuilder = new StringBuilder();
-//            int temp;
-//            while ((temp = inputStream.read()) != -1)
-//            {
-//                stringBuilder.append((char) temp);
+//    private String getJsonBodyString(HttpServletRequest httpServletRequest){
+//        try {
+//            httpServletRequest.setCharacterEncoding("UTF-8");
+//            StringBuilder buffer = new StringBuilder();
+//            BufferedReader reader=null;
+//            reader = new BufferedReader(new InputStreamReader(httpServletRequest.getInputStream(), StandardCharsets.UTF_8));
+//            String line=null;
+//            while((line = reader.readLine())!=null){
+//                buffer.append(line);
 //            }
-//            return stringBuilder.toString();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-    @PostMapping("/toPayNotify")
-    public String toPayNotify(@ModelAttribute ToPayNotify payNotify){
-        if(onlineOrderService.handlerToPayNotify(payNotify)){
-            return "success";
-        }
-        return "fail";
-    }
-    @RequestMapping("/toPay")
-    public String toPay(@ModelAttribute ToPayNotify payNotify){
-        return "<!DOCTYPE html>\n" +
-                "<html>\n" +
-                "<head>\n" +
-                "    <meta charset=\"utf-8\">\n" +
-                "</head>\n" +
-                "<script type=\"text/javascript\">\n" +
-                "\n" +
-                "    function run(){\n" +
-                "        document.getElementById(\"sp\").click();\n" +
-                "    }\n" +
-                "</script>\n" +
-                "<body οnlοad=\"run()\">\n" +
-                "<a href=\"moviescheme://123\">打开应用<h1 id=\"sp\"></h1></a>\n" +
-                "</body>\n" +
-                "</html>";
-    }
+////            System.out.println(buffer);
+//            return buffer.toString();
+////            InputStream inputStream = httpServletRequest.getInputStream();
+////            StringBuilder stringBuilder = new StringBuilder();
+////            int temp;
+////            while ((temp = inputStream.read()) != -1)
+////            {
+////                stringBuilder.append((char) temp);
+////            }
+////            return stringBuilder.toString();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        return null;
+//    }
+//    @PostMapping("/toPayNotify")
+//    public String toPayNotify(@ModelAttribute ToPayNotify payNotify){
+//        if(onlineOrderService.handlerToPayNotify(payNotify)){
+//            return "success";
+//        }
+//        return "fail";
+//    }
+//    @RequestMapping("/toPay")
+//    public String toPay(@ModelAttribute ToPayNotify payNotify){
+//        return "<!DOCTYPE html>\n" +
+//                "<html>\n" +
+//                "<head>\n" +
+//                "    <meta charset=\"utf-8\">\n" +
+//                "</head>\n" +
+//                "<script type=\"text/javascript\">\n" +
+//                "\n" +
+//                "    function run(){\n" +
+//                "        document.getElementById(\"sp\").click();\n" +
+//                "    }\n" +
+//                "</script>\n" +
+//                "<body οnlοad=\"run()\">\n" +
+//                "<a href=\"moviescheme://123\">打开应用<h1 id=\"sp\"></h1></a>\n" +
+//                "</body>\n" +
+//                "</html>";
+//    }
 
 }
