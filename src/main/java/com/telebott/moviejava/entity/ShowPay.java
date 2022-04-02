@@ -15,6 +15,7 @@ public class ShowPay {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+    private String title;
     private String domain;
     private String mchId;
     private String callbackUrl;

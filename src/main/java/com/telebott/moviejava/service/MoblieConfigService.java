@@ -106,6 +106,7 @@ public class MoblieConfigService {
             JSONObject object = new JSONObject();
             object.put("title",pay.getTitle());
             object.put("iconImage",pay.getIconImage());
+            object.put("type",pay.getType());
             object.put("id",pay.getId());
             array.add(object);
         }
