@@ -14,7 +14,7 @@ import javax.persistence.*;
 public class ShowPayOrders {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private long id;
     private String orderId;
     private String orderNo;
     private String tradeNo;

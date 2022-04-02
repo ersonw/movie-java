@@ -104,24 +104,51 @@ public class OnlineOrderService {
                 CommodityVipOrder commodityVipOrder = commodityVipOrderDao.findAllByOrderId(order_id);
                 if (commodityVipOrder != null){
                     CommodityVip commodityVip = commodityVipDao.findAllById(commodityVipOrder.getCid());
+                    if (commodityVip == null){
+                        object.put("state","error");
+                        object.put("msg", "商品不存在或者已下架!");
+                        return object;
+                    }
                     object = getResult(commodityVip);
                     object.put("amount",commodityVipOrder.getAmount());
+                }else{
+                    object.put("state","error");
+                    object.put("msg", "订单不存在或者已过期");
+                    return object;
                 }
                 break;
             case PAY_ONLINE_GOLD:
                 CommodityGoldOrder commodityGoldOrder = commodityGoldOrderDao.findAllByOrderId(order_id);
                 if (commodityGoldOrder != null){
                     CommodityGold commodityGold = commodityGoldDao.findAllById(commodityGoldOrder.getCid());
+                    if (commodityGold == null){
+                        object.put("state","error");
+                        object.put("msg", "商品不存在或者已下架!");
+                        return object;
+                    }
                     object = getResult(commodityGold);
                     object.put("amount", commodityGoldOrder.getAmount());
+                }else{
+                    object.put("state","error");
+                    object.put("msg", "订单不存在或者已过期");
+                    return object;
                 }
                 break;
             case PAY_ONLINE_DIAMOND:
                 CommodityDiamondOrder commodityDiamondOrder = commodityDiamondOrderDao.findAllByOrderId(order_id);
                 if (commodityDiamondOrder != null){
                     CommodityDiamond commodityDiamond = commodityDiamondDao.findAllById(commodityDiamondOrder.getCid());
+                    if (commodityDiamond == null){
+                        object.put("state","error");
+                        object.put("msg", "商品不存在或者已下架!");
+                        return object;
+                    }
                     object = getResult(commodityDiamond);
                     object.put("amount", commodityDiamondOrder.getAmount());
+                }else{
+                    object.put("state","error");
+                    object.put("msg", "订单不存在或者已过期");
+                    return object;
                 }
                 break;
             default:
@@ -224,6 +251,7 @@ public class OnlineOrderService {
             showPayOrders.setAddTime(System.currentTimeMillis());
             String url = getPostOrder(showPayOrders, onlinePay.getType());
             if (url != null){
+//                System.out.println(url);
                 object.put("url",url);
                 object.put("state","ok");
                 onlineOrderDao.saveAndFlush(order);
@@ -371,15 +399,15 @@ public class OnlineOrderService {
     private JSONArray _getList(List<OnlineOrder> orders){
         JSONArray array = new JSONArray();
         for (OnlineOrder order: orders) {
-            JSONObject object = new JSONObject();
-            object.put("id",order.getId());
-            object.put("type" ,order.getType());
-            object.put("amount",order.getAmount());
-            object.put("ctime",order.getCtime());
-            object.put("utime",order.getUtime());
-            object.put("status",order.getStatus());
-            object.put("orderId",order.getOrderId());
-            object.put("orderNo",order.getOrderNo());
+            JSONObject object = JSONObject.parseObject(JSONObject.toJSONString(order));
+//            object.put("id",order.getId());
+//            object.put("type" ,order.getType());
+//            object.put("amount",order.getAmount());
+//            object.put("ctime",order.getCtime());
+//            object.put("utime",order.getUtime());
+//            object.put("status",order.getStatus());
+//            object.put("orderId",order.getOrderId());
+//            object.put("orderNo",order.getOrderNo());
             OnlinePay onlinePay = onlinePayDao.findAllById(order.getPid());
             if (onlinePay != null){
                 object.put("onlinePay",onlinePay);
@@ -393,6 +421,7 @@ public class OnlineOrderService {
         if (StringUtils.isNotEmpty(pages)){
             page = (Integer.parseInt(pages) - 1);
         }
+        if (page < 0) page = 0;
         Sort sort = Sort.by(Sort.Direction.DESC, "id");
         Pageable pageable = PageRequest.of(page, 50, sort);
         Page<OnlineOrder> onlineOrders = onlineOrderDao.findAllByUid(user.getId(),pageable);
@@ -400,6 +429,7 @@ public class OnlineOrderService {
         object.put("list",_getList(onlineOrders.getContent()));
         object.put("total",onlineOrders.getTotalPages());
         data.setData(object);
+//        System.out.println(data.getData());
         return data;
     }
 

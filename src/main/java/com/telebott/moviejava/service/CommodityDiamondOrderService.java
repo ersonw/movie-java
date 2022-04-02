@@ -78,7 +78,7 @@ public class CommodityDiamondOrderService {
     public JSONObject _cancelOrder(Users user, String id) {
         JSONObject object = new JSONObject();
         CommodityDiamondOrder order = commodityDiamondOrderDao.findAllByIdAndUid(Long.parseLong(id),user.getId());
-        if (order != null){
+        if (order != null && order.getStatus() == 0){
             order.setStatus(-1);
             commodityDiamondOrderDao.saveAndFlush(order);
         }

@@ -14,7 +14,7 @@ import javax.persistence.*;
 public class ShowPay {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private long id;
     private String title;
     private String domain;
     private String mchId;

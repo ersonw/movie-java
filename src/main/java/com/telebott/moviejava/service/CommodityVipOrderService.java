@@ -140,7 +140,7 @@ public class CommodityVipOrderService {
     public JSONObject _cancelOrder(Users user, String id) {
         JSONObject object = new JSONObject();
         CommodityVipOrder order = commodityVipOrderDao.findAllByIdAndUid(Long.parseLong(id),user.getId());
-        if (order != null){
+        if (order != null && order.getStatus() == 0){
             order.setStatus(-1);
             commodityVipOrderDao.saveAndFlush(order);
         }

@@ -49,7 +49,7 @@ public class CommodityGoldOrderService {
     public JSONObject _cancelOrder(Users user, String id) {
         JSONObject object = new JSONObject();
         CommodityGoldOrder order = commodityGoldOrderDao.findAllByIdAndUid(Long.parseLong(id),user.getId());
-        if (order != null){
+        if (order != null && order.getStatus() == 0){
             order.setStatus(-1);
             commodityGoldOrderDao.saveAndFlush(order);
         }
