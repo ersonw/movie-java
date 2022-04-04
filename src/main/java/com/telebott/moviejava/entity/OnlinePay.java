@@ -20,7 +20,7 @@ public class OnlinePay {
     private String title;
     private String iconImage;
     private int status;
-    private int ctime;
-    private int utime;
+    private long ctime;
+    private long utime;
     private long type;
 }

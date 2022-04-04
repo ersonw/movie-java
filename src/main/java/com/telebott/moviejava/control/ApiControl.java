@@ -1,6 +1,7 @@
 package com.telebott.moviejava.control;
 
 import com.alibaba.fastjson.JSONObject;
+import com.telebott.moviejava.dao.AuthDao;
 import com.telebott.moviejava.dao.VideoActorsDao;
 import com.telebott.moviejava.entity.*;
 import com.telebott.moviejava.service.*;
@@ -40,6 +41,8 @@ public class ApiControl {
     private VideoFeaturedsService videoFeaturedsService;
     @Autowired
     private OnlineOrderService onlineOrderService;
+    @Autowired
+    private AuthDao authDao;
     @GetMapping("/test")
     public ResultData test(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
@@ -188,6 +191,7 @@ public class ApiControl {
                     if (user != null &&  userNew.getId() != user.getId()){
                         user.setIdentifier("");
                         userService._saveAndPush(user);
+                        authDao.removeUser(user);
                     }
                     userNew.setIdentifier(object.get("identifier").toString());
                     userService._save(userNew);

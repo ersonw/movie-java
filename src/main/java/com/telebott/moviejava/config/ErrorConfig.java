@@ -16,5 +16,6 @@ public class ErrorConfig implements ErrorPageRegistrar {
         ErrorPage error405Page = new ErrorPage(HttpStatus.METHOD_NOT_ALLOWED, "/index.html");
         ErrorPage error500Page = new ErrorPage(HttpStatus.INTERNAL_SERVER_ERROR, "/error500Page");
         registry.addErrorPages(error400Page,error401Page,error404Page,error405Page,error500Page);
+//        registry.addErrorPages(error400Page,error401Page,error500Page);
     }
 }
