@@ -345,6 +345,10 @@ public class VideosService {
                 JSONObject info = getplayerObject(videos, user);
                 JSONObject object = new JSONObject();
                 object.put("verify", true);
+                info.put("download", true);
+                info.put("less", 0);
+                info.put("du", 0);
+                info.put("member", false);
                 VideoFavorites favorites = videoFavoritesDao.findAllByUidAndVid(user.getId(), videos.getId());
                 if (favorites != null) {
                     info.put("favorite", true);
@@ -352,15 +356,32 @@ public class VideosService {
                 if (videos.getDiamond() > 0) {
                     VideoOrders orders = videoOrdersDao.findAllByUidAndVid(user.getId(), videos.getId());
                     if (orders == null) {
+                        if (user.getExpireds() > System.currentTimeMillis()) {
+                            String less = systemConfigService.getValueByKey("VipLess");
+                            if (StringUtils.isNotEmpty(less)){
+//                            Double l = (videos.getDiamond() * (Long.parseLong(less) / 100d));
+                                Double l = (videos.getDiamond() * ((100 - Long.parseLong(less)) / 100d));
+                                System.out.println(l);
+                                info.put("less", l.longValue());
+                            }
+                        }
                         info.put("playUrl", "");
                         info.put("downloadUrl", "");
                         object.put("verify", false);
+                        info.put("download", false);
                     }
                 } else {
                     if (user.getExpireds() < System.currentTimeMillis()) {
-                        info.put("playUrl", "");
+//                        info.put("playUrl", "");
+                        String du = systemConfigService.getValueByKey("VideoDu");
+                        if (StringUtils.isNotEmpty(du)){
+                            info.put("du", Long.parseLong(du));
+                        }
                         info.put("downloadUrl", "");
+                        info.put("download", false);
                         object.put("verify", false);
+                    }else{
+                        info.put("member", true);
                     }
                 }
                 object.put("info", info);
@@ -525,6 +546,14 @@ public class VideosService {
                             records.setUid(user.getId());
                             records.setReason("购买了付费影片《" + videos.getTitle() + "》");
                             records.setDiamond(-(videos.getDiamond()));
+                            if (user.getExpireds() > System.currentTimeMillis()) {
+                                String less = systemConfigService.getValueByKey("VipLess");
+                                System.out.println(less);
+                                if (StringUtils.isNotEmpty(less)){
+                                    Double l = (videos.getDiamond() * (Long.parseLong(less) / 100d));
+                                    records.setDiamond(-(l.longValue()));
+                                }
+                            }
                             records.setStatus(1);
                             diamondRecordsDao.saveAndFlush(records);
                             orders = new VideoOrders();
