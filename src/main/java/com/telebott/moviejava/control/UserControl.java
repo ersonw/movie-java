@@ -343,26 +343,33 @@ public class UserControl {
 //            System.out.println(users.getIdentifier());
         }else if (StringUtils.isNotEmpty(requestData.getIdentifier())){
             users = userService.loginByIdentifier(requestData.getIdentifier());
+            MD5Util md5Util = new MD5Util();
+            String uid = md5Util.getMD5(requestData.getIdentifier());
             if (users == null){
                 users = authDao.findUserByIdentifier(requestData.getIdentifier());
                 if (users == null){
-                    Random r = new Random();
-                    MD5Util md5Util = new MD5Util();
-                    StringBuilder nickname = new StringBuilder("游客_");
-                    for (int i = 1; i < 9; i++) {
-                        int num = r.nextInt(9); // 生成[0,9]区间的整数
-                        nickname.append(num);
-                    }
-                    users = new Users();
-                    users.setIdentifier(requestData.getIdentifier());
-                    users.setNickname(nickname.toString());
-                    users.setUid(md5Util.getMD5(requestData.getIdentifier()));
-                    users.setCtime(System.currentTimeMillis() );
-                    users.setStatus(1);
+                    users = userService.getUserByUid(uid);
+                    if (users == null){
+                        Random r = new Random();
+                        StringBuilder nickname = new StringBuilder("游客_");
+                        for (int i = 1; i < 9; i++) {
+                            int num = r.nextInt(9); // 生成[0,9]区间的整数
+                            nickname.append(num);
+                        }
+                        users = new Users();
+                        users.setIdentifier(requestData.getIdentifier());
+                        users.setNickname(nickname.toString());
+                        users.setUid(uid);
+                        users.setCtime(System.currentTimeMillis() );
+                        users.setStatus(1);
 //                    users.setAvatar("http://htm-download.oss-cn-hongkong.aliyuncs.com/default_head.gif");
-                    userService._save(users);
-                    users.setToken(getToken());
-                    authDao.pushUser(users);
+                        userService._save(users);
+                        users.setToken(getToken());
+                        authDao.pushUser(users);
+                    }else{
+                        users.setToken(getToken());
+                        authDao.pushUser(users);
+                    }
                 }
             }else {
                 users.setToken(getToken());

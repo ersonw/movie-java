@@ -356,6 +356,10 @@ public class VideosService {
                 if (videos.getDiamond() > 0) {
                     VideoOrders orders = videoOrdersDao.findAllByUidAndVid(user.getId(), videos.getId());
                     if (orders == null) {
+                        String du = systemConfigService.getValueByKey("VideoDu");
+                        if (StringUtils.isNotEmpty(du)){
+                            info.put("du", Long.parseLong(du));
+                        }
                         if (user.getExpireds() > System.currentTimeMillis()) {
                             String less = systemConfigService.getValueByKey("VipLess");
                             if (StringUtils.isNotEmpty(less)){
@@ -365,7 +369,7 @@ public class VideosService {
                                 info.put("less", l.longValue());
                             }
                         }
-                        info.put("playUrl", "");
+//                        info.put("playUrl", "");
                         info.put("downloadUrl", "");
                         object.put("verify", false);
                         info.put("download", false);
@@ -457,15 +461,25 @@ public class VideosService {
         object.put("diamond", videos.getDiamond());
         object.put("downloadUrl", getDownloadDomainUrl(videos.getVodDownUrl()));
         object.put("playUrl", getPlayUrl(videos.getVodPlayUrl()));
+        long cardinality = 0;
+        String cardinalityStr = systemConfigService.getValueByKey("cardinalityPlay");
+        if (StringUtils.isNotEmpty(cardinalityStr)){
+            cardinality = Long.parseLong(cardinalityStr);
+        }
         if (videos.getPlay() > 0) {
-            object.put("play", videos.getPlay());
+            object.put("play", videos.getPlay()+cardinality);
         } else {
-            object.put("play", videoPlayDao.countAllByVid(videos.getId()));
+            object.put("play", videoPlayDao.countAllByVid(videos.getId())+cardinality);
+        }
+        cardinality = 0;
+        cardinalityStr = systemConfigService.getValueByKey("cardinalityRecommend");
+        if (StringUtils.isNotEmpty(cardinalityStr)){
+            cardinality = Long.parseLong(cardinalityStr);
         }
         if (videos.getRecommends() > 0) {
-            object.put("recommendations", videos.getRecommends());
+            object.put("recommendations", videos.getRecommends()+cardinality);
         } else {
-            object.put("recommendations", videoRecommendsDao.countAllByVid(videos.getId()));
+            object.put("recommendations", videoRecommendsDao.countAllByVid(videos.getId())+cardinality);
         }
         return object;
     }

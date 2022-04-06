@@ -163,4 +163,7 @@ public class UserService {
         return object;
     }
 
+    public Users getUserByUid(String uid) {
+        return usersDao.findAllByUid(uid);
+    }
 }
