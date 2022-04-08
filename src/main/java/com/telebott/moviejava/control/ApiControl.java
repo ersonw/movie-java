@@ -5,10 +5,7 @@ import com.telebott.moviejava.dao.AuthDao;
 import com.telebott.moviejava.dao.VideoActorsDao;
 import com.telebott.moviejava.entity.*;
 import com.telebott.moviejava.service.*;
-import com.telebott.moviejava.util.AliOssUtil;
-import com.telebott.moviejava.util.MD5Util;
-import com.telebott.moviejava.util.MobileRegularExp;
-import com.telebott.moviejava.util.SmsBaoUtil;
+import com.telebott.moviejava.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -46,10 +43,7 @@ public class ApiControl {
     @GetMapping("/test")
     public ResultData test(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
-        SmsCode smsCode = new SmsCode();
-        smsCode.setPhone("+8618172195974");
-        smsRecordsService._sendSmsCode(smsCode);
-        data.setMessage(smsCode.getId());
+        WaLiUtil.test();
         return data;
     }
     @GetMapping("/carousels")

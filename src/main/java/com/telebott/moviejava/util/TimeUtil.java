@@ -112,6 +112,6 @@ public class TimeUtil {
     }
     public static String _getOrderNo(){
         LocalDateTime ld = LocalDateTime.now();
-        return format(ld,"yyyyMMddHHmmss");
+        return format(ld,"yyyyMMddHHmmssSSS");
     }
 }
