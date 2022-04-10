@@ -29,6 +29,7 @@ public class Users {
     private long diamond;
     private int status;
     private String phone;
+    private String email;
     private String invite;
     private String avatar;
     private String uid;

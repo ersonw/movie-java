@@ -37,9 +37,11 @@ public class ApiControl {
     @Autowired
     private VideoFeaturedsService videoFeaturedsService;
     @Autowired
-    private OnlineOrderService onlineOrderService;
+    private WaLiService waLiService;
     @Autowired
     private AuthDao authDao;
+    @Autowired
+    private OnlinePayService onlinePayService;
     @GetMapping("/test")
     public ResultData test(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
@@ -50,6 +52,12 @@ public class ApiControl {
     public ResultData carousels(){
         ResultData data = new ResultData();
         data.setData(systemConfigService.getCarousel());
+        return data;
+    }
+    @GetMapping("/getGames")
+    public ResultData getGames(){
+        ResultData data = new ResultData();
+        data.setData(waLiService.getGames());
         return data;
     }
     @GetMapping("/featureds")
@@ -98,6 +106,12 @@ public class ApiControl {
     public ResultData featuredLists(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
         data.setData(videoFeaturedsService.getFeaturedLists(requestData.getData()));
+        return data;
+    }
+    @GetMapping("/vipVideoLists")
+    public ResultData vipVideoLists(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(videosService.vipVideoLists(requestData.getData()));
         return data;
     }
     @GetMapping("/PopularList")
@@ -303,6 +317,12 @@ public class ApiControl {
     public ResultData getConfig(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
         data.setData(configService.getConfig());
+        return data;
+    }
+    @GetMapping("/getOnlinePays")
+    public ResultData getOnlinePays(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(onlinePayService.getOnlinePays());
         return data;
     }
     @GetMapping("/checkVersion")

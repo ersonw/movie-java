@@ -1,7 +1,6 @@
 package com.telebott.moviejava.util;
 
 import com.alibaba.fastjson.JSONObject;
-import com.telebott.moviejava.data.wBalance;
 import com.telebott.moviejava.data.wData;
 import com.telebott.moviejava.service.WaLiConfigService;
 import org.apache.commons.lang3.StringUtils;
@@ -54,6 +53,36 @@ public class WaLiUtil {
     static String apiUser;
     static String encryptKey;
     static String signKey;
+
+    public static boolean tranfer(long id, long balance) {
+        int t = (int) (System.currentTimeMillis() / 1000);
+        Map<String, String> map = new HashMap<>();
+        map.put("a",apiUser);
+        map.put("t", String.valueOf(t));
+        String p = "uid=23porn_"+id+"&credit="+(balance / 100d)+"&orderId="+agentId+"_"+TimeUtil._getOrderNo()+"_23porn_"+ id;
+        p = encrypt(encryptKey,p);
+        String sign = getSign(signKey,p,t);
+        map.put("p",p);
+        map.put("k",sign);
+        String result = sendGet(apiUrl+"/"+TRANSFER_V2,map);
+//        System.out.println(result);
+        if (result != null && result.startsWith("{")){
+            wData data = JSONObject.toJavaObject(JSONObject.parseObject(result),wData.class);
+            if (data != null) {
+                if (data.getCode() == 0){
+                    if (data.getObject().getInteger("status") == 1){
+                        return true;
+                    }else{
+                        System.out.println("UID:"+id+" 划转失败! 金额"+ (balance / 100d));
+                    }
+                }else{
+                    handlerError(data.getMsg());
+                }
+            }
+        }
+        return false;
+    }
+
     @PostConstruct
     public void init(){
         self = this;
@@ -227,13 +256,13 @@ public class WaLiUtil {
         }
     }
     public static void test(){
-        System.out.println(getBalance(1));
+        System.out.println(enterGame(2,1));
 //        int t = (int) (System.currentTimeMillis() / 1000);
 //        Map<String, String> map = new HashMap<>();
 //        map.put("a",apiUser);
 //        map.put("t", String.valueOf(t));
-////        String ping = "uid=1";
-//        String ping = "uid=1&credit=-100&orderId="+agentId+"_"+TimeUtil._getOrderNo()+"_1";
+////        String ping = "uid=23porn_1";
+//        String ping = "uid=23porn_1&credit=-100&orderId="+agentId+"_"+TimeUtil._getOrderNo()+"_1";
 //        String p = encrypt(encryptKey,ping);
 //        String sign = getSign(signKey,p,t);
 //        map.put("p",p);
@@ -246,16 +275,20 @@ public class WaLiUtil {
         Map<String, String> map = new HashMap<>();
         map.put("a",apiUser);
         map.put("t", String.valueOf(t));
-        String p = "uid="+uid;
+        String p = "uid=23porn_"+uid;
         p = encrypt(encryptKey,p);
         String k = getSign(signKey,p,t);
         map.put("p",p);
         map.put("k",k);
         String result = sendGet(apiUrl+"/"+GET_BALANCE,map);
+//        System.out.println(result);
         if (result != null && result.startsWith("{")){
             wData data = JSONObject.toJavaObject(JSONObject.parseObject(result),wData.class);
             if (data != null) {
                 if (data.getCode() == 0){
+                    if (data.getBalance().getStatus() == -1){
+                        register(uid);
+                    }
                     return data.getBalance().getBalance();
                 }else{
                     handlerError(data.getMsg());
@@ -269,7 +302,7 @@ public class WaLiUtil {
         Map<String, String> map = new HashMap<>();
         map.put("a",apiUser);
         map.put("t", String.valueOf(t));
-        String p = "uid="+uid;
+        String p = "uid=23porn_"+uid;
         p = encrypt(encryptKey,p);
         String k = getSign(signKey,p,t);
         map.put("p",p);
@@ -282,7 +315,7 @@ public class WaLiUtil {
                     if (data.getObject().getInteger("status") == 1){
                         return true;
                     }else{
-                        System.out.println("UID:"+uid+" ⽤户注册");
+                        System.out.println("UID:"+uid+" ⽤户注册失败!");
                     }
                 }else{
                     handlerError(data.getMsg());
@@ -290,6 +323,40 @@ public class WaLiUtil {
             }
         }
         return false;
+    }
+    public static JSONObject enterGame(long uid, int gid){
+        int t = (int) (System.currentTimeMillis() / 1000);
+        Map<String, String> map = new HashMap<>();
+        map.put("a",apiUser);
+        map.put("t", String.valueOf(t));
+        String p = "uid=23porn_"+uid+"&game="+gid;
+        p = encrypt(encryptKey,p);
+        String k = getSign(signKey,p,t);
+        map.put("p",p);
+        map.put("k",k);
+        String result = sendGet(apiUrl+"/"+ENTER_GAME,map);
+//        System.out.println(result);
+        if (result != null && result.startsWith("{")){
+            wData data = JSONObject.toJavaObject(JSONObject.parseObject(result),wData.class);
+            if (data != null) {
+                if (data.getCode() == 0){
+                    return data.getObject();
+                }else{
+                    handlerEnterGameError(data.getMsg());
+                }
+            }
+        }
+        return null;
+    }
+    private static void handlerEnterGameError(String msg) {
+        switch (msg){
+            case "game_requests":
+                System.out.println("game 参数为空，如果不想选择进⼊游戏，game的key和value都不需要传");
+                break;
+            case "orderId_requests":
+                System.out.println("orderId 参数为空，如果不想进⾏划拨，orderId的key和value都不需要");
+                break;
+        }
     }
 }
 

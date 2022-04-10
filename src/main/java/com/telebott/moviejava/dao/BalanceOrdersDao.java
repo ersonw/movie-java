@@ -9,7 +9,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface BalanceOrdersDao extends JpaRepository<BalanceOrders, Integer>, CrudRepository<BalanceOrders, Integer> {
+public interface BalanceOrdersDao extends JpaRepository<BalanceOrders, Long>, CrudRepository<BalanceOrders, Long> {
     BalanceOrders findAllById(long id);
     Page<BalanceOrders> findAllByUidAndStatus(long uid, int status, Pageable pageable);
     Page<BalanceOrders> findAllByUid(long uid,Pageable pageable);

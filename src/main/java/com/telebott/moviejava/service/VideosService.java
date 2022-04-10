@@ -749,6 +749,7 @@ public class VideosService {
         JSONObject object = new JSONObject();
         if (data.get("page") != null) page = Integer.parseInt(data.get("page").toString());
         page--;
+        if (page < 0) page = 0;
         Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
         if (data.get("type") == null || data.get("type").toString().equals("today")) {
             Page<VideoRecommends> videoRecommendsPage = videoRecommendsDao.getAllByDateTime(TimeUtil.getTodayZero(), pageable);
@@ -902,46 +903,50 @@ public class VideosService {
         if (page < 0) {
             page = 0;
         }
-        VideoCategory category = videoCategoryDao.findAllById(classs);
-        SearchTags tags = searchTagsDao.findAllById(tag);
-        List<Videos> videosList = new ArrayList<>();
-        if (type == 2) {
-            long total = 1;
-            if (category == null && tags == null) {
-                videosList = videosDao.getAllByClass(page, 20);
-                total = videosDao.countAllByStatus(1);
-            } else if (category == null) {
-                videosList = videosDao.getAllByClass("%" + tags.getContext() + "%", page, 20);
-                total = videosDao.countAllByTitleLikeAndStatus("%" + tags.getContext() + "%", 1);
-            } else if (tags == null) {
-                videosList = videosDao.getAllByClass(category.getId(), page, 20);
-                total = videosDao.countAllByVodClassAndStatus(category.getId(), 1);
-            } else {
-                videosList = videosDao.getAllByClass(category.getId(), "%" + tags.getContext() + "%", page, 20);
-                total = videosDao.countAllByVodClassAndTitleLikeAndStatus(category.getId(), "%" + tags.getContext() + "%", 1);
+        if (page == 0 && classs == 0 && tag == 0){
+            object = getRandom();
+        }else{
+            VideoCategory category = videoCategoryDao.findAllById(classs);
+            SearchTags tags = searchTagsDao.findAllById(tag);
+            List<Videos> videosList = new ArrayList<>();
+            if (type == 2) {
+                long total = 1;
+                if (category == null && tags == null) {
+                    videosList = videosDao.getAllByClass(page, 20);
+                    total = videosDao.countAllByStatus(1);
+                } else if (category == null) {
+                    videosList = videosDao.getAllByClass("%" + tags.getContext() + "%", page, 20);
+                    total = videosDao.countAllByTitleLikeAndStatus("%" + tags.getContext() + "%", 1);
+                } else if (tags == null) {
+                    videosList = videosDao.getAllByClass(category.getId(), page, 20);
+                    total = videosDao.countAllByVodClassAndStatus(category.getId(), 1);
+                } else {
+                    videosList = videosDao.getAllByClass(category.getId(), "%" + tags.getContext() + "%", page, 20);
+                    total = videosDao.countAllByVodClassAndTitleLikeAndStatus(category.getId(), "%" + tags.getContext() + "%", 1);
+                }
+                if (total > 20) {
+                    total = total / 20;
+                } else {
+                    total = 1;
+                }
+                object.put("total", total);
+            }else {
+                Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
+                Page<Videos> videosPage;
+                if (category == null && tags == null) {
+                    videosPage = videosDao.findAllByStatus(1, pageable);
+                } else if (category == null) {
+                    videosPage = videosDao.findAllByTitleLikeAndStatus("%" + tags.getContext() + "%", 1, pageable);
+                } else if (tags == null) {
+                    videosPage = videosDao.findAllByVodClassAndStatus(category.getId(), 1, pageable);
+                } else {
+                    videosPage = videosDao.findAllByVodClassAndTitleLikeAndStatus(category.getId(), "%" + tags.getContext() + "%", 1, pageable);
+                }
+                videosList = videosPage.getContent();
+                object.put("total", videosPage.getTotalPages());
             }
-            if (total > 20) {
-                total = total / 20;
-            } else {
-                total = 1;
-            }
-            object.put("total", total);
-        } else {
-            Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
-            Page<Videos> videosPage;
-            if (category == null && tags == null) {
-                videosPage = videosDao.findAllByStatus(1, pageable);
-            } else if (category == null) {
-                videosPage = videosDao.findAllByTitleLikeAndStatus("%" + tags.getContext() + "%", 1, pageable);
-            } else if (tags == null) {
-                videosPage = videosDao.findAllByVodClassAndStatus(category.getId(), 1, pageable);
-            } else {
-                videosPage = videosDao.findAllByVodClassAndTitleLikeAndStatus(category.getId(), "%" + tags.getContext() + "%", 1, pageable);
-            }
-            videosList = videosPage.getContent();
-            object.put("total", videosPage.getTotalPages());
+            object.put("list", getVideoList(videosList));
         }
-        object.put("list", getVideoList(videosList));
         return object;
     }
 
@@ -1397,6 +1402,64 @@ public class VideosService {
         }
         object.put("list",array);
 //        System.out.println(TimeUtil.getTodayZero());
+        return object;
+    }
+
+    public JSONObject vipVideoLists(String d) {
+        JSONObject data = JSONObject.parseObject(d);
+        JSONObject object = new JSONObject();
+        JSONArray array = new JSONArray();
+        int page = 1;
+        int type = 0;
+        long tagId = 0;
+        if (data != null){
+            if (data.get("page") != null) page = Integer.parseInt(data.get("page").toString());
+            if (data.get("type") != null) type = Integer.parseInt(data.get("type").toString());
+            if (data.get("tag") != null) tagId = Long.parseLong(data.get("tag").toString());
+            if (page < 1) page=1;
+            page--;
+            List<Videos> videosList = new ArrayList<>();
+            if (type == 0){
+                Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
+                Page<Videos> videosPage;
+                if (tagId > 0){
+                    VideoCategory category = videoCategoryDao.findAllById(tagId);
+                    if (category != null){
+                        videosPage = videosDao.findAllByVodClassAndStatus(category.getId(),1, pageable);
+                    }else {
+                        videosPage = videosDao.findAll(pageable);
+                    }
+                }else {
+                    videosPage = videosDao.findAll(pageable);
+                }
+                object.put("total",videosPage.getTotalPages());
+                videosList = videosPage.getContent();
+            }else {
+                long total = 20;
+                if (tagId > 0){
+                    VideoCategory category = videoCategoryDao.findAllById(tagId);
+                    if (category != null){
+                        total = videosDao.countAllByVodClassAndStatus(category.getId(),1);
+                        if (page < (total / 20)){
+                            videosList = videosDao.getAllByClass(category.getId(),page,20);
+                        }
+                    }else {
+                        total = videosDao.countAllByStatus(1);
+                        if (page < (total / 20)){
+                            videosList = videosDao.getAllByClass(page,20);
+                        }
+                    }
+                }else {
+                    total = videosDao.countAllByStatus(1);
+                    if (page < (total / 20)){
+                        videosList = videosDao.getAllByClass(page,20);
+                    }
+                }
+                object.put("total", total / 20);
+            }
+            array = getVideoList(videosList);
+        }
+        object.put("list",array);
         return object;
     }
 }

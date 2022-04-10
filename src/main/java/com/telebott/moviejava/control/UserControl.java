@@ -116,6 +116,20 @@ public class UserControl {
         data.setData(commodityDiamondOrderService._getOrder(user,requestData.getData()));
         return data;
     }
+    @GetMapping("/turnDiamondToGame")
+    public ResultData turnDiamondToGame(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        Users user = requestData.getUser();
+        data.setData(userService.turnDiamondToGame(user,requestData.getData()));
+        return data;
+    }
+    @GetMapping("/turnGoldToGame")
+    public ResultData turnGoldToGame(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        Users user = requestData.getUser();
+        data.setData(userService.turnGoldToGame(user,requestData.getData()));
+        return data;
+    }
     @GetMapping("/getDiamondRecords")
     public ResultData getDiamondRecords(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
@@ -451,6 +465,18 @@ public class UserControl {
     public ResultData shareRecords(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
         data.setData(videosService.shareRecords(requestData.getData(),requestData.getUser()));
+        return data;
+    }
+    @GetMapping("/getGameBalance")
+    public ResultData getGameBalance(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(userService.getGameBalance(requestData.getUser()));
+        return data;
+    }
+    @GetMapping("/enterGame")
+    public ResultData enterGame(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(userService.enterGame(requestData.getData(),requestData.getUser()));
         return data;
     }
     @PostMapping("/joinVideo")

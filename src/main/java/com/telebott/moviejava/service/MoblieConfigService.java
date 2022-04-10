@@ -48,6 +48,9 @@ public class MoblieConfigService {
             object.put("domain", systemConfigService.getValueByKey("domain"));
             object.put("wsDomain", systemConfigService.getValueByKey("wsDomain"));
             object.put("groupLink", systemConfigService.getValueByKey("groupLink"));
+            object.put("kefuUrl", systemConfigService.getValueByKey("kefuUrl"));
+            object.put("kefuGameUrl", systemConfigService.getValueByKey("kefuGameUrl"));
+            object.put("activityUrl", systemConfigService.getValueByKey("activityUrl"));
             object.put("ossConfig", jsonObject);
             object.put("vipBuys",_getVipBuys());
             object.put("onlinePays",_getOnlinePays());

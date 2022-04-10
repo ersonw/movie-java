@@ -6,6 +6,7 @@ import com.telebott.moviejava.dao.*;
 import com.telebott.moviejava.entity.*;
 import com.telebott.moviejava.util.ShowPayUtil;
 import com.telebott.moviejava.util.TimeUtil;
+import com.telebott.moviejava.util.WaLiUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -30,7 +31,10 @@ public class OnlineOrderService {
     private static final int WITHDRAWAL_DIAMOND = 100;
     private static final int WITHDRAWAL_BALANCE = 101;
     private static final int WITHDRAWAL_GOLD = 102;
+    private static final int WITHDRAWAL_GAME = 103;
     private static int PAY_MCH_INDEX = 0;
+    @Autowired
+    private GameBalanceOrdersDao gameBalanceOrdersDao;
     @Autowired
     private OnlineOrderDao onlineOrderDao;
     @Autowired
@@ -514,6 +518,34 @@ public class OnlineOrderService {
                             balanceOrdersDao.saveAndFlush(balanceOrders);
                         }
                         break;
+                    case WITHDRAWAL_GAME:
+                        balance = gameBalanceOrdersDao.countAllByBalance(user.getId());
+                        if (amount > balance){
+                            object.put("msg","提现金额不得大于剩余余额！");
+                        }else if(((amount * 100) * (proportionBalance / 100d)) > (MaxWithdrawal)){
+                            object.put("msg","单笔提现金额不得大于最大提现额度 ￥"+String.format("%.2f",MaxWithdrawal / 100d)+"！");
+                        }else if(((amount * 100) * (proportionBalance / 100d)) < (MiniWithdrawal)){
+                            object.put("msg","单笔提现金额不得少于最小提现额度 ￥"+String.format("%.2f",MiniWithdrawal / 100d)+"！");
+                        }else {
+                            object.put("verify",true);
+                            records.setAmount(new Double((amount * 100) * (proportionBalance / 100d)).longValue());
+                            records.setReason("游戏余额提现");
+                            GameBalanceOrders balanceOrders = new GameBalanceOrders();
+                            balanceOrders.setReason(records.getReason());
+                            balanceOrders.setStatus(1);
+                            balanceOrders.setAmount(-(amount * 100));
+                            balanceOrders.setAddTime(System.currentTimeMillis());
+                            balanceOrders.setUpdateTime(System.currentTimeMillis());
+                            balanceOrders.setUid(user.getId());
+                            if (WaLiUtil.tranfer(user.getId(),balanceOrders.getAmount())){
+                                withdrawalRecordsDao.saveAndFlush(records);
+                                gameBalanceOrdersDao.saveAndFlush(balanceOrders);
+                            }else{
+                                object.put("verify",false);
+                                object.put("msg","提现失败，详情请联系在线客服!");
+                            }
+                        }
+                        break;
                     case WITHDRAWAL_DIAMOND:
                         balance = diamondRecordsDao.countAllByBalance(user.getId());
                         if (amount > balance){
@@ -634,21 +666,45 @@ public class OnlineOrderService {
             WithdrawalRecords records = withdrawalRecordsDao.findAllByIdAndUid(Long.parseLong(data.getString("id")),user.getId());
             if (records != null && records.getStatus() == 0){
                 object.put("verify",true);
-                records.setStatus(-2);
-                withdrawalRecordsDao.saveAndFlush(records);
                 BalanceOrders orders = new BalanceOrders();
                 orders.setUid(user.getId());
                 orders.setAddTime(System.currentTimeMillis());
                 orders.setUpdateTime(System.currentTimeMillis());
                 orders.setAmount(records.getAmount());
-                if (records.getReason().contains("余额提现")){
+                if (records.getReason().equals("余额提现")){
                     int proportionBalance = Integer.parseInt(systemConfigService.getValueByKey("proportionBalance"));
 //                    long amount = new Double(records.getAmount() * (1 - (proportionBalance / 100d))).longValue();
                     orders.setAmount(new Double(records.getAmount() / (proportionBalance / 100d)).longValue());
+                    orders.setStatus(1);
+                    orders.setReason("提现订单退回: "+records.getOrderNo());
+                    balanceOrdersDao.saveAndFlush(orders);
+                    records.setStatus(-2);
+                    withdrawalRecordsDao.saveAndFlush(records);
+                }else if (records.getReason().equals("游戏余额提现")){
+                   int proportionBalance = Integer.parseInt(systemConfigService.getValueByKey("proportionBalance"));
+                    GameBalanceOrders gameBalanceOrders = new GameBalanceOrders();
+                    gameBalanceOrders.setReason("提现订单退回: "+records.getOrderNo());
+                    gameBalanceOrders.setAmount(new Double(records.getAmount() / (proportionBalance / 100d)).longValue());
+                    gameBalanceOrders.setUid(user.getId());
+                    gameBalanceOrders.setAddTime(System.currentTimeMillis());
+                    gameBalanceOrders.setUpdateTime(System.currentTimeMillis());
+                    gameBalanceOrders.setStatus(1);
+                    if (WaLiUtil.tranfer(user.getId(),gameBalanceOrders.getAmount())){
+                        gameBalanceOrdersDao.saveAndFlush(gameBalanceOrders);
+                        records.setStatus(-2);
+                        withdrawalRecordsDao.saveAndFlush(records);
+                    }else{
+                        object.put("verify",false);
+                        object.put("msg","取消提现失败，详情请联系在线客服!");
+                    }
+                } else {
+                    orders.setStatus(1);
+                    orders.setReason("提现订单退回: "+records.getOrderNo());
+                    balanceOrdersDao.saveAndFlush(orders);
+                    records.setStatus(-2);
+                    withdrawalRecordsDao.saveAndFlush(records);
                 }
-                orders.setStatus(1);
-                orders.setReason("提现订单退回: "+records.getOrderNo());
-                balanceOrdersDao.saveAndFlush(orders);
+
             }else {
                 object.put("msg","订单不存在或者已进入受理阶段!");
             }
