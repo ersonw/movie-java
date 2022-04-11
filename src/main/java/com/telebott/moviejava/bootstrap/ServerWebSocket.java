@@ -206,7 +206,7 @@ public class ServerWebSocket {
         data.setMessage("用户信息变更失败！");
         Users _user = self.userService._change(object);
         if (_user != null) {
-            System.out.println(_user);
+//            System.out.println(_user);
             data.setCode(WebSocketUtil.user_change_success);
             data.setMessage("");
         }

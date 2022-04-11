@@ -1252,14 +1252,18 @@ public class VideosService {
     }
 
     public JSONObject joinInvite(String d, Users user) {
+//        System.out.println(d);
+//        System.out.println(user);
         JSONObject data = JSONObject.parseObject(d);
         JSONObject object = new JSONObject();
         if (data != null && data.get("code") != null && user != null && user.getSuperior() == 0) {
             Users _user = usersDao.findAllByInvite(data.get("code").toString());
+//            System.out.println(_user);
             if (_user == null) {
-                object.put("msg", "邀请信息已过期，请重新获取！");
+//                object.put("msg", "邀请信息已过期，请重新获取！");
             } else {
                 ShareRecords records = shareRecordsDao.findAllByToUid(user.getId());
+                System.out.println(records);
                 if (records == null){
                     boolean shareAwardEnable = Objects.equals(systemConfigService.getValueByKey("shareAwardEnable"), "1");
                     if (shareAwardEnable) {

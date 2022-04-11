@@ -48,6 +48,18 @@ public class ApiControl {
         WaLiUtil.test();
         return data;
     }
+    @GetMapping("/getPopUpsDialog")
+    public ResultData getPopUpsDialog(){
+        ResultData data = new ResultData();
+        data.setData(systemConfigService.getPopUpsDialog());
+        return data;
+    }
+    @GetMapping("/getBoots")
+    public ResultData getBoots(){
+        ResultData data = new ResultData();
+        data.setData(systemConfigService.getBoots());
+        return data;
+    }
     @GetMapping("/carousels")
     public ResultData carousels(){
         ResultData data = new ResultData();

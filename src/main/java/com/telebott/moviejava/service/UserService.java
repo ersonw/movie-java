@@ -161,6 +161,7 @@ public class UserService {
         object.put("count",shareRecordsDao.countAllByUid(user.getId()));
         object.put("bgImage", systemConfigService.getValueByKey("shareBgImage"));
         object.put("shareText", systemConfigService.getValueByKey("shareText"));
+        object.put("shareUrl", systemConfigService.getValueByKey("shareUrl")+"?code="+user.getInvite());
         return object;
     }
 
