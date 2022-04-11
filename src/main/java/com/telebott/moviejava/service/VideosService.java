@@ -1425,12 +1425,12 @@ public class VideosService {
                 if (tagId > 0){
                     VideoCategory category = videoCategoryDao.findAllById(tagId);
                     if (category != null){
-                        videosPage = videosDao.findAllByVodClassAndStatus(category.getId(),1, pageable);
+                        videosPage = videosDao.findAllByVodClassAndStatusAndDiamond(category.getId(),1, 0, pageable);
                     }else {
-                        videosPage = videosDao.findAll(pageable);
+                        videosPage = videosDao.findAllByStatusAndDiamond(1,0,pageable);
                     }
                 }else {
-                    videosPage = videosDao.findAll(pageable);
+                    videosPage = videosDao.findAllByStatusAndDiamond(1,0,pageable);
                 }
                 object.put("total",videosPage.getTotalPages());
                 videosList = videosPage.getContent();
@@ -1439,20 +1439,20 @@ public class VideosService {
                 if (tagId > 0){
                     VideoCategory category = videoCategoryDao.findAllById(tagId);
                     if (category != null){
-                        total = videosDao.countAllByVodClassAndStatus(category.getId(),1);
+                        total = videosDao.countAllByVodClassAndStatusAndDiamond(category.getId(),1,0);
                         if (page < (total / 20)){
-                            videosList = videosDao.getAllByClass(category.getId(),page,20);
+                            videosList = videosDao.getAllByClass(category.getId(),page,20,0);
                         }
                     }else {
-                        total = videosDao.countAllByStatus(1);
+                        total = videosDao.countAllByStatusAndDiamond(1,0);
                         if (page < (total / 20)){
-                            videosList = videosDao.getAllByClass(page,20);
+                            videosList = videosDao.getAllByClass(page,20, Long.parseLong("0"));
                         }
                     }
                 }else {
-                    total = videosDao.countAllByStatus(1);
+                    total = videosDao.countAllByStatusAndDiamond(1,0);
                     if (page < (total / 20)){
-                        videosList = videosDao.getAllByClass(page,20);
+                        videosList = videosDao.getAllByClass(page,20, Long.parseLong("0"));
                     }
                 }
                 object.put("total", total / 20);
