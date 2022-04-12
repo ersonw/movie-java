@@ -41,6 +41,7 @@ public class AssertConfig implements WebMvcConfigurer {
         exclude.add("/api/user/info");
         exclude.add("/api/user/login");
         exclude.add("/api/user/bindPhone");
+        exclude.add("/api/video/hotTags");
         exclude.add("/*");
         exclude.add("/api/*");
         AuthInterceptor authInterceptor = new AuthInterceptor(authDao);

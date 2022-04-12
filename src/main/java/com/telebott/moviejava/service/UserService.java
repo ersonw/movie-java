@@ -282,4 +282,11 @@ public class UserService {
         }
         return object;
     }
+    public JSONObject joinChannel(String data, Users users) {
+        System.out.println("渠道回参:" + data);
+        JSONObject object = new JSONObject();
+//        object.put("msg","加入成功！");
+        object.put("verify",true);
+        return object;
+    }
 }

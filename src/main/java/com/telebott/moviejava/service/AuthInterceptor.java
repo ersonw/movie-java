@@ -27,14 +27,12 @@ public class AuthInterceptor implements HandlerInterceptor {
             return false;
         }
         Users user = authDao.findUserByToken(token);
+//        System.out.println(user);
         if (user == null){
             response.setStatus(106);
             return false;
         }
         request.setAttribute("user", JSONObject.toJSONString(user));
-//        if(!Global.authRoles(user.getRoles())){
-//            response.setStatus(500);
-//        }
         return true;// 只有返回true才会继续向下执行，返回false取消当前请求
     }
 }

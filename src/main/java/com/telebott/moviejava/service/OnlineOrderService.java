@@ -519,7 +519,7 @@ public class OnlineOrderService {
                         }
                         break;
                     case WITHDRAWAL_GAME:
-                        balance = gameBalanceOrdersDao.countAllByBalance(user.getId());
+                        balance = new Double(WaLiUtil.getBalance(user.getId()) * 100).longValue();
                         if (amount > balance){
                             object.put("msg","提现金额不得大于剩余余额！");
                         }else if(((amount * 100) * (proportionBalance / 100d)) > (MaxWithdrawal)){

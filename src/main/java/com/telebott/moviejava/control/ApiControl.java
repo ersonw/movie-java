@@ -45,7 +45,8 @@ public class ApiControl {
     @GetMapping("/test")
     public ResultData test(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
-        WaLiUtil.test();
+//        WaLiUtil.tranfer(57,10000000);
+        System.out.println(WaLiUtil.getBalance(57));
         return data;
     }
     @GetMapping("/getPopUpsDialog")

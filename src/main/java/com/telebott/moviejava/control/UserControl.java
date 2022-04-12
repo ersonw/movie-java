@@ -479,11 +479,17 @@ public class UserControl {
         data.setData(userService.enterGame(requestData.getData(),requestData.getUser()));
         return data;
     }
-    @PostMapping("/joinVideo")
-    public ResultData joinVideo(@ModelAttribute RequestData requestData, @RequestAttribute String user){
+    @GetMapping("/joinChannel")
+    public ResultData joinChannel(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(userService.joinChannel(requestData.getData(), requestData.getUser()));
+        return data;
+    }
+    @PostMapping("/joinChannel")
+    public ResultData joinChannel(@ModelAttribute RequestData requestData, @RequestAttribute String user){
         ResultData data = new ResultData();
         Users users =  JSONObject.toJavaObject(JSONObject.parseObject(user),Users.class);
-        data.setData(videosService.joinVideo(requestData.getData(),users));
+        data.setData(userService.joinChannel(requestData.getData(),users));
         return data;
     }
     @PostMapping("/joinInvite")
