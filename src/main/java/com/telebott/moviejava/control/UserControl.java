@@ -23,6 +23,8 @@ import java.util.UUID;
 @RequestMapping("/api/user")
 public class UserControl {
     @Autowired
+    private WaLiService waLiService;
+    @Autowired
     private UserService userService;
     @Autowired
     private AuthDao authDao;
@@ -38,6 +40,8 @@ public class UserControl {
     private CommodityGoldOrderService commodityGoldOrderService;
     @Autowired
     private VideosService videosService;
+    @Autowired
+    private OnlinePayService onlinePayService;
     @GetMapping("/collectActor")
     public ResultData collectActor(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
@@ -106,6 +110,19 @@ public class UserControl {
             data.setMessage("版本太低，请先升级版本!");
         }else {
             data.setData(commodityDiamondOrderService._crateOrder(user,object.get("id").toString()));
+        }
+        return data;
+    }
+    @GetMapping("/crateGameOrder")
+    public ResultData crateGameOrder(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        Users user = requestData.getUser();
+        JSONObject object = JSONObject.parseObject(requestData.getData());
+        if (object.get("id") == null  ){
+            data.setCode(201);
+            data.setMessage("版本太低，请先升级版本!");
+        }else {
+            data.setData(onlinePayService._crateOrder(user,object.get("id").toString()));
         }
         return data;
     }
@@ -498,6 +515,12 @@ public class UserControl {
 //        System.out.println(user);
         Users users =  JSONObject.toJavaObject(JSONObject.parseObject(user),Users.class);
         data.setData(videosService.joinInvite(requestData.getData(),users));
+        return data;
+    }
+    @GetMapping("/getRecords")
+    public ResultData getRecords(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(waLiService.getRecords(requestData.getUser()));
         return data;
     }
 //    @PostMapping("/joinInvite")

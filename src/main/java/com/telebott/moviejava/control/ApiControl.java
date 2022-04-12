@@ -42,6 +42,7 @@ public class ApiControl {
     private AuthDao authDao;
     @Autowired
     private OnlinePayService onlinePayService;
+
     @GetMapping("/test")
     public ResultData test(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
@@ -336,6 +337,12 @@ public class ApiControl {
     public ResultData getOnlinePays(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
         data.setData(onlinePayService.getOnlinePays());
+        return data;
+    }
+    @GetMapping("/getCashIns")
+    public ResultData getCashIns(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(onlinePayService.getCashIns());
         return data;
     }
     @GetMapping("/checkVersion")

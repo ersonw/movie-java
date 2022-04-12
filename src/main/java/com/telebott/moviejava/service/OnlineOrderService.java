@@ -28,6 +28,7 @@ public class OnlineOrderService {
     private static final int PAY_ONLINE_VIP = 100;
     private static final int PAY_ONLINE_GOLD = 101;
     private static final int PAY_ONLINE_DIAMOND = 102;
+    private static final int PAY_ONLINE_GAMES = 103;
     private static final int WITHDRAWAL_DIAMOND = 100;
     private static final int WITHDRAWAL_BALANCE = 101;
     private static final int WITHDRAWAL_GOLD = 102;
@@ -75,6 +76,12 @@ public class OnlineOrderService {
     private WithdrawalRecordsDao withdrawalRecordsDao;
     @Autowired
     private WithdrawalCardsDao withdrawalCardsDao;
+    @Autowired
+    private GameCashInOrdersDao gameCashInOrdersDao;
+    @Autowired
+    private GameCashInDao gameCashInDao;
+    @Autowired
+    private ExpiredRecordsDao expiredRecordsDao;
 
     public void _save(OnlineOrder onlineOrder){
         onlineOrderDao.saveAndFlush(onlineOrder);
@@ -306,6 +313,7 @@ public class OnlineOrderService {
             OnlinePay onlinePay = onlinePayDao.findAllById(order.getPid());
             Users user = usersDao.findAllById(order.getUid());
             order.setStatus(1);
+            order.setUtime(System.currentTimeMillis());
             onlineOrderDao.saveAndFlush(order);
             user.setUtime(System.currentTimeMillis());
             switch (order.getType()) {
@@ -315,20 +323,59 @@ public class OnlineOrderService {
                         CommodityVip commodityVip = commodityVipDao.findAllById(orders.getCid());
                         if (commodityVip != null){
                             orders.setStatus(1);
+                            order.setUtime(System.currentTimeMillis());
                             commodityVipOrderDao.saveAndFlush(orders);
                             long time = CommodityVipOrderService._getAddTime(commodityVip.getAddTime(), user.getExpireds());
                             user.setExpireds(time);
                             userService._saveAndPush(user);
                             onlineOrderDao.saveAndFlush(order);
+                            String reason = String.valueOf(commodityVip.getAddTime()).replaceAll("d","天").replaceAll("D","天").
+                                    replaceAll("m","月").replaceAll("M","月").
+                                    replaceAll("y","年").replaceAll("Y","年");
+                            reason = "开通" + reason + "会员";
+                            ExpiredRecords expiredRecords = new ExpiredRecords();
+                            expiredRecords.setExpireds(time);
+                            expiredRecords.setReason(reason);
+                            expiredRecords.setUid(user.getId());
+                            expiredRecordsDao.saveAndFlush(expiredRecords);
                         }
                     }
                     break;
+                case PAY_ONLINE_GAMES:
+                    GameCashInOrders gameCashInOrders = gameCashInOrdersDao.findAllByOrderId(order.getOrderNo());
+                    if (gameCashInOrders != null){
+                        GameCashIn gameCashIn = gameCashInDao.findAllById(gameCashInOrders.getCid());
+                        if (gameCashIn != null && gameCashIn.getVip() > 0){
+                            long time = (Math.max(user.getExpireds(), System.currentTimeMillis())) + ((long) gameCashIn.getVip() * 24 * 60 * 60 * 1000);
+                            user.setExpireds(time);
+                            userService._saveAndPush(user);
+                            ExpiredRecords expiredRecords = new ExpiredRecords();
+                            expiredRecords.setExpireds(time);
+                            expiredRecords.setReason("充值游戏赠送"+gameCashIn.getVip()+"天会员");
+                            expiredRecords.setUid(user.getId());
+                            expiredRecordsDao.saveAndFlush(expiredRecords);
+                        }
+                        GameBalanceOrders gameBalanceOrders = new GameBalanceOrders();
+                        gameBalanceOrders.setUid(user.getId());
+                        gameBalanceOrders.setReason("在线支付充值");
+                        gameBalanceOrders.setAddTime(System.currentTimeMillis());
+                        gameBalanceOrders.setUpdateTime(System.currentTimeMillis());
+                        gameBalanceOrders.setStatus(1);
+                        gameBalanceOrders.setAmount(gameCashInOrders.getAmount());
+                        gameCashInOrders.setStatus(1);
+                        gameCashInOrders.setUpdateTime(System.currentTimeMillis());
+                        if (WaLiUtil.tranfer(user.getId(), gameCashInOrders.getAmount())){
+                            gameCashInOrdersDao.saveAndFlush(gameCashInOrders);
+                            gameBalanceOrdersDao.saveAndFlush(gameBalanceOrders);
+                        }
+                    }
                 case PAY_ONLINE_GOLD:
                     CommodityGoldOrder commodityGoldOrder = commodityGoldOrderDao.findAllByOrderId(order.getOrderNo());
                     if (commodityGoldOrder != null){
                         CommodityGold commodityGold = commodityGoldDao.findAllById(commodityGoldOrder.getCid());
                         if (commodityGold != null){
                             commodityGoldOrder.setStatus(1);
+                            commodityGoldOrder.setUtime(System.currentTimeMillis());
                             commodityGoldOrderDao.saveAndFlush(commodityGoldOrder);
                             user.setGold(user.getGold() + commodityGold.getGold());
                             GoldRecords goldRecords = new GoldRecords();
@@ -348,6 +395,7 @@ public class OnlineOrderService {
                         CommodityDiamond commodityDiamond = commodityDiamondDao.findAllById(commodityDiamondOrder.getCid());
                         if (commodityDiamond != null){
                             commodityDiamondOrder.setStatus(1);
+                            commodityDiamondOrder.setUtime(System.currentTimeMillis());
                             commodityDiamondOrderDao.saveAndFlush(commodityDiamondOrder);
                             user.setDiamond(user.getDiamond()+ commodityDiamond.getDiamond());
                             DiamondRecords diamondRecords = new DiamondRecords();
@@ -381,6 +429,12 @@ public class OnlineOrderService {
                 CommodityVipOrder commodityVipOrder = commodityVipOrderDao.findAllByOrderId(order_id);
                 if (commodityVipOrder != null){
                     order.setAmount(commodityVipOrder.getAmount());
+                }
+                break;
+            case PAY_ONLINE_GAMES:
+                GameCashInOrders gameCashInOrder = gameCashInOrdersDao.findAllByOrderId(order_id);
+                if (gameCashInOrder != null){
+                    order.setAmount(gameCashInOrder.getAmount());
                 }
                 break;
             case PAY_ONLINE_GOLD:
@@ -731,4 +785,5 @@ public class OnlineOrderService {
         object.put("list",array);
         return object;
     }
+
 }

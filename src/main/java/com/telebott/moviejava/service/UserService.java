@@ -22,6 +22,8 @@ import java.util.Map;
 @Service
 public class UserService {
     @Autowired
+    private WaliGameRecordsDao waliGameRecordsDao;
+    @Autowired
     private UsersDao usersDao;
     @Autowired
     private AuthDao authDao;
@@ -185,6 +187,13 @@ public class UserService {
             if (gameObject.get("gameReason") != null && gameObject.getString("gameReason").equals("ip_banned")){
                 object.put("msg","进入游戏失败，限制地区无法进行游戏!");
             }else{
+                if (gid > 0){
+                    WaliGameRecords record = new WaliGameRecords();
+                    record.setGameId(gid);
+                    record.setUid(user.getId());
+                    record.setAddTime(System.currentTimeMillis());
+                    waliGameRecordsDao.saveAndFlush(record);
+                }
                 object.put("url", gameObject.getString("gameUrl"));
             }
         }else{
