@@ -8,11 +8,12 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UsersDao extends JpaRepository<Users, Integer>, CrudRepository<Users, Integer> {
+public interface UsersDao extends JpaRepository<Users, Long>, CrudRepository<Users, Long> {
     Users findAllById(long id);
     Users findAllByIdentifier(String id);
     Users findAllByUid(String uid);
     Users findAllByPhone(String phone);
+    Users findAllByEmail(String email);
     Users findAllByInvite(String invite);
     Page<Users> findAllByNicknameLikeAndStatus(String nickname,int status, Pageable pageable);
     long countAllBySuperior(long uid);

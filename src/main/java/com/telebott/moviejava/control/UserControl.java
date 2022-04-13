@@ -297,6 +297,7 @@ public class UserControl {
                 data.setMessage("验证码不存在或者已过期!");
             }else {
                 user.setPhone(object.get("phone").toString());
+                user.setUtime(System.currentTimeMillis());
                 userService._saveAndPush(user);
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("verify", true);
@@ -398,6 +399,7 @@ public class UserControl {
                         users.setNickname(nickname.toString());
                         users.setUid(uid);
                         users.setCtime(System.currentTimeMillis() );
+                        users.setUtime(System.currentTimeMillis());
                         users.setStatus(1);
 //                    users.setAvatar("http://htm-download.oss-cn-hongkong.aliyuncs.com/default_head.gif");
                         userService._save(users);
@@ -414,7 +416,12 @@ public class UserControl {
             }
 
         }
-        data.setData(userService.getResult(users));
+        if(users.getStatus() == 1){
+            data.setData(userService.getResult(users));
+        }else{
+            data.setCode(106);
+            data.setMessage("账号状态异常！");
+        }
         return data;
     }
     @GetMapping("/getStsAccount")

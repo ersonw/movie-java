@@ -78,8 +78,15 @@ public class UserService {
     }
     public Users _change(JSONObject object){
         Users _user = JSONObject.toJavaObject(object,Users.class);
+        if (StringUtils.isEmpty(_user.getPhone()) && StringUtils.isEmpty(_user.getEmail()) ){
+            return null;
+        }
         if (_user != null && isUser(_user.getToken())){
             JSONObject _token = JSONObject.parseObject(JSONObject.toJSONString(authDao.findUserByToken(_user.getToken())));
+            Users user = usersDao.findAllByEmail(object.getString("email"));
+            if (user != null && user.getId() != _user.getId()){
+                return null;
+            }
             for (Map.Entry<String, Object> entry: object.entrySet()) {
                 if (entry.getValue() != null){
                     _token.put(entry.getKey(), entry.getValue());

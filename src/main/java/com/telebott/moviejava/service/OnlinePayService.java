@@ -87,6 +87,7 @@ public class OnlinePayService {
         if (data != null && data.get("page") != null && UserService.isNumberString(data.getString("page"))) page = data.getInteger("page");
         JSONObject object = new JSONObject();
         JSONArray array = new JSONArray();
+        page--;
         if (page < 0) page = 0;
         Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
         Page<GameCashInOrders> orders = gameCashInOrdersDao.findAllByUid(user.getId(), pageable);

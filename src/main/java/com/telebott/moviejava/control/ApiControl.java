@@ -2,10 +2,12 @@ package com.telebott.moviejava.control;
 
 import com.alibaba.fastjson.JSONObject;
 import com.telebott.moviejava.dao.AuthDao;
+import com.telebott.moviejava.dao.UsersDao;
 import com.telebott.moviejava.dao.VideoActorsDao;
 import com.telebott.moviejava.entity.*;
 import com.telebott.moviejava.service.*;
 import com.telebott.moviejava.util.*;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -42,6 +44,8 @@ public class ApiControl {
     private AuthDao authDao;
     @Autowired
     private OnlinePayService onlinePayService;
+    @Autowired
+    private UsersDao usersDao;
 
     @GetMapping("/test")
     public ResultData test(@ModelAttribute RequestData requestData){
@@ -193,39 +197,50 @@ public class ApiControl {
     @GetMapping("/login")
     public ResultData login(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
-        JSONObject object = JSONObject.parseObject(requestData.getData());
         Users user = requestData.getUser();
-        if (object.get("identifier") == null ||
-                object.get("phone") == null ||
-                object.get("passwd") == null
-        ){
-            data.setCode(201);
-            data.setMessage("参数提交错误！请更新至最新版本！");
+        JSONObject object = JSONObject.parseObject(requestData.getData());
+        String nickname = object.getString("email");
+        String password = object.getString("passwd");
+        String identifier = object.getString("identifier");
+        object = new JSONObject();
+        if(StringUtils.isEmpty(nickname) || StringUtils.isEmpty(password)) {
+            object.put("msg","账号密码不允许为空!");
         }else {
-            Users userNew = userService.getUserByPhone(object.get("phone").toString());
-            if (userNew == null){
-                data.setCode(202);
-                data.setMessage("手机号未注册！");
-            }else {
-                MD5Util md5Util = new MD5Util(userNew.getSalt());
-                String verifyPass = md5Util.getPassWord(object.get("passwd").toString());
-                if (verifyPass.equals(userNew.getPassword())){
-                    if (user != null &&  userNew.getId() != user.getId()){
-                        user.setIdentifier("");
-                        userService._saveAndPush(user);
-                        authDao.removeUser(user);
+            Users _user = usersDao.findAllByEmail(nickname);
+            if (_user == null) {
+                object.put("msg", "账号不存在!");
+            } else {
+                MD5Util md5Util = new MD5Util(_user.getSalt());
+                String pass = md5Util.getPassWord(password);
+                if (pass.equals(_user.getPassword())){
+                    if (_user.getStatus() == 1){
+                        if (user != null && _user.getId() != user.getId()){
+                            authDao.removeUser(user);
+                            user.setIdentifier(null);
+                            usersDao.saveAndFlush(user);
+                        }else if(user != null && user.getId() == _user.getId()){
+                            user.setUtime(System.currentTimeMillis());
+                            usersDao.saveAndFlush(user);
+                            object.put("verify", true);
+                            object.put("token", user.getToken());
+                        }else{
+                            _user.setToken(getToken());
+                            _user.setIdentifier(identifier);
+                            _user.setUtime(System.currentTimeMillis());
+                            authDao.pushUser(_user);
+                            usersDao.saveAndFlush(_user);
+                            object.put("verify", true);
+                            object.put("token", _user.getToken());
+                        }
+                    }else{
+                        object.put("msg", "账号状态异常!");
                     }
-                    userNew.setIdentifier(object.get("identifier").toString());
-                    userService._save(userNew);
-                    JSONObject jsonObject = new JSONObject();
-                    jsonObject.put("verify", true);
-                    data.setData(jsonObject);
-                }else {
-                    data.setCode(203);
-                    data.setMessage("登录密码错误！");
+                }else{
+                    object.put("msg", "密码错误!");
                 }
             }
         }
+        data.setData(object);
         return data;
     }
     @GetMapping("/register")
@@ -243,7 +258,7 @@ public class ApiControl {
             }
             user = new Users();
             user.setNickname(nickname.toString());
-            user.setCtime(System.currentTimeMillis() / 1000L);
+            user.setCtime(System.currentTimeMillis());
         }
         if (object.get("id") == null ||
                 object.get("identifier") == null ||
@@ -280,6 +295,60 @@ public class ApiControl {
             }
 
         }
+        return data;
+    }
+    @GetMapping("/registerEmail")
+    public ResultData registerEmail(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        Random r = new Random();
+        MD5Util md5Util = new MD5Util();
+        Users user = requestData.getUser();
+        JSONObject object = JSONObject.parseObject(requestData.getData());
+        String nickname = object.getString("email");
+        String password = object.getString("passwd");
+        String identifier = object.getString("identifier");
+        object = new JSONObject();
+        if(StringUtils.isEmpty(nickname) || StringUtils.isEmpty(password)) {
+            object.put("msg","账号密码不允许为空!");
+        }else{
+            Users _user = usersDao.findAllByEmail(nickname);
+            if(_user != null){
+                object.put("msg","账号已存在!");
+            }else{
+                if (user != null){
+                    authDao.removeUser(user);
+                    usersDao.delete(user);
+                }
+                user = new Users();
+                user.setNickname(nickname);
+                user.setEmail(nickname);
+                user.setCtime(System.currentTimeMillis());
+                user.setUtime(System.currentTimeMillis());
+                user.setUtime(System.currentTimeMillis());
+                user.setIdentifier(identifier);
+                user.setUid(md5Util.getMD5(user.getIdentifier()));
+                user.setSalt(userService._getSalt());
+                user.setInvite(userService._getInvite());
+                user.setStatus(1);
+                md5Util.setSalt(user.getSalt());
+                if (password.length() < 32){
+                    user.setPassword(md5Util.getPassWord(md5Util.getMD5(password)));
+                }else {
+                    user.setPassword(md5Util.getPassWord(password));
+                }
+                user.setToken(getToken());
+                _user = usersDao.findAllByUid(user.getUid());
+                if(_user != null){
+                    authDao.removeUser(_user);
+                    usersDao.delete(_user);
+                }
+                userService._save(user);
+                userService._push(user);
+                object.put("verify", true);
+                object.put("token", user.getToken());
+            }
+        }
+        data.setData(object);
         return data;
     }
     @GetMapping("/sendSms")
