@@ -263,6 +263,12 @@ public class UserControl {
         }
         return data;
     }
+    @GetMapping("/getCashInOrders")
+    public ResultData getCashInOrders(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(onlinePayService.getCashInOrders(requestData.getData(),requestData.getUser()));
+        return data;
+    }
     @GetMapping("/getOrders")
     public ResultData getOrders(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();

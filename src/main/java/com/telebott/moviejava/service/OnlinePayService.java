@@ -8,6 +8,10 @@ import com.telebott.moviejava.dao.OnlinePayDao;
 import com.telebott.moviejava.entity.*;
 import com.telebott.moviejava.util.TimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -74,6 +78,29 @@ public class OnlinePayService {
         }else{
             object.put("msg", "金额已过期，请刷新重试!");
         }
+        return object;
+    }
+
+    public JSONObject getCashInOrders(String d, Users user) {
+        JSONObject data = JSONObject.parseObject(d);
+        int page = 0;
+        if (data != null && data.get("page") != null && UserService.isNumberString(data.getString("page"))) page = data.getInteger("page");
+        JSONObject object = new JSONObject();
+        JSONArray array = new JSONArray();
+        if (page < 0) page = 0;
+        Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
+        Page<GameCashInOrders> orders = gameCashInOrdersDao.findAllByUid(user.getId(), pageable);
+        for (GameCashInOrders order: orders.getContent()) {
+            JSONObject json = new JSONObject();
+            json.put("id",order.getId());
+            json.put("orderId", order.getOrderId());
+            json.put("amount",order.getAmount());
+            json.put("updateTime",order.getUpdateTime());
+            json.put("status",order.getStatus());
+            array.add(json);
+        }
+        object.put("total", orders.getTotalPages());
+        object.put("list",array);
         return object;
     }
 }
