@@ -206,6 +206,35 @@ public class OnlineOrderService {
                             }
                         }
                         break;
+                    case PAY_ONLINE_GAMES:
+                        GameCashInOrders gameCashInOrders = gameCashInOrdersDao.findAllByOrderId(order.getOrderNo());
+                        if (gameCashInOrders != null){
+                            GameCashIn gameCashIn = gameCashInDao.findAllById(gameCashInOrders.getCid());
+                            if (gameCashIn != null && gameCashIn.getVip() > 0){
+                                long time = (Math.max(user.getExpireds(), System.currentTimeMillis())) + ((long) gameCashIn.getVip() * 24 * 60 * 60 * 1000);
+                                user.setExpireds(time);
+                                userService._saveAndPush(user);
+                                ExpiredRecords expiredRecords = new ExpiredRecords();
+                                expiredRecords.setExpireds(time);
+                                expiredRecords.setReason("充值游戏赠送"+gameCashIn.getVip()+"天会员");
+                                expiredRecords.setUid(user.getId());
+                                expiredRecordsDao.saveAndFlush(expiredRecords);
+                            }
+                            GameBalanceOrders gameBalanceOrders = new GameBalanceOrders();
+                            gameBalanceOrders.setUid(user.getId());
+                            gameBalanceOrders.setReason("在线支付充值");
+                            gameBalanceOrders.setAddTime(System.currentTimeMillis());
+                            gameBalanceOrders.setUpdateTime(System.currentTimeMillis());
+                            gameBalanceOrders.setStatus(1);
+                            gameBalanceOrders.setAmount(gameCashInOrders.getAmount());
+                            gameCashInOrders.setStatus(1);
+                            gameCashInOrders.setUpdateTime(System.currentTimeMillis());
+                            if (WaLiUtil.tranfer(user.getId(), gameCashInOrders.getAmount())){
+                                gameCashInOrdersDao.saveAndFlush(gameCashInOrders);
+                                gameBalanceOrdersDao.saveAndFlush(gameBalanceOrders);
+                            }
+                        }
+                        break;
                     case PAY_ONLINE_GOLD:
                         CommodityGoldOrder commodityGoldOrder = commodityGoldOrderDao.findAllByOrderId(order.getOrderNo());
                         if (commodityGoldOrder != null){
@@ -369,6 +398,7 @@ public class OnlineOrderService {
                             gameBalanceOrdersDao.saveAndFlush(gameBalanceOrders);
                         }
                     }
+                    break;
                 case PAY_ONLINE_GOLD:
                     CommodityGoldOrder commodityGoldOrder = commodityGoldOrderDao.findAllByOrderId(order.getOrderNo());
                     if (commodityGoldOrder != null){

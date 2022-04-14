@@ -303,16 +303,36 @@ public class VideosService {
                 item.put("actor", getActor(videoActors));
             }
         }
+        long cardinality = 0;
+        String cardinalityStr = systemConfigService.getValueByKey("cardinalityPlay");
+        if (StringUtils.isNotEmpty(cardinalityStr)){
+            cardinality = Long.parseLong(cardinalityStr);
+        }
         if (video.getPlay() > 0) {
-            item.put("play", video.getPlay());
+            item.put("play", video.getPlay()+cardinality);
         } else {
-            item.put("play", videoPlayDao.countAllByVid(video.getId()));
+            item.put("play", videoPlayDao.countAllByVid(video.getId())+cardinality);
+        }
+        cardinality = 0;
+        cardinalityStr = systemConfigService.getValueByKey("cardinalityRecommend");
+        if (StringUtils.isNotEmpty(cardinalityStr)){
+            cardinality = Long.parseLong(cardinalityStr);
         }
         if (video.getRecommends() > 0) {
-            item.put("remommends", video.getRecommends());
+            item.put("remommends", video.getRecommends()+cardinality);
         } else {
-            item.put("remommends", videoRecommendsDao.countAllByVid(video.getId()));
+            item.put("remommends", videoRecommendsDao.countAllByVid(video.getId())+cardinality);
         }
+//        if (video.getPlay() > 0) {
+//            item.put("play", video.getPlay());
+//        } else {
+//            item.put("play", videoPlayDao.countAllByVid(video.getId()));
+//        }
+//        if (video.getRecommends() > 0) {
+//            item.put("remommends", video.getRecommends());
+//        } else {
+//            item.put("remommends", videoRecommendsDao.countAllByVid(video.getId()));
+//        }
         return item;
     }
 
@@ -735,7 +755,27 @@ public class VideosService {
                 object.put("id", recommends.getId());
                 object.put("image", videos.getPicThumb());
                 object.put("vid", videos.getId());
-                object.put("recommends", videoRecommendsDao.countAllByVid(recommends.getVid()));
+//                object.put("recommends", videoRecommendsDao.countAllByVid(recommends.getVid()));
+                long cardinality = 0;
+//                String cardinalityStr = systemConfigService.getValueByKey("cardinalityPlay");
+//                if (StringUtils.isNotEmpty(cardinalityStr)){
+//                    cardinality = Long.parseLong(cardinalityStr);
+//                }
+//                if (video.getPlay() > 0) {
+//                    item.put("play", video.getPlay()+cardinality);
+//                } else {
+//                    item.put("play", videoPlayDao.countAllByVid(video.getId())+cardinality);
+//                }
+//                cardinality = 0;
+                String cardinalityStr = systemConfigService.getValueByKey("cardinalityRecommend");
+                if (StringUtils.isNotEmpty(cardinalityStr)){
+                    cardinality = Long.parseLong(cardinalityStr);
+                }
+                if (videos.getRecommends() > 0) {
+                    object.put("recommends", videos.getRecommends()+cardinality);
+                } else {
+                    object.put("recommends", videoRecommendsDao.countAllByVid(videos.getId())+cardinality);
+                }
                 array.add(object);
             }
         }

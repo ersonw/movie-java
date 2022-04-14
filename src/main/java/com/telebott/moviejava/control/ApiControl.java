@@ -60,6 +60,7 @@ public class ApiControl {
         data.setData(systemConfigService.getPopUpsDialog());
         return data;
     }
+
     @GetMapping("/getBoots")
     public ResultData getBoots(){
         ResultData data = new ResultData();

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.telebott.moviejava.dao.*;
 import com.telebott.moviejava.entity.*;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -36,6 +37,8 @@ public class VideoFeaturedsService {
     private VideoCollectsDao videoCollectsDao;
     @Autowired
     private VideosService videosService;
+    @Autowired
+    private SystemConfigService systemConfigService;
 
     public JSONObject getFeatureds() {
         List<VideoFeatureds> featuredsList = videoFeaturedsDao.findAllByStatus(1);
@@ -73,15 +76,35 @@ public class VideoFeaturedsService {
             data.put("id",video.getId());
             data.put("title",video.getTitle());
             data.put("image",videosService.getPicThumbUrl(video.getPicThumb()));
-            if (video.getPlay() > 0){
-                data.put("play",video.getPlay());
-            }else {
-                data.put("play",videoPlayDao.countAllByVid(video.getId()));
+//            if (video.getPlay() > 0){
+//                data.put("play",video.getPlay());
+//            }else {
+//                data.put("play",videoPlayDao.countAllByVid(video.getId()));
+//            }
+//            if (video.getRecommends() > 0){
+//                data.put("recommendations", video.getRecommends());
+//            }else {
+//                data.put("recommendations", videoRecommendsDao.countAllByVid(video.getId()));
+//            }
+            long cardinality = 0;
+            String cardinalityStr = systemConfigService.getValueByKey("cardinalityPlay");
+            if (StringUtils.isNotEmpty(cardinalityStr)){
+                cardinality = Long.parseLong(cardinalityStr);
             }
-            if (video.getRecommends() > 0){
-                data.put("recommendations", video.getRecommends());
-            }else {
-                data.put("recommendations", videoRecommendsDao.countAllByVid(video.getId()));
+            if (video.getPlay() > 0) {
+                data.put("play", video.getPlay()+cardinality);
+            } else {
+                data.put("play", videoPlayDao.countAllByVid(video.getId())+cardinality);
+            }
+            cardinality = 0;
+            cardinalityStr = systemConfigService.getValueByKey("cardinalityRecommend");
+            if (StringUtils.isNotEmpty(cardinalityStr)){
+                cardinality = Long.parseLong(cardinalityStr);
+            }
+            if (video.getRecommends() > 0) {
+                data.put("recommendations", video.getRecommends()+cardinality);
+            } else {
+                data.put("recommendations", videoRecommendsDao.countAllByVid(video.getId())+cardinality);
             }
             array.add(data);
         }
@@ -197,8 +220,28 @@ public class VideoFeaturedsService {
             object.put("id",video.getId());
             object.put("title",video.getTitle());
             object.put("image",videosService.getPicThumbUrl(video.getPicThumb()));
-            object.put("play",video.getPlay());
-            object.put("remommends", video.getRecommends());
+//            object.put("play",video.getPlay());
+//            object.put("remommends", video.getRecommends());
+            long cardinality = 0;
+            String cardinalityStr = systemConfigService.getValueByKey("cardinalityPlay");
+            if (StringUtils.isNotEmpty(cardinalityStr)){
+                cardinality = Long.parseLong(cardinalityStr);
+            }
+            if (video.getPlay() > 0) {
+                object.put("play", video.getPlay()+cardinality);
+            } else {
+                object.put("play", videoPlayDao.countAllByVid(video.getId())+cardinality);
+            }
+            cardinality = 0;
+            cardinalityStr = systemConfigService.getValueByKey("cardinalityRecommend");
+            if (StringUtils.isNotEmpty(cardinalityStr)){
+                cardinality = Long.parseLong(cardinalityStr);
+            }
+            if (video.getRecommends() > 0) {
+                object.put("remommends", video.getRecommends()+cardinality);
+            } else {
+                object.put("remommends", videoRecommendsDao.countAllByVid(video.getId())+cardinality);
+            }
             array.add(object);
         }
         return array;

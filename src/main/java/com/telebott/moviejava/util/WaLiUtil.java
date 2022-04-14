@@ -60,6 +60,7 @@ public class WaLiUtil {
         map.put("a",apiUser);
         map.put("t", String.valueOf(t));
         String p = "uid=23porn_"+id+"&credit="+(balance / 100d)+"&orderId="+agentId+"_"+TimeUtil._getOrderNo()+"_23porn_"+ id;
+//        System.out.println(p);
         p = encrypt(encryptKey,p);
         String sign = getSign(signKey,p,t);
         map.put("p",p);

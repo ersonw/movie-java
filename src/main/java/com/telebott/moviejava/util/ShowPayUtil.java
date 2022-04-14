@@ -56,7 +56,7 @@ public class ShowPayUtil {
 
             String _sign = getWxSign(data, secretKey);
             data.put("sign", _sign);//签名
-
+//            System.out.println(data);
             String result = doPost(url, data);
             if (org.springframework.util.StringUtils.isEmpty(result) || result.indexOf("code") < 0) {
                 System.out.println("下单请求错误");
