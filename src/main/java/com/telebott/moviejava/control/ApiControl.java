@@ -195,6 +195,44 @@ public class ApiControl {
         }
         return data;
     }
+    @GetMapping("/loginPhone")
+    public ResultData loginPhone(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        JSONObject object = JSONObject.parseObject(requestData.getData());
+        Users user = requestData.getUser();
+        if (object.get("identifier") == null ||
+                object.get("phone") == null ||
+                object.get("passwd") == null
+        ){
+            data.setCode(201);
+            data.setMessage("参数提交错误！请更新至最新版本！");
+        }else {
+            Users userNew = userService.getUserByPhone(object.get("phone").toString());
+            if (userNew == null){
+                data.setCode(202);
+                data.setMessage("手机号未注册！");
+            }else {
+                MD5Util md5Util = new MD5Util(userNew.getSalt());
+                String verifyPass = md5Util.getPassWord(object.get("passwd").toString());
+                if (verifyPass.equals(userNew.getPassword())){
+                    if (user != null &&  userNew.getId() != user.getId()){
+                        user.setIdentifier("");
+                        userService._saveAndPush(user);
+                        authDao.removeUser(user);
+                    }
+                    userNew.setIdentifier(object.get("identifier").toString());
+                    userService._save(userNew);
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("verify", true);
+                    data.setData(jsonObject);
+                }else {
+                    data.setCode(203);
+                    data.setMessage("登录密码错误！");
+                }
+            }
+        }
+        return data;
+    }
     @GetMapping("/login")
     public ResultData login(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
