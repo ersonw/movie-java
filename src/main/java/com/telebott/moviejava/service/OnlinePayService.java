@@ -52,6 +52,7 @@ public class OnlinePayService {
             JSONObject json = new JSONObject();
             json.put("id",cashIn.getId());
             json.put("vip", cashIn.getVip());
+            json.put("type", cashIn.getType());
             json.put("amount",cashIn.getAmount());
             array.add(json);
         }

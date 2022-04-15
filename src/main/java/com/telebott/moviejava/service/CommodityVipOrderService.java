@@ -68,7 +68,7 @@ public class CommodityVipOrderService {
 //        authDao.pushUser(user);
     }
     public static long _getAddTime(String time, long e){
-        long t = e>0 ? e - System.currentTimeMillis() : 0;
+        long t = e> System.currentTimeMillis() ? e - System.currentTimeMillis() : 0;
         return _getAddTime(time) + t;
     }
     private static long _getAddTime(String time){

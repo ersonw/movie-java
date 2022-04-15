@@ -41,19 +41,19 @@ public interface VideosDao extends JpaRepository<Videos, Integer>, CrudRepositor
     List<Videos> findAllHots();
     @Query(value = "SELECT v.id,v.uid,v.title,v.numbers,v.pic_thumb,v.gif_thumb,v.vod_time_add,v.vod_time_update,v.vod_class,v.vod_duration,v.vod_play_url,v.vod_content,v.vod_down_url,v.share_id,v.vod_tag,v.actor,v.diamond,v.status,v.play,v.recommends,(IF(v.play > 0,v.play,(SELECT COUNT(*) FROM video_play vp WHERE vp.vid=v.id AND vp.add_time > :time)))AS c FROM  videos AS v  ORDER BY c DESC LIMIT 24 ", nativeQuery = true)
     List<Videos> findAllHots(long time);
-    @Query(value = "SELECT *,(IF(play > 0,play,(SELECT COUNT(*) FROM video_play vp WHERE vp.vid=id)))AS c FROM videos WHERE status=1 ORDER BY c DESC LIMIT :page,:limit", nativeQuery = true)
+    @Query(value = "SELECT *,((SELECT COUNT(*) FROM video_play vp WHERE vp.vid=id)+play)AS c  FROM videos WHERE status=1 ORDER BY c DESC LIMIT :page,:limit", nativeQuery = true)
     List<Videos> getAllByClass(int page, int limit);
-    @Query(value = "SELECT *,(IF(play > 0,play,(SELECT COUNT(*) FROM video_play vp WHERE vp.vid=id)))AS c FROM videos WHERE status=1 and diamond=:diamond ORDER BY c DESC LIMIT :page,:limit", nativeQuery = true)
+    @Query(value = "SELECT *,((SELECT COUNT(*) FROM video_play vp WHERE vp.vid=id)+play)AS c  FROM videos WHERE status=1 and diamond=:diamond ORDER BY c DESC LIMIT :page,:limit", nativeQuery = true)
     List<Videos> getAllByClass(int page, int limit, long diamond);
-    @Query(value = "SELECT *,(IF(play > 0,play,(SELECT COUNT(*) FROM video_play vp WHERE vp.vid=id)))AS c FROM videos WHERE status=1 and vod_class=:cid ORDER BY c DESC LIMIT :page,:limit", nativeQuery = true)
+    @Query(value = "SELECT *,((SELECT COUNT(*) FROM video_play vp WHERE vp.vid=id)+play)AS c  FROM videos WHERE status=1 and vod_class=:cid ORDER BY c DESC LIMIT :page,:limit", nativeQuery = true)
     List<Videos> getAllByClass(long cid,int page, int limit);
-    @Query(value = "SELECT *,(IF(play > 0,play,(SELECT COUNT(*) FROM video_play vp WHERE vp.vid=id)))AS c FROM videos WHERE status=1 and vod_class=:cid and diamond=:diamond ORDER BY c DESC LIMIT :page,:limit", nativeQuery = true)
+    @Query(value = "SELECT *,((SELECT COUNT(*) FROM video_play vp WHERE vp.vid=id)+play)AS c  FROM videos WHERE status=1 and vod_class=:cid and diamond=:diamond ORDER BY c DESC LIMIT :page,:limit", nativeQuery = true)
     List<Videos> getAllByClass(long cid,int page, int limit, long diamond);
-    @Query(value = "SELECT *,(IF(play > 0,play,(SELECT COUNT(*) FROM video_play vp WHERE vp.vid=id)))AS c FROM videos WHERE status=1 and vod_class=:cid AND title LIKE :likes ORDER BY c DESC LIMIT :page,:limit", nativeQuery = true)
+    @Query(value = "SELECT *,((SELECT COUNT(*) FROM video_play vp WHERE vp.vid=id)+play)AS c  FROM videos WHERE status=1 and vod_class=:cid AND title LIKE :likes ORDER BY c DESC LIMIT :page,:limit", nativeQuery = true)
     List<Videos> getAllByClass(long cid, String likes,int page, int limit);
-    @Query(value = "SELECT *,(IF(play > 0,play,(SELECT COUNT(*) FROM video_play vp WHERE vp.vid=id)))AS c FROM videos WHERE status=1 and title LIKE :likes ORDER BY c DESC LIMIT :page,:limit", nativeQuery = true)
+    @Query(value = "SELECT *,((SELECT COUNT(*) FROM video_play vp WHERE vp.vid=id)+play)AS c  FROM videos WHERE status=1 and title LIKE :likes ORDER BY c DESC LIMIT :page,:limit", nativeQuery = true)
     List<Videos> getAllByClass(String likes,int page, int limit);
-    @Query(value = "SELECT v.id,v.uid,v.title,v.numbers,v.pic_thumb,v.gif_thumb,v.vod_time_add,v.vod_time_update,v.vod_class,v.vod_duration,v.vod_play_url,v.vod_content,v.vod_down_url,v.share_id,v.vod_tag,v.actor,v.diamond,v.status,v.play,v.recommends,(IF(v.play > 0,v.play,(SELECT COUNT(*) FROM video_play vp WHERE vp.vid=v.id)))AS c FROM video_actors AS va LEFT JOIN videos v ON v.actor=va.id and v.status=1 WHERE va.id=:aid ORDER BY c DESC LIMIT :page,:limit", nativeQuery = true)
+    @Query(value = "SELECT v.id,v.uid,v.title,v.numbers,v.pic_thumb,v.gif_thumb,v.vod_time_add,v.vod_time_update,v.vod_class,v.vod_duration,v.vod_play_url,v.vod_content,v.vod_down_url,v.share_id,v.vod_tag,v.actor,v.diamond,v.status,v.play,v.recommends,((SELECT COUNT(*) FROM video_play vp WHERE vp.vid=id)+v.play)AS c  FROM video_actors AS va LEFT JOIN videos v ON v.actor=va.id and v.status=1 WHERE va.id=:aid ORDER BY c DESC LIMIT :page,:limit", nativeQuery = true)
     List<Videos> getPlay(long aid, int page, int limit);
     Page<Videos> findAllByActorAndStatus(long aid, int status,Pageable pageable);
 

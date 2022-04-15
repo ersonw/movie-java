@@ -28,10 +28,10 @@ public class CommodityDiamondOrderService {
         JSONObject object = new JSONObject();
         List<CommodityDiamondOrder> orderList = commodityDiamondOrderDao.findAllByUidAndStatus(user.getId(),0);
         CommodityDiamond commodityDiamond = commodityDiamondDao.findAllById(Long.parseLong(id));
-        if (orderList.size() > 0){
-            object.put("crate", false);
-            object.put("id",orderList.get(0).getOrderId());
-        }else if (commodityDiamond != null){
+//        if (orderList.size() > 0){
+//            object.put("crate", false);
+//            object.put("id",orderList.get(0).getOrderId());
+//        }else if (commodityDiamond != null){
             long time = System.currentTimeMillis();
             CommodityDiamondOrder order = new CommodityDiamondOrder();
             order.setUid(user.getId());
@@ -43,7 +43,7 @@ public class CommodityDiamondOrderService {
             commodityDiamondOrderDao.saveAndFlush(order);
             object.put("crate", true);
             object.put("id",order.getOrderId());
-        }
+//        }
         return object;
     }
 

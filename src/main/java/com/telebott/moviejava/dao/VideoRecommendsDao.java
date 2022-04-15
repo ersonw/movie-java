@@ -28,7 +28,7 @@ public interface VideoRecommendsDao extends JpaRepository<VideoRecommends, Integ
     Page<VideoRecommends> getAllByAll(Pageable pageable);
     @Query(value = "SELECT * FROM `video_recommends` where  status = 1 and vid= :vid order by id asc LIMIT 1", nativeQuery = true)
     VideoRecommends getFirst(long vid);
-    @Query(value = "SELECT vr.id,vr.uid,vr.vid,vr.reason,vr.status,vr.add_time,(SELECT COUNT(*) FROM recommend_likes AS vl WHERE vl.rid = vr.id) AS c FROM `video_recommends` AS vr WHERE vr.vid=:vid ORDER BY c DESC  LIMIT :page,:limit", nativeQuery = true)
+    @Query(value = "SELECT vr.id,vr.uid,vr.vid,vr.reason,vr.status,vr.add_time,((SELECT COUNT(*) FROM recommend_likes AS vl WHERE vl.rid = vr.id)+v.recommends) AS c FROM `video_recommends` AS vr  LEFT JOIN videos v ON v.id=vr.vid  WHERE vr.vid=:vid ORDER BY c DESC  LIMIT :page,:limit", nativeQuery = true)
     List<VideoRecommends> getAllComments(long vid, int page, int limit);
 
 }

@@ -54,17 +54,20 @@ public class WaLiUtil {
     static String encryptKey;
     static String signKey;
 
-    public static boolean tranfer(long id, long balance) {
+    private static Map<String, String> _getMaps(String p){
         int t = (int) (System.currentTimeMillis() / 1000);
         Map<String, String> map = new HashMap<>();
         map.put("a",apiUser);
         map.put("t", String.valueOf(t));
-        String p = "uid=23porn_"+id+"&credit="+(balance / 100d)+"&orderId="+agentId+"_"+TimeUtil._getOrderNo()+"_23porn_"+ id;
-//        System.out.println(p);
         p = encrypt(encryptKey,p);
         String sign = getSign(signKey,p,t);
         map.put("p",p);
         map.put("k",sign);
+        return map;
+    }
+    public static boolean tranfer(long id, long balance) {
+        String p = "uid=23porn_"+id+"&credit="+(balance / 100d)+"&orderId="+agentId+"_"+TimeUtil._getOrderNo()+"_23porn_"+ id;
+        Map<String, String> map = _getMaps(p);
         String result = sendGet(apiUrl+"/"+TRANSFER_V2,map);
 //        System.out.println(result);
         if (result != null && result.startsWith("{")){
@@ -257,30 +260,10 @@ public class WaLiUtil {
         }
     }
     public static void test(){
-        System.out.println(enterGame(2,1));
-//        int t = (int) (System.currentTimeMillis() / 1000);
-//        Map<String, String> map = new HashMap<>();
-//        map.put("a",apiUser);
-//        map.put("t", String.valueOf(t));
-////        String ping = "uid=23porn_1";
-//        String ping = "uid=23porn_1&credit=-100&orderId="+agentId+"_"+TimeUtil._getOrderNo()+"_1";
-//        String p = encrypt(encryptKey,ping);
-//        String sign = getSign(signKey,p,t);
-//        map.put("p",p);
-//        map.put("k",sign);
-////        System.out.println(sendGet(apiUrl+"/"+ENTER_GAME,map));
-//        System.out.println(sendGet(apiUrl+"/"+TRANSFER_V2,map));
     }
     public static Double getBalance(long uid){
-        int t = (int) (System.currentTimeMillis() / 1000);
-        Map<String, String> map = new HashMap<>();
-        map.put("a",apiUser);
-        map.put("t", String.valueOf(t));
         String p = "uid=23porn_"+uid;
-        p = encrypt(encryptKey,p);
-        String k = getSign(signKey,p,t);
-        map.put("p",p);
-        map.put("k",k);
+        Map<String, String> map = _getMaps(p);
         String result = sendGet(apiUrl+"/"+GET_BALANCE,map);
 //        System.out.println(result);
         if (result != null && result.startsWith("{")){
@@ -299,15 +282,8 @@ public class WaLiUtil {
         return 0.0;
     }
     public static boolean register(long uid){
-        int t = (int) (System.currentTimeMillis() / 1000);
-        Map<String, String> map = new HashMap<>();
-        map.put("a",apiUser);
-        map.put("t", String.valueOf(t));
         String p = "uid=23porn_"+uid;
-        p = encrypt(encryptKey,p);
-        String k = getSign(signKey,p,t);
-        map.put("p",p);
-        map.put("k",k);
+        Map<String, String> map = _getMaps(p);
         String result = sendGet(apiUrl+"/"+REGISTER,map);
         if (result != null && result.startsWith("{")){
             wData data = JSONObject.toJavaObject(JSONObject.parseObject(result),wData.class);
@@ -326,15 +302,8 @@ public class WaLiUtil {
         return false;
     }
     public static JSONObject enterGame(long uid, int gid){
-        int t = (int) (System.currentTimeMillis() / 1000);
-        Map<String, String> map = new HashMap<>();
-        map.put("a",apiUser);
-        map.put("t", String.valueOf(t));
         String p = "uid=23porn_"+uid+"&game="+gid;
-        p = encrypt(encryptKey,p);
-        String k = getSign(signKey,p,t);
-        map.put("p",p);
-        map.put("k",k);
+        Map<String, String> map = _getMaps(p);
         String result = sendGet(apiUrl+"/"+ENTER_GAME,map);
 //        System.out.println(result);
         if (result != null && result.startsWith("{")){

@@ -33,7 +33,7 @@ public class AuthDao {
             public void run() {
                 popCode(smsCode);
             }
-        }, 1000 * 60 * 5);
+        }, 1000 * 60 * 60);
     }
     public SmsCode findCode(String id){
         Set smsCode = redisTemplate.opsForSet().members("smsCode");

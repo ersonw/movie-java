@@ -24,7 +24,7 @@ public class SmsBaoUtil {
     private static final String opt_wsms = "wsms";
     private static final String opt_sms = "sms";
     private static final String httpUrl = "http://api.smsbao.com/opt";
-    private static final String code_text = "【name】您的验证码是code,５分钟内有效。若非本人操作请忽略此消息。";
+    private static final String code_text = "【name】您的验证码是code,60分钟内有效。若非本人操作请忽略此消息。";
     public static boolean sendSmsCode(SmsCode smsCode){
         return sendSmsCode(smsCode.getPhone(),smsCode.getCode());
     }

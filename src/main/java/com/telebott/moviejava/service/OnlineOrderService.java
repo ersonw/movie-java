@@ -290,11 +290,13 @@ public class OnlineOrderService {
             showPayOrders.setAmount(order.getAmount());
             showPayOrders.setAddTime(System.currentTimeMillis());
             String url = getPostOrder(showPayOrders, onlinePay.getType());
-            if (url != null){
+            if (StringUtils.isNotEmpty(url)){
 //                System.out.println(url);
                 object.put("url",url);
                 object.put("state","ok");
                 onlineOrderDao.saveAndFlush(order);
+            }else{
+                object.put("msg", "支付通道未开放！");
             }
         }
         return object;
@@ -631,27 +633,28 @@ public class OnlineOrderService {
                         }
                         break;
                     case WITHDRAWAL_DIAMOND:
-                        balance = diamondRecordsDao.countAllByBalance(user.getId());
-                        if (amount > balance){
-                            object.put("msg","提现金额不得大于剩余余额！");
-                        }else if((amount / proportionDiamond) > (MaxWithdrawal / 100)){
-                            object.put("msg","单笔提现金额不得大于最大提现额度 ￥"+String.format("%.2f",MaxWithdrawal / 100d)+"！");
-                        }else if((amount / proportionDiamond) < (MiniWithdrawal / 100)){
-                            object.put("msg","单笔提现金额不得少于最小提现额度 ￥"+String.format("%.2f",MiniWithdrawal / 100d)+"！");
-                        }else {
-                            object.put("verify",true);
-                            records.setAmount((amount / proportionDiamond) * 100);
-                            records.setReason("钻石提现");
-                            withdrawalRecordsDao.saveAndFlush(records);
-                            DiamondRecords diamondRecords = new DiamondRecords();
-                            diamondRecords.setReason(records.getReason());
-                            diamondRecords.setStatus(1);
-                            diamondRecords.setDiamond(-amount);
-                            diamondRecords.setAddTime(System.currentTimeMillis());
-                            diamondRecords.setUpdateTime(System.currentTimeMillis());
-                            diamondRecords.setUid(user.getId());
-                            diamondRecordsDao.saveAndFlush(diamondRecords);
-                        }
+                        object.put("msg","暂未开放钻石提现！详情请查看官网 23av.me");
+//                        balance = diamondRecordsDao.countAllByBalance(user.getId());
+//                        if (amount > balance){
+//                            object.put("msg","提现金额不得大于剩余余额！");
+//                        }else if((amount / proportionDiamond) > (MaxWithdrawal / 100)){
+//                            object.put("msg","单笔提现金额不得大于最大提现额度 ￥"+String.format("%.2f",MaxWithdrawal / 100d)+"！");
+//                        }else if((amount / proportionDiamond) < (MiniWithdrawal / 100)){
+//                            object.put("msg","单笔提现金额不得少于最小提现额度 ￥"+String.format("%.2f",MiniWithdrawal / 100d)+"！");
+//                        }else {
+//                            object.put("verify",true);
+//                            records.setAmount((amount / proportionDiamond) * 100);
+//                            records.setReason("钻石提现");
+//                            withdrawalRecordsDao.saveAndFlush(records);
+//                            DiamondRecords diamondRecords = new DiamondRecords();
+//                            diamondRecords.setReason(records.getReason());
+//                            diamondRecords.setStatus(1);
+//                            diamondRecords.setDiamond(-amount);
+//                            diamondRecords.setAddTime(System.currentTimeMillis());
+//                            diamondRecords.setUpdateTime(System.currentTimeMillis());
+//                            diamondRecords.setUid(user.getId());
+//                            diamondRecordsDao.saveAndFlush(diamondRecords);
+//                        }
                         break;
                     case WITHDRAWAL_GOLD:
                         balance = goldRecordsDao.countAllByBalance(user.getId());
