@@ -204,11 +204,14 @@ public class ServerWebSocket {
         WebSocketData data = new WebSocketData();
         data.setCode(WebSocketUtil.user_change_fail);
         data.setMessage("用户信息变更失败！");
-        Users _user = self.userService._change(object);
-        if (_user != null) {
-//            System.out.println(_user);
-            data.setCode(WebSocketUtil.user_change_success);
-            data.setMessage("");
+        if (StringUtils.isEmpty(object.getString("phone")) && StringUtils.isEmpty(object.getString("email")) ){
+            data.setMessage("游客不允许修改账号信息");
+        }else{
+            Users _user = self.userService._change(object);
+            if (_user != null) {
+                data.setCode(WebSocketUtil.user_change_success);
+                data.setMessage("");
+            }
         }
         sendMessage(data);
     }

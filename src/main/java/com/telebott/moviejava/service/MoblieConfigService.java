@@ -124,8 +124,8 @@ public class MoblieConfigService {
         JSONObject object = new JSONObject();
         if (configPage.getContent().size() > 0){
             MoblieConfig config = configPage.getContent().get(configPage.getContent().size() - 1);
-//            object.put("version",Double.parseDouble(config.getVersion()));
-            object.put("version",Integer.parseInt(config.getVersion()));
+            object.put("version",Double.parseDouble(config.getVersion()));
+//            object.put("version",Integer.parseInt(config.getVersion()));
             object.put("hash",config.getHash());
             object.put("force", config.getForces() == 1);
             object.put("autoLogin", config.getAutoLogin() == 1);
