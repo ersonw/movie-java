@@ -449,8 +449,8 @@ public class OnlineOrderService {
     public JSONObject _postCrateOrder(Users user,String type, String order_id, String pid) {
         OnlineOrder order = new OnlineOrder();
         order.setOrderId(TimeUtil._getOrderNo()+user.getId());
-        order.setCtime(System.currentTimeMillis() / 1000L);
-        order.setUtime(System.currentTimeMillis() / 1000L);
+        order.setCtime(System.currentTimeMillis());
+        order.setUtime(System.currentTimeMillis());
         order.setUid(user.getId());
         order.setStatus(0);
         order.setPid(Integer.parseInt(pid));

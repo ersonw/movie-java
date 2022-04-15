@@ -6,6 +6,7 @@ import com.telebott.moviejava.entity.*;
 import com.telebott.moviejava.service.*;
 import com.telebott.moviejava.util.AliOssUtil;
 import com.telebott.moviejava.util.MD5Util;
+import com.telebott.moviejava.util.TimeUtil;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,8 @@ public class UserControl {
     private VideosService videosService;
     @Autowired
     private OnlinePayService onlinePayService;
+    @Autowired
+    private SystemConfigService systemConfigService;
     @GetMapping("/collectActor")
     public ResultData collectActor(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
@@ -401,6 +404,16 @@ public class UserControl {
                         users.setCtime(System.currentTimeMillis() );
                         users.setUtime(System.currentTimeMillis());
                         users.setStatus(1);
+                        boolean registerGift = false;
+                        String str = systemConfigService.getValueByKey("registerGift");
+                        if (StringUtils.isNotEmpty(str) && UserService.isNumberString(str)){
+                            if (str.equals(1)){
+                                registerGift = true;
+                            }
+                        }
+                        if (registerGift) {
+                            users.setExpireds(TimeUtil.manyDaysLater(1));
+                        }
 //                    users.setAvatar("http://htm-download.oss-cn-hongkong.aliyuncs.com/default_head.gif");
                         userService._save(users);
                         users.setToken(getToken());

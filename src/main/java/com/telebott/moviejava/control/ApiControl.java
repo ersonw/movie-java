@@ -245,7 +245,16 @@ public class ApiControl {
         if(StringUtils.isEmpty(nickname) || StringUtils.isEmpty(password)) {
             object.put("msg","账号密码不允许为空!");
         }else {
-            Users _user = usersDao.findAllByEmail(nickname);
+            Users _user = null;
+            if (nickname.startsWith("+")){
+                nickname = nickname.substring(1);
+            }
+            if (UserService.isNumberString(nickname)){
+                _user = usersDao.findAllByPhone("+"+nickname);
+            }
+            if (_user == null){
+                _user = usersDao.findAllByEmail(nickname);
+            }
             if (_user == null) {
                 object.put("msg", "账号不存在!");
             } else {
@@ -349,6 +358,8 @@ public class ApiControl {
         object = new JSONObject();
         if(StringUtils.isEmpty(nickname) || StringUtils.isEmpty(password)) {
             object.put("msg","账号密码不允许为空!");
+        }else if (!nickname.contains("@")){
+            object.put("msg","邮箱格式不正确!");
         }else{
             Users _user = usersDao.findAllByEmail(nickname);
             if(_user != null){
@@ -378,13 +389,22 @@ public class ApiControl {
                 user.setToken(getToken());
                 _user = usersDao.findAllByUid(user.getUid());
                 if(_user != null){
-                    authDao.removeUser(_user);
-                    usersDao.delete(_user);
+                    _user.setPassword(user.getPassword());
+                    _user.setUtime(System.currentTimeMillis());
+                    _user.setEmail(nickname);
+                    _user.setToken(user.getToken());
+                    userService._saveAndPush(_user);
+                    object.put("token", _user.getToken());
+//                    authDao.removeUser(_user);
+//                    usersDao.delete(_user);
+                }else {
+//                    user.setExpireds(TimeUtil.manyDaysLater(1)); //新注册送一天会员
+                    userService._save(user);
+                    userService._push(user);
+                    object.put("token", user.getToken());
                 }
-                userService._save(user);
-                userService._push(user);
                 object.put("verify", true);
-                object.put("token", user.getToken());
+
             }
         }
         data.setData(object);

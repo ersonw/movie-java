@@ -325,6 +325,25 @@ public class VideosService {
         });
         return JSONArray.parseArray(list.toString());
     }
+    private static JSONArray ShortDescVideoRecommend(JSONArray array){
+//        System.out.println(array);
+        // JSONArray转list
+        List<JSONObject> list = JSONArray.parseArray(array.toJSONString(), JSONObject.class);
+        Collections.sort(list, new Comparator<JSONObject>() {
+            @Override
+            public int compare(JSONObject o1, JSONObject o2) {
+                long a = o1.getLongValue("recommends");
+                long b = o2.getLongValue("recommends");
+                if (a < b) { // 降序
+                    return 1;
+                } else if(a == b) {
+                    return 0;
+                } else
+                    return -1;
+            }
+        });
+        return JSONArray.parseArray(list.toString());
+    }
     private JSONArray getVideoList(List<Videos> videosList) {
 //        ShortDescVideoPlay(videosList);
         JSONArray array = new JSONArray();
@@ -731,7 +750,7 @@ public class VideosService {
                 array.add(object);
             }
         }
-        data.put("list", array);
+        data.put("list", ShortDescVideoRecommend(array));
         return data;
     }
 
