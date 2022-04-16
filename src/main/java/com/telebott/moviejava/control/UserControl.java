@@ -543,6 +543,71 @@ public class UserControl {
         data.setData(videosService.joinInvite(requestData.getData(),users));
         return data;
     }
+    @PostMapping("/unBindPhone")
+    public ResultData unBindPhone(@ModelAttribute RequestData requestData, @RequestAttribute String user){
+        ResultData data = new ResultData();
+//        System.out.println(user);
+        Users users =  JSONObject.toJavaObject(JSONObject.parseObject(user),Users.class);
+        data.setData(userService.unBindPhone(users));
+        return data;
+    }
+    @PostMapping("/changeNickname")
+    public ResultData changeNickname(@ModelAttribute RequestData requestData, @RequestAttribute String user){
+        ResultData data = new ResultData();
+//        System.out.println(user);
+        Users users =  JSONObject.toJavaObject(JSONObject.parseObject(user),Users.class);
+        data.setData(userService.changeNickname(requestData.getData(),users));
+        return data;
+    }
+    @PostMapping("/changeAvatar")
+    public ResultData changeAvatar(@ModelAttribute RequestData requestData, @RequestAttribute String user){
+        ResultData data = new ResultData();
+//        System.out.println(user);
+        Users users =  JSONObject.toJavaObject(JSONObject.parseObject(user),Users.class);
+        data.setData(userService.changeAvatar(requestData.getData(),users));
+        return data;
+    }
+    @PostMapping("/changeBgImage")
+    public ResultData changeBgImage(@ModelAttribute RequestData requestData, @RequestAttribute String user){
+        ResultData data = new ResultData();
+//        System.out.println(user);
+        Users users =  JSONObject.toJavaObject(JSONObject.parseObject(user),Users.class);
+        data.setData(userService.changeBgImage(requestData.getData(),users));
+        return data;
+    }
+    @PostMapping("/changeEmail")
+    public ResultData changeEmail(@ModelAttribute RequestData requestData, @RequestAttribute String user){
+        ResultData data = new ResultData();
+//        System.out.println(user);
+        Users users =  JSONObject.toJavaObject(JSONObject.parseObject(user),Users.class);
+        data.setData(userService.changeEmail(requestData.getData(),users));
+        return data;
+    }
+    @PostMapping("/changePassword")
+    public ResultData changePassword(@ModelAttribute RequestData requestData, @RequestAttribute String user){
+        ResultData data = new ResultData();
+//        System.out.println(user);
+        Users users =  JSONObject.toJavaObject(JSONObject.parseObject(user),Users.class);
+        data.setData(userService.changePassword(requestData.getData(),users));
+        return data;
+    }
+    @PostMapping("/changeSex")
+    public ResultData changeSex(@ModelAttribute RequestData requestData, @RequestAttribute String user){
+        ResultData data = new ResultData();
+//        System.out.println(user);
+        Users users =  JSONObject.toJavaObject(JSONObject.parseObject(user),Users.class);
+        data.setData(userService.changeSex(requestData.getData(),users));
+        return data;
+    }
+    @PostMapping("/changeAge")
+    public ResultData changeAge(@ModelAttribute RequestData requestData, @RequestAttribute String user){
+        ResultData data = new ResultData();
+//        System.out.println(user);
+        Users users =  JSONObject.toJavaObject(JSONObject.parseObject(user),Users.class);
+        data.setData(userService.changeAge(requestData.getData(),users));
+        return data;
+    }
+
     @GetMapping("/getRecords")
     public ResultData getRecords(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();

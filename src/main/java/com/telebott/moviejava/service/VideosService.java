@@ -297,6 +297,7 @@ public class VideosService {
         item.put("image", getPicThumbUrl(video.getPicThumb()));
         item.put("number", video.getNumbers());
         item.put("diamond", video.getDiamond());
+        item.put("duration", video.getVodDuration());
         if (video.getActor() > 0) {
             VideoActors videoActors = videoActorsDao.findAllById(video.getActor());
             if (videoActors != null) {
@@ -744,6 +745,8 @@ public class VideosService {
                 JSONObject object = new JSONObject();
                 object.put("comments", getRecommends(recommends.getVid(), 1, user.getId()));
                 object.put("id", recommends.getId());
+                object.put("diamond", videos.getDiamond());
+                object.put("duration", videos.getVodDuration());
                 object.put("image", videos.getPicThumb());
                 object.put("vid", videos.getId());
                 object.put("recommends", videoRecommendsDao.countAllByVid(videos.getId())+videos.getRecommends());

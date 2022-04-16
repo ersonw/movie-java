@@ -2,7 +2,9 @@ package com.telebott.moviejava.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.telebott.moviejava.dao.AuthDao;
+import com.telebott.moviejava.entity.RequestData;
 import com.telebott.moviejava.entity.Users;
+//import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -10,6 +12,9 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 @Component
 public class AuthInterceptor implements HandlerInterceptor {
@@ -22,6 +27,10 @@ public class AuthInterceptor implements HandlerInterceptor {
         String token = request.getHeader("Token");
 //        System.out.println(token);
         System.out.println(request.getServletPath()+"?"+request.getQueryString());
+        String s = request.getParameter("s");
+        if (StringUtils.isNotEmpty(s)){
+            s = new String(Base64.getDecoder().decode(s),StandardCharsets.UTF_8);
+        }
         if (StringUtils.isEmpty(token)){
             response.setStatus(105);
             return false;
@@ -32,6 +41,9 @@ public class AuthInterceptor implements HandlerInterceptor {
             response.setStatus(106);
             return false;
         }
+        RequestData data = JSONObject.toJavaObject(JSONObject.parseObject(s), RequestData.class);
+        data.setUser(JSONObject.toJSONString(user));
+        System.out.println();
         request.setAttribute("user", JSONObject.toJSONString(user));
         return true;// 只有返回true才会继续向下执行，返回false取消当前请求
     }

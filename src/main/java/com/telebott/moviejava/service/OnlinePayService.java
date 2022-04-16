@@ -31,17 +31,30 @@ public class OnlinePayService {
     public JSONObject getOnlinePays() {
         JSONObject object = new JSONObject();
         JSONArray array = new JSONArray();
-        List<OnlinePay> onlinePayList = onlinePayDao.findAllByStatus(1);
+        List<OnlinePay> onlinePayList = onlinePayDao.findAllByGameAndStatus(0,1);
+        return getJsonObject(object, array, onlinePayList);
+    }
+
+    private JSONObject getJsonObject(JSONObject object, JSONArray array, List<OnlinePay> onlinePayList) {
         for(OnlinePay onlinePay : onlinePayList){
             JSONObject json = new JSONObject();
             json.put("id",onlinePay.getId());
             json.put("title",onlinePay.getTitle());
             json.put("type",onlinePay.getType());
-            json.put("iconImage",onlinePay.getIconImage());
+            json.put("mini",onlinePay.getMini());
+            json.put("max",onlinePay.getMax());
+//            json.put("iconImage",onlinePay.getIconImage());
             array.add(json);
         }
         object.put("list", array);
         return object;
+    }
+
+    public JSONObject getGamePays() {
+        JSONObject object = new JSONObject();
+        JSONArray array = new JSONArray();
+        List<OnlinePay> onlinePayList = onlinePayDao.findAllByGameAndStatus(1,1);
+        return getJsonObject(object, array, onlinePayList);
     }
 
     public JSONObject getCashIns() {

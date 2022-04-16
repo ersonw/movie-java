@@ -203,16 +203,16 @@ public class ServerWebSocket {
     private void _handlerUserChangeProfile(JSONObject object) {
         WebSocketData data = new WebSocketData();
         data.setCode(WebSocketUtil.user_change_fail);
-        data.setMessage("用户信息变更失败！");
-        if (StringUtils.isEmpty(object.getString("phone")) && StringUtils.isEmpty(object.getString("email")) ){
-            data.setMessage("游客不允许修改账号信息");
-        }else{
-            Users _user = self.userService._change(object);
-            if (_user != null) {
-                data.setCode(WebSocketUtil.user_change_success);
-                data.setMessage("");
-            }
-        }
+        data.setMessage("新版本已发布，旧版本接口不再适用哟！请到官网下载最新版本 ");
+//        if (StringUtils.isEmpty(object.getString("phone")) && StringUtils.isEmpty(object.getString("email")) ){
+//            data.setMessage("游客不允许修改账号信息");
+//        }else{
+//            Users _user = self.userService._change(object);
+//            if (_user != null) {
+//                data.setCode(WebSocketUtil.user_change_success);
+//                data.setMessage("");
+//            }
+//        }
         sendMessage(data);
     }
 

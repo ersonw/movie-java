@@ -15,11 +15,13 @@ import javax.persistence.*;
 public class OnlinePay {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private long id;
     private String title;
     private String iconImage;
     private int status;
+    private int game;
+    private long mini;
+    private long max;
     private long ctime;
     private long utime;
     private long type;

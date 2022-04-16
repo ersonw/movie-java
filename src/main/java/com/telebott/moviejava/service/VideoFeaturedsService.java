@@ -75,6 +75,8 @@ public class VideoFeaturedsService {
             JSONObject data = new JSONObject();
             data.put("id",video.getId());
             data.put("title",video.getTitle());
+            data.put("diamond", video.getDiamond());
+            data.put("duration", video.getVodDuration());
             data.put("image",videosService.getPicThumbUrl(video.getPicThumb()));
             data.put("play",videoPlayDao.countAllByVid(video.getId())+video.getPlay());
             data.put("recommendations", videoRecommendsDao.countAllByVid(video.getId())+video.getRecommends());
@@ -191,6 +193,8 @@ public class VideoFeaturedsService {
             JSONObject object = new JSONObject();
             object.put("id",video.getId());
             object.put("title",video.getTitle());
+            object.put("diamond", video.getDiamond());
+            object.put("duration", video.getVodDuration());
             object.put("image",videosService.getPicThumbUrl(video.getPicThumb()));
 //            object.put("play",video.getPlay());
 //            object.put("remommends", video.getRecommends());

@@ -3,6 +3,8 @@ package com.telebott.moviejava.service;
 import com.alibaba.fastjson.JSONObject;
 import com.telebott.moviejava.dao.*;
 import com.telebott.moviejava.entity.*;
+import com.telebott.moviejava.util.MD5Util;
+import com.telebott.moviejava.util.ToolsUtil;
 import com.telebott.moviejava.util.WaLiUtil;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -84,7 +86,7 @@ public class UserService {
             if (user != null && user.getId() != _token.getLong("id")){
                 return null;
             }
-//            System.out.println(_user);
+            System.out.println(_user);
             for (Map.Entry<String, Object> entry: object.entrySet()) {
                 if (entry.getValue() != null){
                     _token.put(entry.getKey(), entry.getValue());
@@ -129,6 +131,7 @@ public class UserService {
             object.put("expired",users.getExpireds());
             object.put("experience",users.getExperience());
             object.put("email",users.getEmail());
+            object.put("bkImage",users.getBkImage());
             object.put("remommends",videoRecommendsDao.countAllByUid(users.getId()));
             object.put("follows", userFollowsDao.countAllByUid(users.getId()));
             object.put("fans", userFollowsDao.countAllByToUid(users.getId()));
@@ -301,6 +304,197 @@ public class UserService {
         JSONObject object = new JSONObject();
 //        object.put("msg","加入成功！");
         object.put("verify",true);
+        return object;
+    }
+
+    public JSONObject changeNickname(String d, Users users) {
+        JSONObject data = JSONObject.parseObject(d);
+        JSONObject object = new JSONObject();
+        object.put("verify",false);
+        if (users == null){
+            object.put("msg", "登录已过期！");
+        }else if (data == null || data.get("change") == null){
+            object.put("msg", "过期请求！");
+        }else if (users.getNickname().equals(data.getString("change")) || StringUtils.isEmpty(data.getString("change"))){
+            object.put("msg", "");
+        }else{
+            if (StringUtils.isEmpty(users.getPhone())){
+                object.put("msg", "游客不允许修改资料！");
+            }else{
+                users.setNickname(data.getString("change"));
+                users.setUtime(System.currentTimeMillis());
+                _saveAndPush(users);
+                object.put("verify",true);
+            }
+        }
+        return object;
+    }
+    public JSONObject changeAvatar(String d, Users users) {
+        JSONObject data = JSONObject.parseObject(d);
+        JSONObject object = new JSONObject();
+        object.put("verify",false);
+        if (users == null){
+            object.put("msg", "登录已过期！");
+        }else if (data == null || data.get("change") == null){
+            object.put("msg", "过期请求！");
+        }else if (data.get("change") == null && (StringUtils.isEmpty(data.getString("change")) || users.getAvatar().equals(data.getString("change")))){
+            object.put("msg", "");
+        }else{
+            if (StringUtils.isEmpty(users.getPhone())){
+                object.put("msg", "游客不允许修改头像！");
+            }else if (data.getString("change").startsWith("http")){
+                users.setAvatar(data.getString("change"));
+                users.setUtime(System.currentTimeMillis());
+                _saveAndPush(users);
+                object.put("verify",true);
+            }
+        }
+        return object;
+    }
+    public JSONObject changeBgImage(String d, Users users) {
+        JSONObject data = JSONObject.parseObject(d);
+        JSONObject object = new JSONObject();
+        object.put("verify",false);
+        if (users == null){
+            object.put("msg", "登录已过期！");
+        }else if (data == null || data.get("change") == null){
+            object.put("msg", "过期请求！");
+        }else if (data.get("change") == null && (StringUtils.isEmpty(data.getString("change")) || users.getAvatar().equals(data.getString("change")))){
+            object.put("msg", "");
+        }else{
+            if (StringUtils.isEmpty(users.getPhone())){
+                object.put("msg", "游客不允许修改背景！");
+            }else if (data.getString("change").startsWith("http")){
+                users.setBkImage(data.getString("change"));
+                users.setUtime(System.currentTimeMillis());
+                _saveAndPush(users);
+                object.put("verify",true);
+            }
+        }
+        return object;
+    }
+    public JSONObject changeSex(String d, Users users) {
+        JSONObject data = JSONObject.parseObject(d);
+        JSONObject object = new JSONObject();
+        object.put("verify",false);
+        if (users == null){
+            object.put("msg", "登录已过期！");
+        }else if (data == null || data.get("change") == null || !isNumberString(data.getString("change"))){
+            object.put("msg", "过期请求！");
+        }else if (StringUtils.isEmpty(data.getString("change")) || users.getSex() == (data.getInteger("change"))){
+            object.put("msg", "");
+        }else{
+            if (StringUtils.isEmpty(users.getPhone())){
+                object.put("msg", "游客不允许修改资料！");
+            }else{
+                users.setSex(data.getInteger("change"));
+                users.setUtime(System.currentTimeMillis());
+                _saveAndPush(users);
+                object.put("verify",true);
+            }
+        }
+        return object;
+    }
+    public JSONObject changeAge(String d, Users users) {
+        JSONObject data = JSONObject.parseObject(d);
+        JSONObject object = new JSONObject();
+        object.put("verify",false);
+        if (users == null){
+            object.put("msg", "登录已过期！");
+        }else if (data == null || data.get("change") == null || !isNumberString(data.getString("change"))){
+            object.put("msg", "过期请求！");
+        }else if (StringUtils.isEmpty(data.getString("change")) || users.getBirthday() == (data.getLong("change"))){
+            object.put("msg", "");
+        }else{
+            if (StringUtils.isEmpty(users.getPhone())){
+                object.put("msg", "游客不允许修改资料！");
+            }else{
+                users.setBirthday(data.getLong("change"));
+                users.setUtime(System.currentTimeMillis());
+                _saveAndPush(users);
+                object.put("verify",true);
+            }
+        }
+        return object;
+    }
+    public JSONObject changeEmail(String d, Users users) {
+        JSONObject data = JSONObject.parseObject(d);
+        JSONObject object = new JSONObject();
+        object.put("verify",false);
+        if (users == null){
+            object.put("msg", "登录已过期！");
+        }else if (data == null || data.get("change") == null || StringUtils.isEmpty(data.getString("change"))){
+            object.put("msg", "过期请求！");
+        }else if ( StringUtils.isEmpty(data.getString("change")) || users.getEmail().equals(data.getString("change"))){
+            object.put("msg", "");
+        }else if (!ToolsUtil.checkEmailFormat(data.getString("change"))){
+            object.put("msg", "邮箱格式不正确！");
+        }else{
+//            if (StringUtils.isEmpty(users.getPhone())){
+//                object.put("msg", "游客不允许修改邮件！");
+//            }else{
+                users.setEmail(data.getString("change"));
+                users.setUtime(System.currentTimeMillis());
+                Users _user = usersDao.findAllByEmail(users.getEmail());
+                if (_user != null){
+                    object.put("msg", "邮件已绑定其他账号，详情请联系在线客服！");
+                }else{
+                    _saveAndPush(users);
+                    object.put("verify",true);
+                }
+//            }
+        }
+        return object;
+    }
+    public JSONObject changePassword(String d, Users users) {
+        JSONObject data = JSONObject.parseObject(d);
+        JSONObject object = new JSONObject();
+        object.put("verify",false);
+        if (users == null){
+            object.put("msg", "登录已过期！");
+        }else if (data == null || data.get("change") == null || StringUtils.isEmpty(data.getString("change"))){
+            object.put("msg", "过期请求！");
+        }else{
+            if (StringUtils.isEmpty(users.getPhone())){
+                object.put("msg", "游客不允许修改密码！");
+            }else{
+
+            }
+            MD5Util md5Util = new MD5Util(users.getSalt());
+            String pass = md5Util.getPassWord(data.getString("change"));
+            String old = StringUtils.isEmpty(data.getString("old")) ? "" : md5Util.getPassWord(data.getString("old"));
+            if (StringUtils.isEmpty(old) && StringUtils.isNotEmpty(users.getPassword())){
+                object.put("msg", "原密码不能为空！");
+            }else {
+                users.setUtime(System.currentTimeMillis());
+                if (StringUtils.isEmpty(users.getPassword())){
+                    users.setPassword(pass);
+                    _saveAndPush(users);
+                    object.put("verify",true);
+                }else{
+                    if (users.getPassword().equals(old)){
+                        _saveAndPush(users);
+                        object.put("verify",true);
+                    }else{
+                        object.put("msg", "原密码错误！");
+                    }
+                }
+            }
+        }
+        return object;
+    }
+
+    public JSONObject unBindPhone(Users users) {
+        JSONObject object = new JSONObject();
+        object.put("verify",false);
+        object.put("msg", "活动期间暂不支持解绑手机号，详情请联系在线客服！");
+//        if (users == null){
+//            object.put("msg", "用户不存在！");
+//        }else{
+//            users.setUtime(System.currentTimeMillis());
+//            users.setPhone("");
+//            object.put("verify",true);
+//        }
         return object;
     }
 }

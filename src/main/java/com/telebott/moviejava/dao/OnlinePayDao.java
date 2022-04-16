@@ -10,5 +10,6 @@ import java.util.List;
 @Repository
 public interface OnlinePayDao   extends JpaRepository<OnlinePay, Integer>, CrudRepository<OnlinePay, Integer> {
     List<OnlinePay> findAllByStatus(int status);
+    List<OnlinePay> findAllByGameAndStatus(int game, int status);
     OnlinePay findAllById(long id);
 }

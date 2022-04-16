@@ -51,7 +51,8 @@ public class ApiControl {
     public ResultData test(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
 //        WaLiUtil.tranfer(57,10000000);
-        System.out.println(WaLiUtil.getBalance(57));
+//        System.out.println(WaLiUtil.getBalance(57));
+        System.out.println(TimeUtil.manyDaysLater(30*12));
         return data;
     }
     @GetMapping("/getPopUpsDialog")
@@ -246,14 +247,10 @@ public class ApiControl {
             object.put("msg","账号密码不允许为空!");
         }else {
             Users _user = null;
-            if (nickname.startsWith("+")){
-                nickname = nickname.substring(1);
-            }
-            if (UserService.isNumberString(nickname)){
-                _user = usersDao.findAllByPhone("+"+nickname);
-            }
-            if (_user == null){
+            if (ToolsUtil.checkEmailFormat(nickname)){
                 _user = usersDao.findAllByEmail(nickname);
+            }else if (MobileRegularExp.isMobileNumber(nickname)){
+                _user = usersDao.findAllByPhone("+"+nickname);
             }
             if (_user == null) {
                 object.put("msg", "账号不存在!");
@@ -465,6 +462,12 @@ public class ApiControl {
     public ResultData getOnlinePays(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
         data.setData(onlinePayService.getOnlinePays());
+        return data;
+    }
+    @GetMapping("/getGamePays")
+    public ResultData getGamePays(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(onlinePayService.getGamePays());
         return data;
     }
     @GetMapping("/getCashIns")
