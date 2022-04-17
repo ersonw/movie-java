@@ -27,10 +27,6 @@ public class AuthInterceptor implements HandlerInterceptor {
         String token = request.getHeader("Token");
 //        System.out.println(token);
         System.out.println(request.getServletPath()+"?"+request.getQueryString());
-        String s = request.getParameter("s");
-        if (StringUtils.isNotEmpty(s)){
-            s = new String(Base64.getDecoder().decode(s),StandardCharsets.UTF_8);
-        }
         if (StringUtils.isEmpty(token)){
             response.setStatus(105);
             return false;
@@ -41,9 +37,7 @@ public class AuthInterceptor implements HandlerInterceptor {
             response.setStatus(106);
             return false;
         }
-        RequestData data = JSONObject.toJavaObject(JSONObject.parseObject(s), RequestData.class);
-        data.setUser(JSONObject.toJSONString(user));
-        System.out.println();
+//        System.out.println();
         request.setAttribute("user", JSONObject.toJSONString(user));
         return true;// 只有返回true才会继续向下执行，返回false取消当前请求
     }

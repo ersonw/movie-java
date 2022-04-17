@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.telebott.moviejava.dao.*;
 import com.telebott.moviejava.entity.*;
+import com.telebott.moviejava.util.TimeUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -19,6 +20,8 @@ import java.util.List;
 
 @Service
 public class VideoFeaturedsService {
+    private static int  fIndex = 0;
+    private static long days = 0;
     @Autowired
     private VideoFeaturedRecordsDao videoFeaturedRecordsDao;
     @Autowired
@@ -57,12 +60,18 @@ public class VideoFeaturedsService {
         JSONArray array = new JSONArray();
         object.put("id", featured.getId());
         object.put("title",featured.getTitle());
-        List<VideoFeaturedRecords> videoFeaturedRecordsList = videoFeaturedRecordsDao.findAllByFid(featured.getId());
-        for (int i = 0; i < 4; i++){
-            if (i < videoFeaturedRecordsList.size()){
-                VideoFeaturedRecords record = videoFeaturedRecordsList.get(i);
-                getRecordVideo(array, record);
+        Pageable pageable = PageRequest.of(fIndex, 6, Sort.by(Sort.Direction.DESC, "id"));
+        Page<VideoFeaturedRecords> videoFeaturedRecordsPage = videoFeaturedRecordsDao.findAllByFid(featured.getId(),pageable);
+        if (fIndex < videoFeaturedRecordsPage.getTotalPages()){
+            if (TimeUtil.getTodayZero() > days){
+                fIndex++;
+                days = TimeUtil.getTodayZero();
             }
+        }else{
+            fIndex = 0;
+        }
+        for (VideoFeaturedRecords record : videoFeaturedRecordsPage.getContent()) {
+            getRecordVideo(array, record);
         }
         object.put("videos",array);
         if (array.isEmpty()) return null;

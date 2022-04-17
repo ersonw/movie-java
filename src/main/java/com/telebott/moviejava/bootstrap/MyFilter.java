@@ -2,6 +2,7 @@ package com.telebott.moviejava.bootstrap;
 
 import com.alibaba.fastjson.JSONObject;
 import com.telebott.moviejava.dao.AuthDao;
+import com.telebott.moviejava.entity.RequestData;
 import com.telebott.moviejava.entity.Users;
 import com.telebott.moviejava.service.BodyRequestWrapper;
 import com.telebott.moviejava.service.ParameterRequestWrapper;
@@ -18,6 +19,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -68,6 +72,13 @@ public class MyFilter implements Filter {
                     && !request.getParameterMap().isEmpty()) {
                 //修改、新增、删除参数
                 Map<String, String[]> parameterMap = request.getParameterMap();
+                String s = Arrays.toString(parameterMap.get("s"));
+                if (StringUtils.isNotEmpty(s)){
+                    s = new String(Base64.getDecoder().decode(s), StandardCharsets.UTF_8);
+                }
+                System.out.println(s);
+//                RequestData data = JSONObject.toJavaObject(JSONObject.parseObject(s), RequestData.class);
+//                data.setUser(JSONObject.toJSONString(user));1
                 //对请求参数进行处理
                 String token = ((HttpServletRequest) req).getHeader("Token");
 //                System.out.println(token);
@@ -86,13 +97,13 @@ public class MyFilter implements Filter {
                     Users user = authDao.findUserByToken(token);
                     if (user != null){
                         Map<String, String[]> parameterMap =new HashMap(request.getParameterMap());
-//                        parameterMap.put("user", new String[]{JSON.toJSONString(user)});
-//                        parameterMap.put("user", new String[]{user.toString()});
-//                        request = new ParameterRequestWrapper(request, parameterMap);
-//                        Map<String, Object> map = new HashMap<>();
-//                        map.put("user", user);
-//                        RequestParameterWrapper wrapper = new RequestParameterWrapper(request);
-//                        wrapper.addParameters(map);
+                        String s = Arrays.toString(parameterMap.get("s"));
+                        if (StringUtils.isNotEmpty(s)){
+                            s = s.replaceAll("\\[","").replaceAll("\\]","");
+                            System.out.println(s);
+                            s = new String(Base64.getDecoder().decode(s), StandardCharsets.UTF_8);
+                        }
+                        System.out.println(s);
                         ParameterRequestWrapper wrapper = new ParameterRequestWrapper(request,parameterMap);
                         wrapper.addParameter("user", JSONObject.toJSONString(user));
                         request = wrapper;

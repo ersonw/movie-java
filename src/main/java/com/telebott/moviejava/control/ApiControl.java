@@ -52,7 +52,7 @@ public class ApiControl {
         ResultData data = new ResultData();
 //        WaLiUtil.tranfer(57,10000000);
 //        System.out.println(WaLiUtil.getBalance(57));
-        System.out.println(TimeUtil.manyDaysLater(30*12));
+        System.out.println(TimeUtil.getBeforeDaysZero(3));
         return data;
     }
     @GetMapping("/getPopUpsDialog")
