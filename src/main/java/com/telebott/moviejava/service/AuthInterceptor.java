@@ -26,7 +26,7 @@ public class AuthInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
         String token = request.getHeader("Token");
 //        System.out.println(token);
-        System.out.println(request.getServletPath()+"?"+request.getQueryString());
+        System.out.println(request.getRequestURI());
         if (StringUtils.isEmpty(token)){
             response.setStatus(105);
             return false;
@@ -38,7 +38,7 @@ public class AuthInterceptor implements HandlerInterceptor {
             return false;
         }
 //        System.out.println();
-        request.setAttribute("user", JSONObject.toJSONString(user));
+//        request.setAttribute("user", JSONObject.toJSONString(user));
         return true;// 只有返回true才会继续向下执行，返回false取消当前请求
     }
 }

@@ -99,6 +99,7 @@ public enum MobileRegularExp {
         return isMobileNumber;
     }
     public static boolean isMobileNumber(String mobileNumber){
+//        System.out.println(mobileNumber);
         boolean isMobileNumber = false;
         for (MobileRegularExp regularExp : MobileRegularExp.values()) {
             Pattern pattern = Pattern.compile(regularExp.getRegularExp());

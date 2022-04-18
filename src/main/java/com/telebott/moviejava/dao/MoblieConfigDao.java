@@ -8,7 +8,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface MoblieConfigDao extends JpaRepository<MoblieConfig, Integer>, CrudRepository<MoblieConfig, Integer> {
+public interface MoblieConfigDao extends JpaRepository<MoblieConfig, Long>, CrudRepository<MoblieConfig, Long> {
     MoblieConfig findAllById(int id);
     Page<MoblieConfig> findAll(Pageable pageable);
 }

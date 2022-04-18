@@ -52,7 +52,7 @@ public class ApiControl {
         ResultData data = new ResultData();
 //        WaLiUtil.tranfer(57,10000000);
 //        System.out.println(WaLiUtil.getBalance(57));
-        System.out.println(TimeUtil.getBeforeDaysZero(3));
+        System.out.println(TimeUtil.manyDaysLater(365));
         return data;
     }
     @GetMapping("/getPopUpsDialog")
@@ -436,7 +436,6 @@ public class ApiControl {
     public ResultData checkPhone(@ModelAttribute RequestData requestData){
 //        System.out.println(requestData);
         ResultData data = new ResultData();
-//        return data;
         if (MobileRegularExp.isMobileNumber(requestData.getData())){
             Users user = userService.getUserByPhone(requestData.getData());
             JSONObject object = new JSONObject();

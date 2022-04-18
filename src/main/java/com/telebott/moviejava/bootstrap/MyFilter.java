@@ -1,6 +1,9 @@
 package com.telebott.moviejava.bootstrap;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.telebott.moviejava.dao.AuthDao;
 import com.telebott.moviejava.entity.RequestData;
 import com.telebott.moviejava.entity.Users;
@@ -41,9 +44,19 @@ public class MyFilter implements Filter {
         if(req instanceof HttpServletRequest){
             HttpServletRequest request = (HttpServletRequest) req;
             String contentType = request.getContentType();
+            ObjectMapper mapper = new ObjectMapper();
             //body形式（json）
 //            System.out.println(request.getMethod());
             if (contentType != null && contentType.equals(MediaType.APPLICATION_JSON_VALUE)) {
+                Map<String, String[]> parameterMap = request.getParameterMap();
+                String s = Arrays.toString(parameterMap.get("s"));
+                if (StringUtils.isNotEmpty(s)){
+                    s = s.replaceAll("\\[","").replaceAll("\\]","");
+                    s = new String(Base64.getDecoder().decode(s), StandardCharsets.UTF_8);
+//                    parameterMap = JSONObject.parseObject(s, Map.class);
+                    parameterMap = (Map<String, String[]>) JSON.parse(s);
+                }
+//                System.out.println(parameterMap);
                 //获取request的body参数
                 String postContent = getBody(request);
                 //如果body中存在数据放入HttpServletRequest
@@ -74,41 +87,64 @@ public class MyFilter implements Filter {
                 Map<String, String[]> parameterMap = request.getParameterMap();
                 String s = Arrays.toString(parameterMap.get("s"));
                 if (StringUtils.isNotEmpty(s)){
+                    s = s.replaceAll("\\[","").replaceAll("\\]","");
                     s = new String(Base64.getDecoder().decode(s), StandardCharsets.UTF_8);
+//                    parameterMap = JSONObject.parseObject(s, Map.class);
+                    parameterMap = (Map<String, String[]>) JSON.parse(s);
                 }
-                System.out.println(s);
-//                RequestData data = JSONObject.toJavaObject(JSONObject.parseObject(s), RequestData.class);
-//                data.setUser(JSONObject.toJSONString(user));1
+//                System.out.println(parameterMap);
                 //对请求参数进行处理
                 String token = ((HttpServletRequest) req).getHeader("Token");
-//                System.out.println(token);
+                ParameterRequestWrapper wrapper = new ParameterRequestWrapper(request,parameterMap);
+
                 if (StringUtils.isNotEmpty(token)){
                     Users user = authDao.findUserByToken(token);
                     if (user != null){
-                        parameterMap.put("user", new String[]{JSONObject.toJSONString(user)});
+                        wrapper.addParameter("user", JSONObject.toJSONString(user));
                     }
                 }
-                request = new ParameterRequestWrapper(request, parameterMap);
+                request = wrapper;
             }
-            if (request.getMethod().equals("GET") /*&& !request.getParameterMap().isEmpty()*/){
+            if (request.getMethod().equals("GET")){
 //                //对请求参数进行处理
+                Map<String, String[]> parameterMap =new HashMap(request.getParameterMap());
+                if (parameterMap.get("s") != null){
+                    String s = Arrays.toString(parameterMap.get("s"));
+//                    System.out.println(s);
+                    s = s.replaceAll("\\[","").replaceAll("\\]","");
+                    s = new String(Base64.getDecoder().decode(s), StandardCharsets.UTF_8);
+//                    System.out.println(s);
+                    parameterMap = JSONObject.parseObject(s, Map.class);
+                }
+                ParameterRequestWrapper wrapper = new ParameterRequestWrapper(request,parameterMap);
                 String token = ((HttpServletRequest) req).getHeader("Token");
                 if (StringUtils.isNotEmpty(token)){
                     Users user = authDao.findUserByToken(token);
                     if (user != null){
-                        Map<String, String[]> parameterMap =new HashMap(request.getParameterMap());
-                        String s = Arrays.toString(parameterMap.get("s"));
-                        if (StringUtils.isNotEmpty(s)){
-                            s = s.replaceAll("\\[","").replaceAll("\\]","");
-                            System.out.println(s);
-                            s = new String(Base64.getDecoder().decode(s), StandardCharsets.UTF_8);
-                        }
-                        System.out.println(s);
-                        ParameterRequestWrapper wrapper = new ParameterRequestWrapper(request,parameterMap);
                         wrapper.addParameter("user", JSONObject.toJSONString(user));
-                        request = wrapper;
                     }
                 }
+                request = wrapper;
+            }else if (request.getMethod().equals("POST")){
+//                //对请求参数进行处理
+                Map<String, String[]> parameterMap =new HashMap(request.getParameterMap());
+                if (parameterMap.get("s") != null){
+                    String s = Arrays.toString(parameterMap.get("s"));
+//                    System.out.println(s);
+                    s = s.replaceAll("\\[","").replaceAll("\\]","");
+                    s = new String(Base64.getDecoder().decode(s), StandardCharsets.UTF_8);
+                    parameterMap = JSONObject.parseObject(s, Map.class);
+//                            parameterMap = (Map<String, String[]>) JSON.parse(s);
+                }
+                ParameterRequestWrapper wrapper = new ParameterRequestWrapper(request,parameterMap);
+                String token = ((HttpServletRequest) req).getHeader("Token");
+                if (StringUtils.isNotEmpty(token)){
+                    Users user = authDao.findUserByToken(token);
+                    if (user != null){
+                        wrapper.addParameter("user", JSONObject.toJSONString(user));
+                    }
+                }
+                request = wrapper;
             }
             chain.doFilter(request, response);
         }else{

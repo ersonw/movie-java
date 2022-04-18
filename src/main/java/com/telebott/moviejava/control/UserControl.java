@@ -522,89 +522,70 @@ public class UserControl {
         data.setData(userService.enterGame(requestData.getData(),requestData.getUser()));
         return data;
     }
-    @GetMapping("/joinChannel")
+//    @GetMapping("/joinChannel")
+//    public ResultData joinChannel(@ModelAttribute RequestData requestData){
+//        ResultData data = new ResultData();
+//        data.setData(userService.joinChannel(requestData.getData(), requestData.getUser()));
+//        return data;
+//    }
+    @PostMapping("/joinChannel")
     public ResultData joinChannel(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
-        data.setData(userService.joinChannel(requestData.getData(), requestData.getUser()));
-        return data;
-    }
-    @PostMapping("/joinChannel")
-    public ResultData joinChannel(@ModelAttribute RequestData requestData, @RequestAttribute String user){
-        ResultData data = new ResultData();
-        Users users =  JSONObject.toJavaObject(JSONObject.parseObject(user),Users.class);
-        data.setData(userService.joinChannel(requestData.getData(),users));
+        data.setData(userService.joinChannel(requestData.getData(),requestData.getUser()));
         return data;
     }
     @PostMapping("/joinInvite")
-    public ResultData joinInvite(@ModelAttribute RequestData requestData, @RequestAttribute String user){
+    public ResultData joinInvite(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
-//        System.out.println(user);
-        Users users =  JSONObject.toJavaObject(JSONObject.parseObject(user),Users.class);
-        data.setData(videosService.joinInvite(requestData.getData(),users));
+        data.setData(videosService.joinInvite(requestData.getData(), requestData.getUser()));
         return data;
     }
     @PostMapping("/unBindPhone")
-    public ResultData unBindPhone(@ModelAttribute RequestData requestData, @RequestAttribute String user){
+    public ResultData unBindPhone(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
-//        System.out.println(user);
-        Users users =  JSONObject.toJavaObject(JSONObject.parseObject(user),Users.class);
-        data.setData(userService.unBindPhone(users));
+        data.setData(userService.unBindPhone(requestData.getUser()));
         return data;
     }
     @PostMapping("/changeNickname")
-    public ResultData changeNickname(@ModelAttribute RequestData requestData, @RequestAttribute String user){
+    public ResultData changeNickname(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
-//        System.out.println(user);
-        Users users =  JSONObject.toJavaObject(JSONObject.parseObject(user),Users.class);
-        data.setData(userService.changeNickname(requestData.getData(),users));
+        data.setData(userService.changeNickname(requestData.getData(), requestData.getUser()));
         return data;
     }
     @PostMapping("/changeAvatar")
-    public ResultData changeAvatar(@ModelAttribute RequestData requestData, @RequestAttribute String user){
+    public ResultData changeAvatar(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
-//        System.out.println(user);
-        Users users =  JSONObject.toJavaObject(JSONObject.parseObject(user),Users.class);
-        data.setData(userService.changeAvatar(requestData.getData(),users));
+        data.setData(userService.changeAvatar(requestData.getData(),requestData.getUser()));
         return data;
     }
     @PostMapping("/changeBgImage")
-    public ResultData changeBgImage(@ModelAttribute RequestData requestData, @RequestAttribute String user){
+    public ResultData changeBgImage(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
-//        System.out.println(user);
-        Users users =  JSONObject.toJavaObject(JSONObject.parseObject(user),Users.class);
-        data.setData(userService.changeBgImage(requestData.getData(),users));
+        data.setData(userService.changeBgImage(requestData.getData(),requestData.getUser()));
         return data;
     }
     @PostMapping("/changeEmail")
-    public ResultData changeEmail(@ModelAttribute RequestData requestData, @RequestAttribute String user){
+    public ResultData changeEmail(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
-//        System.out.println(user);
-        Users users =  JSONObject.toJavaObject(JSONObject.parseObject(user),Users.class);
-        data.setData(userService.changeEmail(requestData.getData(),users));
+        data.setData(userService.changeEmail(requestData.getData(), requestData.getUser()));
         return data;
     }
     @PostMapping("/changePassword")
-    public ResultData changePassword(@ModelAttribute RequestData requestData, @RequestAttribute String user){
+    public ResultData changePassword(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
-//        System.out.println(user);
-        Users users =  JSONObject.toJavaObject(JSONObject.parseObject(user),Users.class);
-        data.setData(userService.changePassword(requestData.getData(),users));
+        data.setData(userService.changePassword(requestData.getData(), requestData.getUser()));
         return data;
     }
     @PostMapping("/changeSex")
-    public ResultData changeSex(@ModelAttribute RequestData requestData, @RequestAttribute String user){
+    public ResultData changeSex(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
-//        System.out.println(user);
-        Users users =  JSONObject.toJavaObject(JSONObject.parseObject(user),Users.class);
-        data.setData(userService.changeSex(requestData.getData(),users));
+        data.setData(userService.changeSex(requestData.getData(), requestData.getUser()));
         return data;
     }
     @PostMapping("/changeAge")
-    public ResultData changeAge(@ModelAttribute RequestData requestData, @RequestAttribute String user){
+    public ResultData changeAge(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
-//        System.out.println(user);
-        Users users =  JSONObject.toJavaObject(JSONObject.parseObject(user),Users.class);
-        data.setData(userService.changeAge(requestData.getData(),users));
+        data.setData(userService.changeAge(requestData.getData(), requestData.getUser()));
         return data;
     }
 

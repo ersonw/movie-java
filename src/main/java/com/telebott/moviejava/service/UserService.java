@@ -418,31 +418,32 @@ public class UserService {
         return object;
     }
     public JSONObject changeEmail(String d, Users users) {
+//        System.out.println(d);
         JSONObject data = JSONObject.parseObject(d);
         JSONObject object = new JSONObject();
         object.put("verify",false);
         if (users == null){
             object.put("msg", "登录已过期！");
-        }else if (data == null || data.get("change") == null || StringUtils.isEmpty(data.getString("change"))){
+        }else if (data == null || data.get("change") == null || StringUtils.isEmpty(data.getString("change")) || (StringUtils.isNotEmpty(users.getEmail()) && users.getEmail().equals(data.getString("change")))){
             object.put("msg", "过期请求！");
-        }else if ( StringUtils.isEmpty(data.getString("change")) || users.getEmail().equals(data.getString("change"))){
-            object.put("msg", "");
-        }else if (!ToolsUtil.checkEmailFormat(data.getString("change"))){
-            object.put("msg", "邮箱格式不正确！");
-        }else{
-//            if (StringUtils.isEmpty(users.getPhone())){
-//                object.put("msg", "游客不允许修改邮件！");
-//            }else{
-                users.setEmail(data.getString("change"));
-                users.setUtime(System.currentTimeMillis());
-                Users _user = usersDao.findAllByEmail(users.getEmail());
-                if (_user != null){
-                    object.put("msg", "邮件已绑定其他账号，详情请联系在线客服！");
+        }else {
+            if (!ToolsUtil.checkEmailFormat(data.getString("change"))){
+                object.put("msg", "邮箱格式不正确！");
+            }else{
+                if (StringUtils.isEmpty(users.getPhone())){
+                    object.put("msg", "游客不允许修改邮件！");
                 }else{
-                    _saveAndPush(users);
-                    object.put("verify",true);
+                    users.setEmail(data.getString("change"));
+                    users.setUtime(System.currentTimeMillis());
+                    Users _user = usersDao.findAllByEmail(users.getEmail());
+                    if (_user != null){
+                        object.put("msg", "邮件已绑定其他账号，详情请联系在线客服！");
+                    }else{
+                        _saveAndPush(users);
+                        object.put("verify",true);
+                    }
                 }
-//            }
+            }
         }
         return object;
     }
@@ -487,14 +488,15 @@ public class UserService {
     public JSONObject unBindPhone(Users users) {
         JSONObject object = new JSONObject();
         object.put("verify",false);
-        object.put("msg", "活动期间暂不支持解绑手机号，详情请联系在线客服！");
-//        if (users == null){
-//            object.put("msg", "用户不存在！");
-//        }else{
-//            users.setUtime(System.currentTimeMillis());
-//            users.setPhone("");
-//            object.put("verify",true);
-//        }
+//        object.put("msg", "活动期间暂不支持解绑手机号，详情请联系在线客服！");
+        if (users == null){
+            object.put("msg", "用户不存在！");
+        }else{
+            users.setUtime(System.currentTimeMillis());
+            users.setPhone("");
+            _saveAndPush(users);
+            object.put("verify",true);
+        }
         return object;
     }
 }
