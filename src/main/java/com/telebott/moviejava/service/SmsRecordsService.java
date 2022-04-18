@@ -19,13 +19,16 @@ public class SmsRecordsService {
     private SystemConfigService systemConfigService;
     public boolean _sendSmsCode(SmsCode smsCode){
 
-        SmsCode code= _getCode(smsCode.getPhone());
-        if (code != null){
-            smsCode = code;
-        }else {
-            authDao.removeByPhone(smsCode.getPhone());
-            authDao.pushCode(smsCode);
-        }
+//        SmsCode code= _getCode(smsCode.getPhone());
+//        if (code != null){
+//            smsCode = code;
+//        }else {
+//            authDao.removeByPhone(smsCode.getPhone());
+//            authDao.pushCode(smsCode);
+//        }
+        authDao.removeByPhone(smsCode.getPhone());
+        authDao.pushCode(smsCode);
+
         SmsRecords smsRecords = new SmsRecords();
         smsRecords.setCode(smsCode.getCode());
         smsRecords.setNumber(smsCode.getPhone());
@@ -56,6 +59,7 @@ public class SmsRecordsService {
     }
     public String _verifyCode(String id, String code){
         SmsCode smsCode = authDao.findCode(id);
+//        System.out.println(smsCode);
         if (smsCode != null && smsCode.getCode().equals(code)){
             authDao.popCode(smsCode);
 //            SmsRecords smsRecords = smsRecordsDao.findAllByData(smsCode.getId());

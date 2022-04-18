@@ -26,6 +26,7 @@ public class AuthDao {
         if (object != null){
             popCode(object);
         }
+//        System.out.println(smsCode);
 //        redisTemplate.opsForSet().add("smsCode",JSONObject.toJSONString(smsCode),5, TimeUnit.MINUTES);
         redisTemplate.opsForSet().add("smsCode",JSONObject.toJSONString(smsCode));
         timer.schedule(new TimerTask() {
@@ -40,6 +41,7 @@ public class AuthDao {
         if (smsCode != null){
             JSONObject jsonObject = new JSONObject();
             for (Object code: smsCode) {
+//                System.out.println(code);
                 jsonObject = JSONObject.parseObject(code.toString());
                 if (id.equals(jsonObject.get("id"))){
                     return JSONObject.toJavaObject(jsonObject,SmsCode.class);

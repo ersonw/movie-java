@@ -294,6 +294,7 @@ public class ApiControl {
         Random r = new Random();
         MD5Util md5Util = new MD5Util();
         Users user = requestData.getUser();
+//        System.out.println(user);
         JSONObject object = JSONObject.parseObject(requestData.getData());
         if (user == null){
             StringBuilder nickname = new StringBuilder("游客_");
@@ -304,6 +305,7 @@ public class ApiControl {
             user = new Users();
             user.setNickname(nickname.toString());
             user.setCtime(System.currentTimeMillis());
+            user.setStatus(1);
         }
         if (object.get("id") == null ||
                 object.get("identifier") == null ||
@@ -314,15 +316,23 @@ public class ApiControl {
             data.setMessage("参数提交错误！请更新至最新版本！");
         }else {
             String phone = smsRecordsService._verifyCode(object.get("id").toString(),object.get("code").toString());
-            System.out.println(phone);
+//            System.out.println(phone);
 //            System.out.println(requestData.getData());
             if (phone != null){
                 user.setUtime(System.currentTimeMillis());
                 user.setPhone(phone);
                 user.setIdentifier(object.get("identifier").toString());
-                user.setUid(md5Util.getMD5(user.getIdentifier()));
-                user.setSalt(userService._getSalt());
-                user.setInvite(userService._getInvite());
+                if (StringUtils.isEmpty(user.getUid())){
+                    user.setUid(md5Util.getMD5(user.getIdentifier()));
+                }
+                if (StringUtils.isEmpty(user.getSalt())){
+                    user.setSalt(userService._getSalt());
+
+                }
+                if (StringUtils.isEmpty(user.getInvite())){
+                    user.setInvite(userService._getInvite());
+
+                }
                 md5Util.setSalt(user.getSalt());
                 if (object.get("passwd").toString().length() < 32){
                     user.setPassword(md5Util.getPassWord(md5Util.getMD5(object.get("passwd").toString())));
@@ -430,6 +440,7 @@ public class ApiControl {
             data.setCode(201);
             data.setMessage("手机号码格式不正确!");
         }
+//        System.out.println(data);
         return data;
     }
     @GetMapping("/checkPhone")
