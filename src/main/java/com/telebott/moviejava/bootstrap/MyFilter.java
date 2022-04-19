@@ -48,64 +48,64 @@ public class MyFilter implements Filter {
             System.out.println(request.getRequestURI()+(request.getQueryString() != null ? "?"+request.getQueryString() : ""));
             //body形式（json）
 //            System.out.println(request.getMethod());
-            if (contentType != null && contentType.equals(MediaType.APPLICATION_JSON_VALUE)) {
-                Map<String, String[]> parameterMap = request.getParameterMap();
-                String s = Arrays.toString(parameterMap.get("s"));
-                if (StringUtils.isNotEmpty(s)){
-                    s = s.replaceAll("\\[","").replaceAll("\\]","");
-                    s = new String(Base64.getDecoder().decode(s), StandardCharsets.UTF_8);
-//                    parameterMap = JSONObject.parseObject(s, Map.class);
-                    parameterMap = (Map<String, String[]>) JSON.parse(s);
-                }
-//                System.out.println(parameterMap);
-                //获取request的body参数
-                String postContent = getBody(request);
-                //如果body中存在数据放入HttpServletRequest
-                if (StringUtils.isNotEmpty(postContent)) {
-                    //修改、新增、删除参数
-                    JSONObject jsStr = JSONObject.parseObject(postContent);
-                    String token = ((HttpServletRequest) req).getHeader("Token");
-//                    System.out.println(token);
-                    if (StringUtils.isNotEmpty(token)){
-                        Users user = authDao.findUserByToken(token);
-                        if (user != null){
-                            jsStr.put("user", JSONObject.toJSONString(user));
-                        }
-                    }
-//                    if(jsStr.containsKey("userName")){
-//                        jsStr.put("userName", "对用户名进行解密");
+//            if (contentType != null && contentType.equals(MediaType.APPLICATION_JSON_VALUE)) {
+//                Map<String, String[]> parameterMap = request.getParameterMap();
+//                String s = Arrays.toString(parameterMap.get("s"));
+//                if (StringUtils.isNotEmpty(s)){
+//                    s = s.replaceAll("\\[","").replaceAll("\\]","");
+//                    s = new String(Base64.getDecoder().decode(s), StandardCharsets.UTF_8);
+////                    parameterMap = JSONObject.parseObject(s, Map.class);
+//                    parameterMap = (Map<String, String[]>) JSON.parse(s);
+//                }
+////                System.out.println(parameterMap);
+//                //获取request的body参数
+//                String postContent = getBody(request);
+//                //如果body中存在数据放入HttpServletRequest
+//                if (StringUtils.isNotEmpty(postContent)) {
+//                    //修改、新增、删除参数
+//                    JSONObject jsStr = JSONObject.parseObject(postContent);
+//                    String token = ((HttpServletRequest) req).getHeader("Token");
+////                    System.out.println(token);
+//                    if (StringUtils.isNotEmpty(token)){
+//                        Users user = authDao.findUserByToken(token);
+//                        if (user != null){
+//                            jsStr.put("user", JSONObject.toJSONString(user));
+//                        }
 //                    }
-                    postContent = jsStr.toJSONString();
-                    //将参数放入重写的方法中
-                    request = new BodyRequestWrapper(request, postContent);
-                }
-            }
-            //form表单形式
-            if (contentType != null && (contentType.equals(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-                    || contentType.contains(MediaType.MULTIPART_FORM_DATA_VALUE))
-                    && !request.getParameterMap().isEmpty()) {
-                //修改、新增、删除参数
-                Map<String, String[]> parameterMap = request.getParameterMap();
-                String s = Arrays.toString(parameterMap.get("s"));
-                if (StringUtils.isNotEmpty(s)){
-                    s = s.replaceAll("\\[","").replaceAll("\\]","");
-                    s = new String(Base64.getDecoder().decode(s), StandardCharsets.UTF_8);
-//                    parameterMap = JSONObject.parseObject(s, Map.class);
-                    parameterMap = (Map<String, String[]>) JSON.parse(s);
-                }
-//                System.out.println(parameterMap);
-                //对请求参数进行处理
-                String token = ((HttpServletRequest) req).getHeader("Token");
-                ParameterRequestWrapper wrapper = new ParameterRequestWrapper(request,parameterMap);
-
-                if (StringUtils.isNotEmpty(token)){
-                    Users user = authDao.findUserByToken(token);
-                    if (user != null){
-                        wrapper.addParameter("user", JSONObject.toJSONString(user));
-                    }
-                }
-                request = wrapper;
-            }
+////                    if(jsStr.containsKey("userName")){
+////                        jsStr.put("userName", "对用户名进行解密");
+////                    }
+//                    postContent = jsStr.toJSONString();
+//                    //将参数放入重写的方法中
+//                    request = new BodyRequestWrapper(request, postContent);
+//                }
+//            }
+//            //form表单形式
+//            if (contentType != null && (contentType.equals(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+//                    || contentType.contains(MediaType.MULTIPART_FORM_DATA_VALUE))
+//                    && !request.getParameterMap().isEmpty()) {
+//                //修改、新增、删除参数
+//                Map<String, String[]> parameterMap = request.getParameterMap();
+//                String s = Arrays.toString(parameterMap.get("s"));
+//                if (StringUtils.isNotEmpty(s)){
+//                    s = s.replaceAll("\\[","").replaceAll("\\]","");
+//                    s = new String(Base64.getDecoder().decode(s), StandardCharsets.UTF_8);
+////                    parameterMap = JSONObject.parseObject(s, Map.class);
+//                    parameterMap = (Map<String, String[]>) JSON.parse(s);
+//                }
+////                System.out.println(parameterMap);
+//                //对请求参数进行处理
+//                String token = ((HttpServletRequest) req).getHeader("Token");
+//                ParameterRequestWrapper wrapper = new ParameterRequestWrapper(request,parameterMap);
+//
+//                if (StringUtils.isNotEmpty(token)){
+//                    Users user = authDao.findUserByToken(token);
+//                    if (user != null){
+//                        wrapper.addParameter("user", JSONObject.toJSONString(user));
+//                    }
+//                }
+//                request = wrapper;
+//            }
             if (request.getMethod().equals("GET")){
 //                //对请求参数进行处理
                 Map<String, String[]> parameterMap =new HashMap(request.getParameterMap());
