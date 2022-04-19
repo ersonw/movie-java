@@ -31,6 +31,14 @@ public interface VideosDao extends JpaRepository<Videos, Integer>, CrudRepositor
     long countAllByActor(long actor);
     long countAllByUidAndStatus(long uid, int status);
     Page<Videos> findAllByUidAndStatus(long uid, int status, Pageable pageable);
+    @Query(value = "select * from videos where status =1 and diamond > 0 ", nativeQuery = true)
+    Page<Videos> findByDiamonds(Pageable pageable);
+    @Query(value = "select * from videos where status =1 and diamond > 0 and vod_class = :cid ", nativeQuery = true)
+    Page<Videos> findByDiamonds(long cid,Pageable pageable);
+    @Query(value = "SELECT *,((SELECT COUNT(*) FROM video_play vp WHERE vp.vid=id)+play)AS c  FROM videos WHERE status=1 and vod_class=:cid and diamond > 0 ORDER BY c DESC", nativeQuery = true)
+    Page<Videos> findByDiamondsHot(long cid,Pageable pageable);
+    @Query(value = "SELECT *,((SELECT COUNT(*) FROM video_play vp WHERE vp.vid=id)+play)AS c  FROM videos WHERE status=1 and diamond > 0 ORDER BY c DESC", nativeQuery = true)
+    Page<Videos> findByDiamondsHot(Pageable pageable);
     @Query(value = "select * from videos where status =1 and (title like %:sTitle% or title like %:tTitle%) ", nativeQuery = true)
     Page<Videos> findByAv(String sTitle, String tTitle, Pageable pageable);
     @Query(value = "select * from videos where status =1 and (title like %:sTitle% or title like %:tTitle%) ", nativeQuery = true)

@@ -80,6 +80,12 @@ public class ApiControl {
         data.setData(waLiService.getGames());
         return data;
     }
+    @GetMapping("/getTrumpets")
+    public ResultData getTrumpets(){
+        ResultData data = new ResultData();
+        data.setData(waLiService.getTrumpets());
+        return data;
+    }
     @GetMapping("/featureds")
     public ResultData featureds(){
         ResultData data = new ResultData();
@@ -132,6 +138,12 @@ public class ApiControl {
     public ResultData vipVideoLists(@ModelAttribute RequestData requestData){
         ResultData data = new ResultData();
         data.setData(videosService.vipVideoLists(requestData.getData()));
+        return data;
+    }
+    @GetMapping("/diamondVideoLists")
+    public ResultData diamondVideoLists(@ModelAttribute RequestData requestData){
+        ResultData data = new ResultData();
+        data.setData(videosService.diamondVideoLists(requestData.getData()));
         return data;
     }
     @GetMapping("/PopularList")

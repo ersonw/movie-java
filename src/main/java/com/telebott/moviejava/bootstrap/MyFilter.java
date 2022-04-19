@@ -45,7 +45,7 @@ public class MyFilter implements Filter {
             HttpServletRequest request = (HttpServletRequest) req;
             String contentType = request.getContentType();
             ObjectMapper mapper = new ObjectMapper();
-            System.out.println(request.getRequestURI());
+            System.out.println(request.getRequestURI()+(request.getQueryString() != null ? "?"+request.getQueryString() : ""));
             //body形式（json）
 //            System.out.println(request.getMethod());
             if (contentType != null && contentType.equals(MediaType.APPLICATION_JSON_VALUE)) {

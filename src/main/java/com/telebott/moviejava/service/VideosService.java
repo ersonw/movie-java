@@ -392,6 +392,8 @@ public class VideosService {
                             info.put("du", Long.parseLong(du));
                         }
                         if (user.getExpireds() > System.currentTimeMillis()) {
+                            info.put("member", true);
+                        }
                             String less = systemConfigService.getValueByKey("VipLess");
                             if (StringUtils.isNotEmpty(less)){
 //                            Double l = (videos.getDiamond() * (Long.parseLong(less) / 100d));
@@ -399,7 +401,6 @@ public class VideosService {
                                 System.out.println(l);
                                 info.put("less", l.longValue());
                             }
-                        }
 //                        info.put("playUrl", "");
                         info.put("downloadUrl", "");
                         object.put("verify", false);
@@ -1472,6 +1473,56 @@ public class VideosService {
                     }
                 }
                 object.put("total", total / 20);
+            }
+            array = getVideoList(videosList);
+        }
+        object.put("list",array);
+        return object;
+    }
+    public JSONObject diamondVideoLists(String d) {
+        JSONObject data = JSONObject.parseObject(d);
+        JSONObject object = new JSONObject();
+        JSONArray array = new JSONArray();
+        int page = 1;
+        int type = 0;
+        long tagId = 0;
+        if (data != null){
+            if (data.get("page") != null) page = Integer.parseInt(data.get("page").toString());
+            if (data.get("type") != null) type = Integer.parseInt(data.get("type").toString());
+            if (data.get("tag") != null) tagId = Long.parseLong(data.get("tag").toString());
+            if (page < 1) page=1;
+            page--;
+            List<Videos> videosList = new ArrayList<>();
+            if (type == 0){
+                Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
+                Page<Videos> videosPage;
+                if (tagId > 0){
+                    VideoCategory category = videoCategoryDao.findAllById(tagId);
+                    if (category != null){
+                        videosPage = videosDao.findByDiamonds(category.getId(), pageable);
+                    }else {
+                        videosPage = videosDao.findByDiamonds(pageable);
+                    }
+                }else {
+                    videosPage = videosDao.findByDiamonds(pageable);
+                }
+                object.put("total",videosPage.getTotalPages());
+                videosList = videosPage.getContent();
+            }else {
+                Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "id"));
+                Page<Videos> videosPage;
+                if (tagId > 0){
+                    VideoCategory category = videoCategoryDao.findAllById(tagId);
+                    if (category != null){
+                        videosPage = videosDao.findByDiamondsHot(category.getId(),pageable);
+                    }else {
+                        videosPage = videosDao.findByDiamondsHot(pageable);
+                    }
+                }else {
+                    videosPage = videosDao.findByDiamondsHot(pageable);
+                }
+                object.put("total", videosPage.getTotalPages());
+                videosList = videosPage.getContent();
             }
             array = getVideoList(videosList);
         }

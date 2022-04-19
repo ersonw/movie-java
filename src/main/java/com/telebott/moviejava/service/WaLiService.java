@@ -2,9 +2,8 @@ package com.telebott.moviejava.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.telebott.moviejava.dao.WaLiConfigDao;
-import com.telebott.moviejava.dao.WaLiGamesDao;
-import com.telebott.moviejava.dao.WaliGameRecordsDao;
+import com.telebott.moviejava.dao.*;
+import com.telebott.moviejava.entity.Marquee;
 import com.telebott.moviejava.entity.Users;
 import com.telebott.moviejava.entity.WaLiGames;
 import com.telebott.moviejava.entity.WaliGameRecords;
@@ -21,6 +20,12 @@ public class WaLiService {
     private WaLiGamesDao waLiGamesDao;
     @Autowired
     private WaliGameRecordsDao waliGameRecordsDao;
+    @Autowired
+    private UsersDao usersDao;
+    @Autowired
+    private AuthDao authDao;
+    @Autowired
+    private MarqueeDao  marqueeDao;
 
     public JSONObject getGames() {
         JSONObject object = new JSONObject();
@@ -52,6 +57,20 @@ public class WaLiService {
                     array.add(jsonObject);
                 }
             }
+        }
+        object.put("list",array);
+        return object;
+    }
+    //获取 Marquee 所有字段
+    public JSONObject getTrumpets() {
+        JSONObject object = new JSONObject();
+        List<Marquee> marqueeList = marqueeDao.findAll();
+        JSONArray array = new JSONArray();
+        for (Marquee marquee : marqueeList) {
+            JSONObject json = new JSONObject();
+            json.put("id",marquee.getId());
+            json.put("text",marquee.getText());
+            array.add(json);
         }
         object.put("list",array);
         return object;
