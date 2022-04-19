@@ -37,12 +37,13 @@ public class CommodityVipOrderService {
     }
     public JSONObject _crateOrder(Users user, String id){
         JSONObject object = new JSONObject();
-        List<CommodityVipOrder> orderList = commodityVipOrderDao.findAllByUidAndStatus(user.getId(),0);
+//        List<CommodityVipOrder> orderList = commodityVipOrderDao.findAllByUidAndStatus(user.getId(),0);
         CommodityVip commodityVip = commodityVipDao.findAllById(Long.parseLong(id));
-        if (orderList.size() > 0){
-            object.put("crate", false);
-            object.put("id",orderList.get(0).getOrderId());
-        }else if (commodityVip != null){
+//        if (orderList.size() > 0){
+//            object.put("crate", false);
+//            object.put("id",orderList.get(0).getOrderId());
+//        }else
+        if (commodityVip != null){
             long time = System.currentTimeMillis();
             CommodityVipOrder order = new CommodityVipOrder();
             order.setUid(user.getId());
@@ -54,6 +55,8 @@ public class CommodityVipOrderService {
             commodityVipOrderDao.saveAndFlush(order);
             object.put("crate", true);
             object.put("id",order.getOrderId());
+        }else {
+            object.put("msg", "商品已被下架");
         }
         return object;
     }

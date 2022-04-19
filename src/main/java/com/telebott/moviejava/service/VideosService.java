@@ -228,6 +228,7 @@ public class VideosService {
             if (objectData.get("page") != null && StringUtils.isNotEmpty(objectData.get("page").toString()))
                 page = Integer.parseInt(objectData.get("page").toString());
             page--;
+            if (page < 0) page=0;
             Page<Videos> videosPage;
             String sTitle = ZhConverterUtil.convertToSimple(objectData.get("text").toString());
             String tTitle = ZhConverterUtil.convertToTraditional(objectData.get("text").toString());
