@@ -604,9 +604,6 @@ public class UserControl {
 //        return data;
 //    }
     private String getToken(){
-//        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-//        HttpSession session = request.getSession();
-//        return session.getId().replaceAll("-","");
         UUID uuid = UUID.randomUUID();
         return uuid.toString().replaceAll("-","")+System.currentTimeMillis();
     }

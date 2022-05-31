@@ -151,6 +151,15 @@ public class UserService {
         }
         return object;
     }
+    public long getBalance(long uid) {
+        long amount = balanceOrdersDao.countAllByUidAndStatus(uid,1);
+        if (amount > 0){
+            amount = balanceOrdersDao.countAllByBalance(uid);
+        }else {
+            amount = 0;
+        }
+        return amount;
+    }
     public long getDiamond(Users user) {
         long amount = diamondRecordsDao.countAllByUidAndStatus(user.getId(),1);
         if (amount > 0){

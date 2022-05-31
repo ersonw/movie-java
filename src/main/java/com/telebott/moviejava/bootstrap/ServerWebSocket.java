@@ -66,6 +66,7 @@ public class ServerWebSocket {
 //        System.out.println("websocket 加载");
         self = this;
         SmsBaoUtil.init(self.smsBaoService,self.smsRecordsDao);
+        WebsocketClient.init();
     }
 
     /**
@@ -99,6 +100,7 @@ public class ServerWebSocket {
             }
         }, 1000, 1000 * 10);
         System.out.println(" 当前实时在线人数" + onlineNumber);
+        WebsocketClient.sendOnline(onlineNumber);
     }
 
     /**
@@ -110,6 +112,7 @@ public class ServerWebSocket {
         webSockets.remove(this);
         timer.cancel();
 //        System.out.println("有连接关闭！ 当前在线人数" + onlineNumber);
+        WebsocketClient.sendOnline(onlineNumber);
         if (this.user != null){
             System.out.println("用户"+this.user.getNickname()+" Websocket 已经离线! 用户ID："+this.user.getId());
         }
@@ -159,36 +162,6 @@ public class ServerWebSocket {
         WebSocketData msg = new  WebSocketData();
         msg.setCode(WebSocketUtil.user_change_passwoed_fail);
         msg.setMessage("新版本已发布，旧版本接口不再适用哟！请到官网下载最新版本 ");
-//        if (user == null){
-//            msg.setMessage("用户未登陆！");
-//        }else if(data.get("new") == null || Objects.equals(data.get("new").toString(), "")){
-//            msg.setMessage("新密码不可为空!");
-//        }else if (data.get("old") == null || Objects.equals(data.get("old").toString(), "")){
-//            if (StringUtils.isNotEmpty(user.getPassword())) {
-//                msg.setMessage("原密码已设置但未提交验证！");
-//            }else {
-//                user.setSalt(self.userService._getSalt());
-//                MD5Util md5Util = new MD5Util(user.getSalt());
-//                user.setPassword(md5Util.getPassWord(data.get("new").toString()));
-//                self.userService._saveAndPush(user);
-//                msg.setMessage("");
-//                msg.setCode(WebSocketUtil.user_change_passwoed_success);
-//            }
-//        }else {
-//            MD5Util md5Util = new MD5Util(user.getSalt());
-//            String old = md5Util.getPassWord(data.get("old").toString());
-//            String _new = md5Util.getPassWord(data.get("new").toString());
-//            if (old.equals(_new)){
-//                msg.setMessage("新旧密码相同！");
-//            }else if (old.equals(user.getPassword())){
-//                user.setPassword(_new);
-//                self.userService._saveAndPush(user);
-//                msg.setMessage("");
-//                msg.setCode(WebSocketUtil.user_change_passwoed_success);
-//            }else{
-//                msg.setMessage("原密码不正确！");
-//            }
-//        }
         sendMessage(msg);
     }
 
@@ -196,15 +169,6 @@ public class ServerWebSocket {
         WebSocketData data = new WebSocketData();
         data.setCode(WebSocketUtil.user_change_fail);
         data.setMessage("新版本已发布，旧版本接口不再适用哟！请到官网下载最新版本 ");
-//        if (StringUtils.isEmpty(object.getString("phone")) && StringUtils.isEmpty(object.getString("email")) ){
-//            data.setMessage("游客不允许修改账号信息");
-//        }else{
-//            Users _user = self.userService._change(object);
-//            if (_user != null) {
-//                data.setCode(WebSocketUtil.user_change_success);
-//                data.setMessage("");
-//            }
-//        }
         sendMessage(data);
     }
 
@@ -213,21 +177,6 @@ public class ServerWebSocket {
         KeFuMessage message = JSONObject.toJavaObject(object, KeFuMessage.class);
         String id = message.getId();
         data.setMessage("新版本已发布，旧版本接口不再适用哟！请到官网下载最新版本 ");
-//        if (user == null || user.getId() == 0) {
-//            message = new KeFuMessage();
-//            message.setId(id);
-//            data.setCode(WebSocketUtil.message_kefu_send_fail);
-//            data.setMessage("未绑定手机号或未注册用户部分功能受限！");
-//            data.setData(JSONObject.toJSONString(message));
-//            sendMessage(data);
-//            return;
-//        }
-//        message.setUid(user.getId());
-//        self.redisDao.putKeFuMessage(message);
-//        message = new KeFuMessage();
-//        message.setId(id);
-//        data.setCode(WebSocketUtil.message_kefu_send_success);
-//        data.setData(JSONObject.toJSONString(message));
         sendMessage(data);
     }
 

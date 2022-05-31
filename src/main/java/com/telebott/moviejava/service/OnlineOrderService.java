@@ -177,7 +177,7 @@ public class OnlineOrderService {
             return object;
         }
         if (onlinePay.getType() == 0){
-            long balance = balanceOrdersDao.countAllByBalance(user.getId());
+            long balance = userService.getBalance(user.getId());
             if (order.getAmount() < balance){
                 BalanceOrders balanceOrders = new BalanceOrders();
                 balanceOrders.setAmount(-order.getAmount());
